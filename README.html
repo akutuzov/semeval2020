@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+	"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+<title>README.html</title>
+
+</head>
+
+<body>
+
+<h1>Starting kit</h1>
+
+<p>Starting kit for <a href="https://languagechange.org/semeval/">SemEval 2020 Task 1: Unsupervised Lexical Semantic Change Detection</a>.</p>
+
+<p>The code draws from the <a href="https://github.com/Garrafao/LSCDetection">LSCDetection repository</a>.</p>
+
+<h3>Code</h3>
+
+<p>Under <code>code/</code> we provide an implementation of the two baselines for the shared task:</p>
+
+<ol>
+<li>normalized frequency difference (FD)</li>
+<li>count vectors with column intersection and cosine distance (CNT+CI+CD)</li>
+</ol>
+
+<p>FD first calculates the frequency for each target word in each of the two corpora, normalizes it by the total corpus frequency and then calculates the absolute difference in these values as a measure of change. CNT+CI+CD first learns vector representations for each of the two corpora, then aligns them by intersecting their columns and measures change by cosine distance between the two vectors for a target word. Find more information on these models in <a href="#references">this paper</a>.</p>
+
+<p>The script <code>run.sh</code> will run FD and CNT+CI+CD on the <a href="#markdown-header-trial-data">trial data</a>. For this, assuming you are working on a UNIX-based system, first make the script executable with</p>
+
+<pre><code>chmod 755 run.sh
+</code></pre>
+
+<p>Then execute</p>
+
+<pre><code>bash -e run.sh
+</code></pre>
+
+<p>The script will unzip the data, iterate over corpora of each language, learn matrices, store them under <code>matrices/</code> and write the results for the trial targets under <code>results/</code>. It will also produce answer files for task 1 and 2 in the required submission format from the results and store them under <code>results/</code>. It does this in the following way: FD and CNT+CI+CD predict change values for the target words. These values provide the ranking for task 2. Then, target words are assigned into two classes depending on whether their predicted change values exceed a specified threshold or not. If the script throws errors, you might need to install Python dependencies: <code>pip3 install -r requirements.txt</code>.</p>
+
+<h3>Trial Data <a name="markdown-header-trial-data"></a></h3>
+
+<p>We provide trial data in <code>trial_data_public.zip</code>. For each language, it contains:</p>
+
+<ul>
+<li>trial target words for which predictions can be submitted in the practice phase (<code>targets/</code>)</li>
+<li>the true classification of the trial target words for task 1 in the practice phase, i.e., the file against which submissions will be scored in the practice phase (<code>truth/task1/</code>)</li>
+<li>the true ranking of the trial target words for task 2 in the practice phase (<code>truth/task2/</code>)</li>
+<li>a sample submission for the trial target words in the above-specified format (<code>answer.zip/</code>)</li>
+<li>two trial corpora from which you may predict change scores for the trial target words (<code>corpora/</code>)</li>
+</ul>
+
+<p><strong>Important</strong>: The scores in <code>truth/task1/</code> and <code>truth/task2/</code> are not meaningful as they were randomly assigned.</p>
+
+<p>You can start by uploading the zipped answer folder to the system to check the submission and evaluation format. Find more information on the submission format on <a href="https://languagechange.org/semeval/">the shared task website</a>.</p>
+
+<h4>Trial Corpora</h4>
+
+<p>The trial corpora under <code>corpora/</code> are gzipped samples from the corpora that will be used in the evaluation phase. For each language two time-specific corpora are provided. Participants are required to predict the lexical semantic change of the target words between these two corpora. Each line contains one sentence and has the form</p>
+
+<pre><code>lemma1 lemma2 lemma3...
+</code></pre>
+
+<p>Sentences have been randomly shuffled. The corpora have the same format as the ones which will be used in the evaluation phase. Find more information about the corpora on <a href="https://languagechange.org/semeval/">the shared task website</a>.</p>
+
+<h2>References <a name="references"></a></h2>
+
+<p>Dominik Schlechtweg, Anna Hätty, Marco del Tredici, and Sabine Schulte im Walde. 2019. <a href="https://www.aclweb.org/anthology/papers/P/P19/P19-1072/">A Wind of Change: Detecting and Evaluating Lexical Semantic Change across Times and Domains</a>. In Proceedings of the 57th Annual Meeting of the Association for Computational Linguistics (Volume 1: Long Papers), Florence, Italy. ACL.</p>
+
+</body>
+</html>
