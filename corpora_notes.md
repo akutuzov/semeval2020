@@ -1,5 +1,5 @@
 # Diachronic corpora
-For each language, **two** time-specific corpora are provided for evaluation. 
+For each language, **two** time-specific corpora are provided for evaluation, corresponding to two periods under scrutiny (t1, t2). 
 Participants are required to predict the lexical semantic change of the target words between these two corpora.
 
 #### Format of SemEval corpora
