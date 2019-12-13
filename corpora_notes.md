@@ -2,7 +2,7 @@
 For each language, **two** time-specific corpora are provided for evaluation. 
 Participants are required to predict the lexical semantic change of the target words between these two corpora.
 
-### Format of SemEval corpora
+#### Format of SemEval corpora
 - Sentences have been randomly shuffled within each corpus. 
 - Each line in the distributed corpora contains one sentence. 
 - All tokens are **lemmatized**. Lemmas are not lower-cased.
@@ -10,7 +10,7 @@ Participants are required to predict the lexical semantic change of the target w
 - **Empty** (and one-word) **sentences** have been removed.
 - Further preprocessing will be applied to the corpora, e.g. deleting **low-frequency words**.
 
-## English
+### English
 t1: 1810-1860 \
 t2: 1960-2010
 
@@ -30,7 +30,7 @@ t2: 1960-2010
 - more genre-specific corpora: https://www.english-corpora.org
 
 
-## German
+### German
 t1: 1810-1860 \
 t2: 1946-1990
 
@@ -48,7 +48,7 @@ t2: 1946-1990
   - http://zefys.staatsbibliothek-berlin.de/index.php?id=156
 
 
-## Swedish
+### Swedish
 t1: 1800-1830 \
 t2: 1900-1925
 
@@ -61,7 +61,7 @@ t2: 1900-1925
   - https://tinyurl.com/swedish-sub-corpus
     
     
-## Latin
+### Latin
 t1: 200BC-0 \
 t2: 0-2000
 
@@ -73,12 +73,12 @@ t2: 0-2000
 
 # Annotated test sets
 
-## English
+### English
 - Gulordava & Baroni (2011)
   - 100 words (not lemmatized, e.g. both *woman* and *women* are included)
   - https://www.aclweb.org/anthology/W11-2508/
 
-## German 
+### German 
 - DuRel (Schlechtweg et al., 2018)
   - 22 words
   - https://www.aclweb.org/anthology/N18-2027/
