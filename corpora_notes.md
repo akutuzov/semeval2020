@@ -17,6 +17,18 @@ t2: 1960-2010
 - **COHA** (Davies, 2002) 
   - period: 1810-2010
   - size: 400M tokens
+  - https://www.english-corpora.org/coha/
+- **Hansard** 
+  - period: 1803-2005
+  - size: 1.6B tokens
+  - lemmatised
+  - https://www.english-corpora.org/hansard/
+- **COHA** (Davies, 2000) 
+  - period: 1990-2017
+  - size: 570M tokens
+  - https://www.english-corpora.org/coca/
+- more genre-specific corpora: https://www.english-corpora.org
+
 
 ## German
 t1: 1810-1860 \
@@ -25,9 +37,15 @@ t2: 1946-1990
 - **DTA** (Deutsches Textarchiv, 2017)
   - period: 1600-1900
   - size: 370M tokens
-- **BZ + ND** (Berliner Zeitung, 2018; Neues Deutschland, 2018)
+  - http://www.deutschestextarchiv.de/
+- **BZ** (Berliner Zeitung, 2018)
   - period: 1945-1990
-  - size: 340K newspaper pages
+  - size: 168K newspaper pages
+  - http://zefys.staatsbibliothek-berlin.de/index.php?id=155
+- **ND** (Neues Deutschland, 2018)
+  - period: 1946-1990
+  - size: 168K newspaper pages
+  - http://zefys.staatsbibliothek-berlin.de/index.php?id=156
 
 
 ## Swedish
@@ -35,8 +53,13 @@ t1: 1800-1830 \
 t2: 1900-1925
 
 - **KubHist** 
-    - period: 1645–1926
-    - size: 1.1B tokens (soon 6.6B)
+  - period: 1645–1926
+  - size: 1.1B tokens (soon 6.6B)
+- **The Swedish Sub-corpus of the Newspaper and Periodical Corpus**
+  - period: 1770-1950
+  - size: 3.5B tokens
+  - https://tinyurl.com/swedish-sub-corpus
+    
     
 ## Latin
 t1: 200BC-0 \
@@ -45,16 +68,18 @@ t2: 0-2000
 - **LatinISE** (McGillivray & Kilgarriff, 2013)
   - period: 2nd century BC - 21st century AD
   - size: 13M tokens
+  - https://lindat.mff.cuni.cz/repository/xmlui/handle/11234/1-2506
 
 
-----
-<h4>References</h4>
-<ul>
-<li>Yvonne Adesam, Dana Dannells, and Nina Tahmasebi. <a href="http://ceur-ws.org/Vol-2364/1_paper.pdf">Exploring the Quality of the Digital Historical Newspaper Archive KubHist</a>. In Proceedings of the Digital Humanities in the Nordic Countries 4th Conference, DHN 2019, Copenhagen, Denmark, March 7-9, 2019.</li>
-<li>Berliner Zeitung. Diachronic newspaper corpus published by Staatsbibliothek zu Berlin [<a href="http://zefys.staatsbibliothek-berlin.de/index.php?id=155">online</a>]. 2018.</li>
-<li>Lars Borin, Markus Forsberg and Johan Roxendal. 2012. <a href="https://www.aclweb.org/anthology/papers/L/L12/L12-1098/">Korp &ndash; the corpus infrastructure of Spr&aring;kbanken</a>. Proceedings of LREC 2012. Istanbul: ELRA, pages 474&ndash;478.</li>
-<li>Mark Davies. 2002. <a href="https://www.english-corpora.org/coha/">The Corpus of Historical American English (COHA)</a>: 400 million words, 1810-2009. Brigham Young University.</li>
-<li>Deutsches Textarchiv. Grundlage f&uuml;r ein Referenzkorpus der neuhochdeutschen Sprache. Herausgegeben von der Berlin-Brandenburgischen Akademie der Wissenschaften [<a href="http://www.deutschestextarchiv.de/">online</a>]. 2017.</li>
-<li>Barbara McGillivray and Adam Kilgarriff. 2013. <a href="https://lindat.mff.cuni.cz/repository/xmlui/handle/11234/1-2506">Tools for historical corpus research, and a corpus of Latin</a>. In Paul Bennett, Martin Durrell, Silke Scheible, Silke and Richard J. Whitt (eds.), New Methods in Historical Corpus Linguistics, T&uuml;bingen. Narr.</li>
-<li>Neues Deutschland. Diachronic newspaper corpus published by Staatsbibliothek zu Berlin [<a href="http://zefys.staatsbibliothek-berlin.de/index.php?id=156">online</a>]. 2018.</li>
-</ul>
+# Annotated test sets
+
+## English
+- Gulordava & Baroni (2011)
+  - 100 words (not lemmatized, e.g. both *woman* and *women* are included)
+  - https://www.aclweb.org/anthology/W11-2508/
+
+## German 
+- DuRel (Schlechtweg et al., 2018)
+  - 22 words
+  - https://www.aclweb.org/anthology/N18-2027/
+  
