@@ -83,3 +83,12 @@ t2: 0-2000
   - 22 words
   - https://www.aclweb.org/anthology/N18-2027/
   
+### Russian
+- [Macro](https://github.com/wadimiusz/diachrony_for_russian/blob/master/datasets/macro.csv), Fomin et al (2019)
+ - 216 nouns and adjectives
+ - period: pre-1917 and 1917-1991
+- [Micro](https://github.com/wadimiusz/diachrony_for_russian/blob/master/datasets/micro.csv), Fomin et al (2019)
+ - 280 adjectives
+ - period: 2000-2014
+ 
+  
