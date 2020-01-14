@@ -1,3 +1,8 @@
 # packages to install:
 docopt==0.6.2
 gensim==3.7.1
+tqdm
+transformers
+torch
+numpy
+scipy
