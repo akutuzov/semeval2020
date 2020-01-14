@@ -1,0 +1,1 @@
+bert-base-cased 13 768
