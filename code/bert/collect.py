@@ -7,6 +7,7 @@ from docopt import docopt
 import logging
 import time
 
+from tqdm import tqdm
 from transformers import AutoTokenizer, AutoModel
 
 
@@ -121,7 +122,7 @@ def main():
     # Iterate over sentences and collect representations
     nTokens = 0
     nUsages = 0
-    for s_id, sentence in enumerate(sentences):
+    for s_id, sentence in enumerate(tqdm(sentences, total=nSentences)):
         token_ids = tokenizer.encode(sentence)
 
         for spos, tok_id in enumerate(token_ids):
