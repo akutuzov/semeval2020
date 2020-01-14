@@ -90,7 +90,6 @@ def main():
 
     # Store vocabulary indices of target words
     i2w = {}
-    UNK_id = tokenizer.encode('[UNK]')[0]
     for t, t_id in zip(targets, tokenizer.encode(' '.join(targets))):
         if t_id == UNK_id:
             tokenizer.add_tokens([t])
