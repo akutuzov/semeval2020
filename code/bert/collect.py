@@ -79,6 +79,11 @@ def main():
     if torch.cuda.is_available():
         model.to('cuda')
 
+    # Get vocab indices of special tokens
+    UNK_id = tokenizer.encode('[UNK]')[0]
+    CLS_id = tokenizer.encode('[CLS]')[0]
+    SEP_id = tokenizer.encode('[SEP]')[0]
+
     # Load targets
     with open(testSet, 'r', encoding='utf-8') as f_in:
         targets = [line.strip() for line in f_in]
@@ -129,7 +134,7 @@ def main():
                 context_ids, pos_in_context = get_context(token_ids, spos, contextSize)
 
                 # add special tokens: [CLS] and [SEP]
-                input_ids = [101] + context_ids + [102]
+                input_ids = [CLS_id] + context_ids + [SEP_id]
 
                 # add usage info to buffers
                 batch_input_ids.append(input_ids)
