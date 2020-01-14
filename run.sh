@@ -18,8 +18,8 @@ do
     ### Baseline 1: Normalized Frequency Difference (FD) ###
     
     # Get normalized (-n) frequencies for both corpora
-    python3 code/freq.py -n trial_data_public/corpora/$language/corpus1 trial_data_public/targets/$language.txt results/$language/freq_corpus1.csv
-    python3 code/freq.py -n trial_data_public/corpora/$language/corpus2 trial_data_public/targets/$language.txt results/$language/freq_corpus2.csv
+    python3 code/freq.py trial_data_public/corpora/$language/corpus1 trial_data_public/targets/$language.txt results/$language/freq_corpus1.csv
+    python3 code/freq.py trial_data_public/corpora/$language/corpus2 trial_data_public/targets/$language.txt results/$language/freq_corpus2.csv
 
     # Subtract frequencies and store absolute (-a) difference
     python3 code/diff.py -a trial_data_public/targets/$language.txt results/$language/freq_corpus1.csv results/$language/freq_corpus2.csv results/$language/fd.csv

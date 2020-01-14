@@ -7,7 +7,7 @@ Under `code/bert` we implement lexical semantic change detection using BERT repr
 1. `collect.py`: collection of contextualised representations
 2. `distance.py` or `relatedness.py`: quantification of semantic change
 
-First, we collect all contextualised representations for the target lemmas. Then we measure the degree of change 
+First, we collect all contextualised representations for the target lemmas (`collect.py`). Then, we measure the degree of change 
 undergone by a lemma in terms of the geometric properties of its representations. For the latter step, we can either 
 (1) calculate the mean pairwise distance between sets of representations collected across two time intervals 
 (`distance.py`), or (2) calculate the diachronic difference in mean relatedness (`relatedness.py`).
