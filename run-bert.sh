@@ -24,4 +24,21 @@ do
     # Compute diachronic difference in mean relatedness
     python3 code/bert/relatedness.py trial_data_public/targets/$language.txt matrices/$language/bert_corpus1.dict matrices/$language/bert_corpus2.dict results/$language/bert_mean_rel_diff.csv
 
+    # Classify results into two classes according to threshold
+    python3 code/class.py results/$language/bert_avg_pw_dist.csv results/$language/bert_avg_pw_dist_classes.csv 0.1
+    python3 code/class.py results/$language/bert_mean_rel_diff.csv results/$language/bert_mean_rel_diff_classes.csv 0.0
+
+
+    ### Make answer files for submission ###
+
+    # average pairwise distance
+    mkdir -p results/answer/task2/ && cp results/$language/bert_avg_pw_dist.csv results/answer/task2/$language.txt
+    mkdir -p results/answer/task1/ && cp results/$language/bert_avg_pw_dist_classes.csv results/answer/task1/$language.txt
+    cd results/ && zip -r answer_bert_avg_pw_dist.zip answer/ && rm -r answer/ && cd ..
+
+    # difference in mean relatedness
+    mkdir -p results/answer/task2/ && cp results/$language/bert_mean_rel_diff.csv results/answer/task2/$language.txt
+    mkdir -p results/answer/task1/ && cp results/$language/bert_mean_rel_diff_classes.csv results/answer/task1/$language.txt
+    cd results/ && zip -r answer_bert_mean_rel_diff.zip answer/ && rm -r answer/ && cd ..
+
 done

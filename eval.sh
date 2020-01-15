@@ -20,4 +20,14 @@ do
     python3 code/eval.py answer/task1/$language.txt answer/task2/$language.txt $true_answers1_path $true_answers2_path
     rm -r answer/
 
+    echo "Average Pairwise Distance"
+    unzip -oq results/answer_bert_avg_pw_dist.zip
+    python3 code/eval.py answer/task1/$language.txt answer/task2/$language.txt $true_answers1_path $true_answers2_path
+    rm -r answer/
+
+    echo "Mean Relatedness Difference"
+    unzip -oq results/answer_bert_mean_rel_diff.zip
+    python3 code/eval.py answer/task1/$language.txt answer/task2/$language.txt $true_answers1_path $true_answers2_path
+    rm -r answer/
+
 done
