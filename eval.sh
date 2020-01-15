@@ -1,5 +1,5 @@
 # Unzip trial data
-unzip -o trial_data_public.zip
+unzip -oq trial_data_public.zip
 
 # Iterate over languages
 declare -a languages=(english german latin swedish)
