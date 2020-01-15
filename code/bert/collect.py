@@ -1,5 +1,4 @@
 import pickle
-from collections import defaultdict
 import numpy as np
 import torch
 from gensim.models.word2vec import PathLineSentences
