@@ -124,8 +124,8 @@ def main():
     nUsages = 0
     for s_id, sentence in enumerate(tqdm(sentences, total=nSentences)):
 
-        # token_ids = tokenizer.encode(' '.join(sentence))
-        token_ids = tokenizer.encode(sentence)
+        token_ids = tokenizer.encode(' '.join(sentence))
+        # token_ids = tokenizer.encode(sentence)
 
         for spos, tok_id in enumerate(token_ids):
             nTokens += 1
