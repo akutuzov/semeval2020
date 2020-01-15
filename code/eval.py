@@ -78,8 +78,8 @@ def main():
     acc = eval_task1(modelAnsPath1, trueAnsPath1)
     r, p = eval_task2(modelAnsPath2, trueAnsPath2)
 
-    print('Task 1 Accuracy: {:2f}'.format(acc))
-    print('Task 2 r: {:3f}  p: {:3f}'.format(r, p))
+    print('Task 1 Accuracy: {:.2f}'.format(acc))
+    print('Task 2 r: {:.3f}  p: {:.3f}'.format(r, p))
 
 
 if __name__ == '__main__':
