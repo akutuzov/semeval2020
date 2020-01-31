@@ -68,7 +68,7 @@ def main():
         modelConfig = f_in.readline().split()
         modelName, nLayers, nDims = modelConfig[0], int(modelConfig[1]), int(modelConfig[2])
 
-    logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO)
+    logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.ERROR)
     logging.info(__file__.upper())
     start_time = time.time()
 
