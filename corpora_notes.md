@@ -23,7 +23,7 @@ t2: 1960-2010
   - size: 1.6B tokens
   - lemmatised
   - https://www.english-corpora.org/hansard/
-- **COHA** (Davies, 2000) 
+- **COCA** (Davies, 2000) 
   - period: 1990-2017
   - size: 570M tokens
   - https://www.english-corpora.org/coca/
