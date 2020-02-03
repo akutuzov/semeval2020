@@ -37,11 +37,11 @@ do
     # average pairwise distance
     mkdir -p $project_path/results/answer/task2/ && cp $project_path/results/$language/bert_avg_pw_dist.csv $project_path/results/answer/task2/$language.txt
     mkdir -p $project_path/results/answer/task1/ && cp $project_path/results/$language/bert_avg_pw_dist_classes.csv $project_path/results/answer/task1/$language.txt
-    cd $project_path/results/ && zip -r answer_bert_avg_pw_dist.zip $project_path/answer/ && rm -r $project_path/answer/ && cd $project_path/
+    cd $project_path/results/ && zip -r $project_path/results/answer_bert_avg_pw_dist.zip $project_path/answer/ && rm -r $project_path/answer/ && cd $project_path/
 
     # difference in mean relatedness
     mkdir -p $project_path/results/answer/task2/ && cp $project_path/results/$language/bert_mean_rel_diff.csv $project_path/results/answer/task2/$language.txt
     mkdir -p $project_path/results/answer/task1/ && cp $project_path/results/$language/bert_mean_rel_diff_classes.csv $project_path/results/answer/task1/$language.txt
-    cd $project_path/results/ && zip -r answer_bert_mean_rel_diff.zip $project_path/answer/ && rm -r $project_path/answer/ && cd $project_path/
+    cd $project_path/results/ && zip -r $project_path/results/answer_bert_mean_rel_diff.zip $project_path/answer/ && rm -r $project_path/answer/ && cd $project_path/
 
 done
