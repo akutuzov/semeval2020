@@ -53,14 +53,14 @@ do
     mkdir -p results_eval/$language/
 
     # Collect contextualised representations
-    python3 code/bert/collect.py models/bert/$language/config.txt $data/corpora/$language/corpus1 $data/targets/$language.txt matrices_eval/$language/bert_corpus1.dict
-    python3 code/bert/collect.py models/bert/$language/config.txt $data/corpora/$language/corpus2 $data/targets/$language.txt matrices_eval/$language/bert_corpus2.dict
+    python3 code/bert/collect.py models/bert/$language/config.txt $data/$language/corpus1/lemma $data/$language/targets.txt matrices_eval/$language/bert_corpus1.dict
+    python3 code/bert/collect.py models/bert/$language/config.txt $data/$language/corpus2/lemma $data/$language/targets.txt matrices_eval/$language/bert_corpus2.dict
 
     # Compute diachronic average pairwise distance
-    python3 code/bert/distance.py $data/targets/$language.txt matrices_eval/$language/bert_corpus1.dict matrices_eval/$language/bert_corpus2.dict results_eval/$language/bert_avg_pw_dist.csv
+    python3 code/bert/distance.py $data/$language/targets.txt matrices_eval/$language/bert_corpus1.dict matrices_eval/$language/bert_corpus2.dict results_eval/$language/bert_avg_pw_dist.csv
 
     # Compute diachronic (absolute) difference in mean relatedness
-    python3 code/bert/relatedness.py -a $data/targets/$language.txt matrices_eval/$language/bert_corpus1.dict matrices_eval/$language/bert_corpus2.dict results_eval/$language/bert_mean_rel_diff.csv
+    python3 code/bert/relatedness.py -a $data/$language/targets.txt matrices_eval/$language/bert_corpus1.dict matrices_eval/$language/bert_corpus2.dict results_eval/$language/bert_mean_rel_diff.csv
 
     # Classify results into two classes according to threshold
     python3 code/class.py results_eval/$language/bert_avg_pw_dist.csv results_eval/$language/bert_avg_pw_dist_classes.csv 0.5
