@@ -15,23 +15,23 @@ do
 
 #    echo -e "\nFrequency Difference"
 #    unzip -o $project_path/results/answer_fd.zip
-#    python3 $project_path/code/eval.py $project_path/results/answer/task1/$language.txt $project_path/results/answer/task2/$language.txt $true_answers1_path $true_answers2_path
-#    rm -r $project_path/answer/
+#    python3 $project_path/code/eval.py ${project_path:1}/results/answer/task1/$language.txt ${project_path:1}/results/answer/task2/$language.txt $true_answers1_path $true_answers2_path
+#    rm -r ${project_path:1}/results/answer/
 #
 #    echo -e "\nColumn Intersection + Cosine Distance"
 #    unzip -o $project_path/results/answer_cnt_ci_cd.zip
-#    python3 $project_path/code/eval.py $project_path/results/answer/task1/$language.txt $project_path/results/answer/task2/$language.txt $true_answers1_path $true_answers2_path
-#    rm -r $project_path/answer/
+#    python3 $project_path/code/eval.py ${project_path:1}/results/answer/task1/$language.txt ${project_path:1}/results/answer/task2/$language.txt $true_answers1_path $true_answers2_path
+#    rm -r ${project_path:1}/results/answer/
 
     echo -e "\nAverage Pairwise Distance"
     unzip -o $project_path/results/answer_bert_avg_pw_dist.zip
-    python3 $project_path/code/eval.py $project_path/results/answer/task1/$language.txt $project_path/results/answer/task2/$language.txt $true_answers1_path $true_answers2_path
-    rm -r $project_path/answer/
+    python3 $project_path/code/eval.py ${project_path:1}/results/answer/task1/$language.txt ${project_path:1}/results/answer/task2/$language.txt $true_answers1_path $true_answers2_path
+    rm -r ${project_path:1}/results/answer/
 
     echo -e "\nMean Relatedness Difference"
     unzip -o $project_path/results/answer_bert_mean_rel_diff.zip
-    python3 $project_path/code/eval.py $project_path/results/answer/task1/$language.txt $project_path/results/answer/task2/$language.txt $true_answers1_path $true_answers2_path
-    rm -r $project_path/answer/
+    python3 $project_path/code/eval.py ${project_path:1}/results/answer/task1/$language.txt ${project_path:1}/results/answer/task2/$language.txt $true_answers1_path $true_answers2_path
+    rm -r ${project_path:1}/results/answer/
 
     echo -e "\n"
 
