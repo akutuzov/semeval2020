@@ -1,8 +1,8 @@
-from collections import defaultdict
+from collections import defaultdict, OrderedDict
 from docopt import docopt
 import logging
 import time
-from scipy.sparse import dok_matrix, csr_matrix, save_npz
+from scipy.sparse import dok_matrix
 from utils_ import Space
 from gensim.models.word2vec import PathLineSentences
 
@@ -37,8 +37,8 @@ def main():
     # Build vocabulary
     logging.info("Building vocabulary")
     sentences = PathLineSentences(corpDir)
-    vocabulary = list(set([word for sentence in sentences for word in sentence if len(sentence)>1])) # Skip one-word sentences to avoid zero-vectors
-    w2i = {w: i for i, w in enumerate(vocabulary)}
+    vocabulary = sorted(list({word for sentence in sentences for word in sentence if len(sentence)>1})) # Skip one-word sentences to avoid zero-vectors
+    w2i = OrderedDict({w: i for i, w in enumerate(vocabulary)})
     
     # Initialize co-occurrence matrix as dictionary
     cooc_mat = defaultdict(lambda: 0)
@@ -60,14 +60,14 @@ def main():
     
     # Convert dictionary to sparse matrix
     logging.info("Converting dictionary to matrix")
-    cooc_mat_sparse = dok_matrix((len(vocabulary),len(vocabulary)), dtype=float)
+    cooc_mat_sparse = dok_matrix((len(w2i.keys()),len(w2i.keys())), dtype=float)
     try:
         cooc_mat_sparse.update(cooc_mat)
     except NotImplementedError:
         cooc_mat_sparse._update(cooc_mat)
         
     # Save matrix
-    Space(matrix=cooc_mat_sparse, rows=vocabulary, columns=vocabulary).save(outPath)   
+    Space(matrix=cooc_mat_sparse, rows=list(w2i.keys()), columns=list(w2i.keys())).save(outPath)   
         
     logging.info("--- %s seconds ---" % (time.time() - start_time))
 

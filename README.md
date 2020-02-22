@@ -1,5 +1,5 @@
-# Starting kit
-Starting kit for [SemEval 2020 Task 1: Unsupervised Lexical Semantic Change Detection](https://languagechange.org/semeval/).
+# Starting kit (Evaluation Phase)
+Starting kit for [SemEval 2020 Task 1: Unsupervised Lexical Semantic Change Detection](https://competitions.codalab.org/competitions/20948).
 
 The code draws from the [LSCDetection repository](https://github.com/Garrafao/LSCDetection).
 
@@ -7,12 +7,12 @@ The code draws from the [LSCDetection repository](https://github.com/Garrafao/LS
 
 Under `code/` we provide an implementation of the two baselines for the shared task:
 
-1. normalized frequency difference (FD)
-2. count vectors with column intersection and cosine distance (CNT+CI+CD)
+1. normalized frequency difference ([FD](https://github.com/Garrafao/LSCDetection))
+2. count vectors with column intersection and cosine distance ([CNT+CI+CD](https://github.com/Garrafao/LSCDetection))
 
-FD first calculates the frequency for each target word in each of the two corpora, normalizes it by the total corpus frequency and then calculates the absolute difference in these values as a measure of change. CNT+CI+CD first learns vector representations for each of the two corpora, then aligns them by intersecting their columns and measures change by cosine distance between the two vectors for a target word. Find more information on these models in [this paper](#references).
+FD first calculates the frequency for each target word in each of the two corpora, normalizes it by the total corpus frequency and then calculates the absolute difference in these values as a measure of change. CNT+CI+CD first learns vector representations for each of the two corpora, then aligns them by intersecting their columns and measures change by cosine distance between the two vectors for a target word.
 
-The script `run.sh` will run FD and CNT+CI+CD on the [trial data](#markdown-header-trial-data). For this, assuming you are working on a UNIX-based system, first make the script executable with
+The script `run.sh` will run FD and CNT+CI+CD on the test data. For this, assuming you are working on a UNIX-based system, first make the script executable with
 
 	chmod 755 run.sh
 
@@ -20,32 +20,23 @@ Then execute
 
 	bash -e run.sh
 
-The script will unzip the data, iterate over corpora of each language, learn matrices, store them under `matrices/` and write the results for the trial targets under `results/`. It will also produce answer files for task 1 and 2 in the required submission format from the results and store them under `results/`. It does this in the following way: FD and CNT+CI+CD predict change values for the target words. These values provide the ranking for task 2. Then, target words are assigned into two classes depending on whether their predicted change values exceed a specified threshold or not. If the script throws errors, you might need to install Python dependencies: `pip3 install -r requirements.txt`.
+The script will download and unzip the test data, iterate over the corpora of each language, learn matrices, store them under `matrices/` and write the results for the test targets under `results/`. It will also produce answer files for task 1 and 2 in the required submission format from the results and store them under `results/`. It does this in the following way: FD and CNT+CI+CD predict change values for the target words. These values provide the ranking for task 2. Then, target words are assigned into two classes depending on whether their predicted change values exceed a specified threshold or not. If the script throws errors, you might need to install Python dependencies: `pip3 install -r requirements.txt`.
 
-### Trial Data <a name="markdown-header-trial-data"></a>
+### Test Data
 
-We provide trial data in `trial_data_public.zip`. For each language, it contains:
+Running `run.sh` as described above will automatically download the test data. The test data can also be manually downloaded here:
 
-- trial target words for which predictions can be submitted in the practice phase (`targets/`)
-- the true classification of the trial target words for task 1 in the practice phase, i.e., the file against which submissions will be scored in the practice phase (`truth/task1/`)
-- the true ranking of the trial target words for task 2 in the practice phase (`truth/task2/`)
-- a sample submission for the trial target words in the above-specified format (`answer.zip/`)
-- two trial corpora from which you may predict change scores for the trial target words (`corpora/`)
+- [English](https://www.ims.uni-stuttgart.de/forschung/ressourcen/korpora/sem-eval-ulscd-eng/)
+- [German](https://www.ims.uni-stuttgart.de/forschung/ressourcen/korpora/sem-eval-ulscd-ger/)
+- [Latin](https://zenodo.org/record/3674099)
+- [Swedish](https://zenodo.org/record/3672950)
 
-__Important__: The scores in `truth/task1/` and `truth/task2/` are not meaningful as they were randomly assigned.
+It has the same format as the trial data with the difference that no true classification and ranking is provided. For each language we provide the target words and a corpus pair.
 
-You can start by uploading the zipped answer folder to the system to check the submission and evaluation format. Find more information on the submission format on [the shared task website](https://languagechange.org/semeval/).
-
-#### Trial Corpora ####
-
-The trial corpora under `corpora/` are gzipped samples from the corpora that will be used in the evaluation phase. For each language two time-specific corpora are provided. Participants are required to predict the lexical semantic change of the target words between these two corpora. Each line contains one sentence and has the form
-
-	lemma1 lemma2 lemma3...
-
-Sentences have been randomly shuffled. The corpora have the same format as the ones which will be used in the evaluation phase. Find more information about the corpora on [the shared task website](https://languagechange.org/semeval/).
+In the starting kit we also provide a sample submission for the test target words with randomly assigned scores (`sample_answer.zip`).
 
 
-References <a name="references"></a>
+Reference
 --------
 
-Dominik Schlechtweg, Anna Hätty, Marco del Tredici, and Sabine Schulte im Walde. 2019. [A Wind of Change: Detecting and Evaluating Lexical Semantic Change across Times and Domains](https://www.aclweb.org/anthology/papers/P/P19/P19-1072/). In Proceedings of the 57th Annual Meeting of the Association for Computational Linguistics (Volume 1: Long Papers), Florence, Italy. ACL.
+Dominik Schlechtweg, Barbara McGillivray, Simon Hengchen, Haim Dubossarsky and Nina Tahmasebi. [SemEval 2020 Task 1: Unsupervised Lexical Semantic Change Detection](https://competitions.codalab.org/competitions/20948). To appear in SemEval@COLING2020.

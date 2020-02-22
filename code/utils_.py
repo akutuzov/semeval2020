@@ -40,7 +40,7 @@ class Space(object):
         
     def save(self, path):
         """
-        `path` saves matrix at path in in npz format, saves rows and columns as pickled lists in same folder at '[path]_rows' and '[path]_columns'
+        `path` saves matrix at path in npz format, saves rows and columns as pickled lists in same folder at '[path]_rows' and '[path]_columns'
         """
         
         # Save matrix
