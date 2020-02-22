@@ -15,26 +15,26 @@ rm -rf $data/english
 mv semeval2020_ulscd_eng  $data/english
 rm semeval2020_ulscd_eng.zip
 
-# German
-wget -q https://www2.ims.uni-stuttgart.de/data/sem-eval-ulscd/semeval2020_ulscd_ger.zip
-unzip -n semeval2020_ulscd_ger.zip
-rm -rf $data/german
-mv semeval2020_ulscd_ger  $data/german
-rm semeval2020_ulscd_ger.zip
-
-# Latin
-wget -q https://zenodo.org/record/3674099/files/semeval2020_ulscd_lat.zip
-unzip -n semeval2020_ulscd_lat.zip
-rm -rf $data/latin
-mv semeval2020_ulscd_lat  $data/latin
-rm semeval2020_ulscd_lat.zip
-
-# Swedish
-wget -q https://zenodo.org/record/3672950/files/semeval2020_ulscd_swe.zip
-unzip -n semeval2020_ulscd_swe.zip
-rm -rf $data/swedish
-mv semeval2020_ulscd_swe  $data/swedish
-rm semeval2020_ulscd_swe.zip
+## German
+#wget -q https://www2.ims.uni-stuttgart.de/data/sem-eval-ulscd/semeval2020_ulscd_ger.zip
+#unzip -n semeval2020_ulscd_ger.zip
+#rm -rf $data/german
+#mv semeval2020_ulscd_ger  $data/german
+#rm semeval2020_ulscd_ger.zip
+#
+## Latin
+#wget -q https://zenodo.org/record/3674099/files/semeval2020_ulscd_lat.zip
+#unzip -n semeval2020_ulscd_lat.zip
+#rm -rf $data/latin
+#mv semeval2020_ulscd_lat  $data/latin
+#rm semeval2020_ulscd_lat.zip
+#
+## Swedish
+#wget -q https://zenodo.org/record/3672950/files/semeval2020_ulscd_swe.zip
+#unzip -n semeval2020_ulscd_swe.zip
+#rm -rf $data/swedish
+#mv semeval2020_ulscd_swe  $data/swedish
+#rm semeval2020_ulscd_swe.zip
 
 
 
@@ -44,7 +44,7 @@ mkdir -p matrices_eval/
 mkdir -p results_eval/
 
 # Iterate over languages
-declare -a languages=(english german latin swedish)
+declare -a languages=(english) # german latin swedish)
 for language in "${languages[@]}"
 do
 
