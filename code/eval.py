@@ -46,7 +46,7 @@ def eval_task2(model_answers, true_answers):
     :return: (Spearman's correlation coefficient, p-value)
     """
     y_hat, y = get_ys(model_answers, true_answers)
-    r, p = spearmanr(y_hat, y)
+    r, p = spearmanr(y_hat, y)  #, nan_policy='omit')
 
     return r, p
 
