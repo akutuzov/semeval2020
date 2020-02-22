@@ -7,7 +7,7 @@ import logging
 import time
 
 from tqdm import tqdm
-from transformers import AutoTokenizer, AutoModel
+from transformers import BertTokenizer, BertModel
 
 
 def get_context(token_ids, target_position, sequence_length):
@@ -74,8 +74,8 @@ def main():
 
 
     # Load model and tokenizer
-    tokenizer = AutoTokenizer.from_pretrained(modelName)
-    model = AutoModel.from_pretrained(modelName, output_hidden_states=True)
+    tokenizer = BertTokenizer.from_pretrained(modelName)
+    model = BertModel.from_pretrained(modelName, output_hidden_states=True)
     if torch.cuda.is_available():
         model.to('cuda')
 
