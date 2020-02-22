@@ -52,14 +52,14 @@ do
     mkdir -p $project_path/results_eval/$language/
 
     # Collect contextualised representations
-    python3 $project_path/code/bert/collect.py $project_path/models/bert/$language/config.txt $project_path/trial_data_public/corpora/$language/corpus1 $project_path/trial_data_public/targets/$language.txt $project_path/matrices_eval/$language/bert_corpus1.dict
-    python3 $project_path/code/bert/collect.py $project_path/models/bert/$language/config.txt $project_path/trial_data_public/corpora/$language/corpus2 $project_path/trial_data_public/targets/$language.txt $project_path/matrices_eval/$language/bert_corpus2.dict
+    python3 $project_path/code/bert/collect.py $project_path/models/bert/$language/config.txt $data/corpora/$language/corpus1 $data/targets/$language.txt $project_path/matrices_eval/$language/bert_corpus1.dict
+    python3 $project_path/code/bert/collect.py $project_path/models/bert/$language/config.txt $data/corpora/$language/corpus2 $data/targets/$language.txt $project_path/matrices_eval/$language/bert_corpus2.dict
 
     # Compute diachronic average pairwise distance
-    python3 $project_path/code/bert/distance.py $project_path/trial_data_public/targets/$language.txt $project_path/matrices_eval/$language/bert_corpus1.dict $project_path/matrices_eval/$language/bert_corpus2.dict $project_path/results_eval/$language/bert_avg_pw_dist.csv
+    python3 $project_path/code/bert/distance.py $data/targets/$language.txt $project_path/matrices_eval/$language/bert_corpus1.dict $project_path/matrices_eval/$language/bert_corpus2.dict $project_path/results_eval/$language/bert_avg_pw_dist.csv
 
     # Compute diachronic (absolute) difference in mean relatedness
-    python3 $project_path/code/bert/relatedness.py -a $project_path/trial_data_public/targets/$language.txt $project_path/matrices_eval/$language/bert_corpus1.dict $project_path/matrices_eval/$language/bert_corpus2.dict $project_path/results_eval/$language/bert_mean_rel_diff.csv
+    python3 $project_path/code/bert/relatedness.py -a $data/targets/$language.txt $project_path/matrices_eval/$language/bert_corpus1.dict $project_path/matrices_eval/$language/bert_corpus2.dict $project_path/results_eval/$language/bert_mean_rel_diff.csv
 
     # Classify results into two classes according to threshold
     python3 $project_path/code/class.py $project_path/results_eval/$language/bert_avg_pw_dist.csv $project_path/results_eval/$language/bert_avg_pw_dist_classes.csv 0.5
