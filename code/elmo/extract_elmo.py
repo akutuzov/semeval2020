@@ -13,7 +13,7 @@ if __name__ == '__main__':
     arg('--elmo', '-e', help='Path to ELMo model', required=True)
     arg('--outfile', '-o', help='Output directory to save embeddings and sentences', required=True)
     arg('--vocab', '-v', help='Path to vocabulary file', required=True)
-    arg('--batch', '-b', help='ELMo batch size', default=30, type=int)
+    arg('--batch', '-b', help='ELMo batch size', default=64, type=int)
 
     args = parser.parse_args()
     data_path = args.input
@@ -25,11 +25,22 @@ if __name__ == '__main__':
     with open(vocab_path, 'r') as f:
         # for line in f.readlines():
         for line in f.readlines():
-            (word, freq) = line.strip().split('\t')
-            if len(word) > 2 and word.isalpha():
-                vect_dict[word] = np.zeros((int(freq), vector_size))
+            word = line.strip()
+            vect_dict[word] = 0
 
     print('Words to test:', len(vect_dict), file=sys.stderr)
+    print('Counting occurrences...:', file=sys.stderr)
+
+    with open(data_path, 'r') as corpus:
+        for line in corpus:
+            res = line.strip().split()[:500]
+            for word in res:
+                if word in vect_dict:
+                    vect_dict[word] += 1
+
+
+    vect_dict = {word: np.zeros((int(vect_dict[word]), vector_size)) for word in vect_dict}
+    target_words = set(vect_dict)
 
     counters = {w: 0 for w in vect_dict}
 
@@ -46,8 +57,10 @@ if __name__ == '__main__':
         lines_cache = []
         with open(data_path, 'r') as dataset:
             for line in dataset:
-                lines_cache.append(line.strip().split()[:500])
-                lines_processed += 1
+                res = line.strip().split()[:500]
+                if target_words & set(res):
+                    lines_cache.append(res)
+                    lines_processed += 1
                 if len(lines_cache) == batch_size:
                     elmo_vectors = get_elmo_vectors(sess, lines_cache, batcher,
                                                     sentence_character_ids, elmo_sentence_input)
