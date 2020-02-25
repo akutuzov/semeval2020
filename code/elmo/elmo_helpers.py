@@ -7,7 +7,7 @@ import numpy as np
 import tensorflow as tf
 from scipy.spatial.distance import cosine
 from scipy.spatial.distance import pdist
-
+import sys
 from bilm import Batcher, BidirectionalLanguageModel, weight_layers
 
 
@@ -60,7 +60,7 @@ def load_elmo_embeddings(directory, top=False):
 
     # Build the biLM graph.
     bilm = BidirectionalLanguageModel(options_file, weight_file, max_batch_size=300)
-    dimensionality = int(bilm._options['lstm']['dim'] / 2)
+    dimensionality = int(bilm.options['lstm']['dim'] / 2)
 
     # Get ops to compute the LM embeddings.
     sentence_embeddings_op = bilm(sentence_character_ids)
@@ -73,6 +73,23 @@ def load_elmo_embeddings(directory, top=False):
 def divide_chunks(data, n):
     for i in range(0, len(data), n):
         yield data[i:i + n]
+
+
+def calc_coeffs(embfile, method="centroid"):
+    array = np.load(embfile)
+    print('Loaded an array of %d entries from %s' % (len(array), embfile), file=sys.stderr)
+    words = {}
+    for word in array:
+        if array[word].shape[0] < 3:
+            print(word, 'omitted because of low frequency:', array[word].shape[0], file=sys.stderr)
+            continue
+        if method == 'pairwise':
+            var_coeff = pairwise_diversity(array[word])
+        else:
+            var_coeff = diversity(array[word])
+        words[word] = var_coeff
+    print('Variation coefficients produced', file=sys.stderr)
+    return words
 
 
 def diversity(matrix):

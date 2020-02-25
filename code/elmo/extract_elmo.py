@@ -1,7 +1,6 @@
 # python3
 # coding: utf-8
 
-import sys
 import argparse
 from smart_open import open
 from elmo_helpers import *
@@ -71,7 +70,7 @@ if __name__ == '__main__':
 
                     lines_cache = []
                     if lines_processed % 256 == 0:
-                        print('Lines processed:', lines_processed, file=sys.stderr)
+                        print(data_path, 'Lines processed:', lines_processed, file=sys.stderr)
 
     print('Vector extracted. Pruning zeros...', file=sys.stderr)
     vect_dict = {w: vect_dict[w][~(vect_dict[w] == 0).all(1)] for w in vect_dict}

@@ -49,7 +49,7 @@ class BidirectionalLanguageModel(object):
                     "not use_character_inputs"
                 )
 
-        self._options = options
+        self.options = options
         self._weight_file = weight_file
         self._embedding_weight_file = embedding_weight_file
         self._use_character_inputs = use_character_inputs
@@ -88,7 +88,7 @@ class BidirectionalLanguageModel(object):
             if len(self._ops) == 0:
                 # first time creating the graph, don't reuse variables
                 lm_graph = BidirectionalLanguageModelGraph(
-                    self._options,
+                    self.options,
                     self._weight_file,
                     ids_placeholder,
                     embedding_weight_file=self._embedding_weight_file,
@@ -97,7 +97,7 @@ class BidirectionalLanguageModel(object):
             else:
                 with tf.variable_scope('', reuse=True):
                     lm_graph = BidirectionalLanguageModelGraph(
-                        self._options,
+                        self.options,
                         self._weight_file,
                         ids_placeholder,
                         embedding_weight_file=self._embedding_weight_file,
