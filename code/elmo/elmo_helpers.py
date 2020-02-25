@@ -60,7 +60,7 @@ def load_elmo_embeddings(directory, top=False):
 
     # Build the biLM graph.
     bilm = BidirectionalLanguageModel(options_file, weight_file, max_batch_size=300)
-    dimensionality = bilm._options['lstm']['dim'] / 2
+    dimensionality = int(bilm._options['lstm']['dim'] / 2)
 
     # Get ops to compute the LM embeddings.
     sentence_embeddings_op = bilm(sentence_character_ids)
