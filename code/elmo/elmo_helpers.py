@@ -60,13 +60,14 @@ def load_elmo_embeddings(directory, top=False):
 
     # Build the biLM graph.
     bilm = BidirectionalLanguageModel(options_file, weight_file, max_batch_size=300)
+    dimensionality = bilm._options['lstm']['dim'] / 2
 
     # Get ops to compute the LM embeddings.
     sentence_embeddings_op = bilm(sentence_character_ids)
 
     # Get an op to compute ELMo (weighted average of the internal biLM layers)
     elmo_sentence_input = weight_layers('input', sentence_embeddings_op, use_top_only=top)
-    return batcher, sentence_character_ids, elmo_sentence_input
+    return batcher, sentence_character_ids, elmo_sentence_input, dimensionality
 
 
 def divide_chunks(data, n):

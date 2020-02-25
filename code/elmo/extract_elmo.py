@@ -19,7 +19,6 @@ if __name__ == '__main__':
     data_path = args.input
     batch_size = args.batch
     vocab_path = args.vocab
-    vector_size = 1024
 
     vect_dict = {}
     with open(vocab_path, 'r') as f:
@@ -37,14 +36,15 @@ if __name__ == '__main__':
                 if word in vect_dict:
                     vect_dict[word] += 1
 
+    # Loading a pre-trained ELMo model:
+    # You can call load_elmo_embeddings() with top=True to use only the top ELMo layer
+    batcher, sentence_character_ids, elmo_sentence_input, vector_size = load_elmo_embeddings(
+        args.elmo, top=True)
+
     vect_dict = {word: np.zeros((int(vect_dict[word]), vector_size)) for word in vect_dict}
     target_words = set(vect_dict)
 
     counters = {w: 0 for w in vect_dict}
-
-    # Loading a pre-trained ELMo model:
-    # You can call load_elmo_embeddings() with top=True to use only the top ELMo layer
-    batcher, sentence_character_ids, elmo_sentence_input = load_elmo_embeddings(args.elmo, top=True)
 
     # Actually producing ELMo embeddings for our data:
     lines_processed = 0
@@ -70,7 +70,8 @@ if __name__ == '__main__':
                                 counters[word] += 1
 
                     lines_cache = []
-                    print('Lines processed:', lines_processed, file=sys.stderr)
+                    if lines_processed % 256 == 0:
+                        print('Lines processed:', lines_processed, file=sys.stderr)
 
     print('Vector extracted. Pruning zeros...', file=sys.stderr)
     vect_dict = {w: vect_dict[w][~(vect_dict[w] == 0).all(1)] for w in vect_dict}
