@@ -11,7 +11,7 @@ if __name__ == '__main__':
     arg = parser.add_argument
     arg('--input', '-i', help='Path to input text', required=True)
     arg('--elmo', '-e', help='Path to ELMo model', required=True)
-    arg('--outfile', '-o', help='Output directory to save embeddings and sentences', required=True)
+    arg('--outfile', '-o', help='Output file to save embeddings', required=True)
     arg('--vocab', '-v', help='Path to vocabulary file', required=True)
     arg('--batch', '-b', help='ELMo batch size', default=64, type=int)
 
@@ -23,7 +23,6 @@ if __name__ == '__main__':
 
     vect_dict = {}
     with open(vocab_path, 'r') as f:
-        # for line in f.readlines():
         for line in f.readlines():
             word = line.strip()
             vect_dict[word] = 0
@@ -37,7 +36,6 @@ if __name__ == '__main__':
             for word in res:
                 if word in vect_dict:
                     vect_dict[word] += 1
-
 
     vect_dict = {word: np.zeros((int(vect_dict[word]), vector_size)) for word in vect_dict}
     target_words = set(vect_dict)
@@ -79,13 +77,6 @@ if __name__ == '__main__':
 
     print('ELMo embeddings for your input are ready', file=sys.stderr)
 
-    words2save = sorted([w for w in vect_dict.keys() if vect_dict[w].size != 0])
-
-    for word in words2save:
-        try:
-            np.savez_compressed(args.outfile + word, vect_dict[word])
-        except:
-            print(word, 'failed', file=sys.stderr)
-            continue
+    np.savez_compressed(args.outfile, **vect_dict)
 
     print('Vectors saved to', args.outfile, file=sys.stderr)
