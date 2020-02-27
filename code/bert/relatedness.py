@@ -18,8 +18,16 @@ def mean_relatedness_difference(word_usages1, word_usages2, metric):
     :param metric: a distance metric compatible with `scipy.spatial.distance.pdist` (e.g. 'cosine', 'euclidean')
     :return: the difference in mean relatedness between two usage matrices
     """
-    usage_matrix1, _, _ = word_usages1
-    usage_matrix2, _, _ = word_usages2
+    if isinstance(word_usages1, tuple):
+        usage_matrix1, _, _ = word_usages1
+    else:
+        usage_matrix1 = word_usages1
+
+    if isinstance(word_usages2, tuple):
+        usage_matrix2, _, _ = word_usages2
+    else:
+        usage_matrix2 = word_usages2
+
     mean_rel1 = np.mean(pdist(usage_matrix1, metric=metric))
     mean_rel2 = np.mean(pdist(usage_matrix2, metric=metric))
 
@@ -68,12 +76,22 @@ def main():
         targets = [line.strip().split('\t')[0] for line in f_in]
 
     # Get usages collected from corpus 1
-    with open(valueFile1, 'rb') as f_in:
-        usages1 = pickle.load(f_in)
+    if valueFile1.endswith('.dict'):
+        with open(valueFile1, 'rb') as f_in:
+            usages1 = pickle.load(f_in)
+    elif valueFile1.endswith('.npz'):
+        usages1 = np.load(valueFile1)
+    else:
+        raise ValueError('valueFile 1: wrong format.')
 
     # Get usages collected from corpus 2
-    with open(valueFile2, 'rb') as f_in:
-        usages2 = pickle.load(f_in)
+    if valueFile2.endswith('.dict'):
+        with open(valueFile2, 'rb') as f_in:
+            usages2 = pickle.load(f_in)
+    elif valueFile2.endswith('.npz'):
+        usages2 = np.load(valueFile2)
+    else:
+        raise ValueError('valueFile 2: wrong format.')
 
     # Print only targets to output file
     with open(outPath, 'w', encoding='utf-8') as f_out:
