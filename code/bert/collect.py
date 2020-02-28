@@ -4,10 +4,11 @@ from gensim.models.word2vec import PathLineSentences
 from docopt import docopt
 import logging
 import time
-
 from torch.utils.data import DataLoader, SequentialSampler
 from tqdm import tqdm
 from transformers import BertTokenizer, BertModel
+
+logger = logging.getLogger(__name__)
 
 
 def get_context(token_ids, target_position, sequence_length):
@@ -62,10 +63,10 @@ class ContextsDataset(torch.utils.data.Dataset):
         return torch.tensor(input_ids), lemma, pos_in_context
 
 
-def set_seed(seed):
+def set_seed(seed, n_gpus):
     np.random.seed(seed)
     torch.manual_seed(seed)
-    if torch.cuda.is_available():
+    if n_gpus > 0:
         torch.cuda.manual_seed_all(seed)
 
 
@@ -106,12 +107,6 @@ def main():
     logging.info(__file__.upper())
     start_time = time.time()
 
-    # Load model and tokenizer
-    tokenizer = BertTokenizer.from_pretrained(modelName)
-    model = BertModel.from_pretrained(modelName, output_hidden_states=True)
-    if torch.cuda.is_available():
-        model.to('cuda')
-
     # Setup CUDA, GPU & distributed training
     if localRank == -1:
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -122,6 +117,35 @@ def main():
         torch.distributed.init_process_group(backend="nccl")
         n_gpu = 1
 
+    # Setup logging
+    logging.basicConfig(
+        format="%(asctime)s - %(levelname)s - %(name)s -   %(message)s",
+        datefmt="%m/%d/%Y %H:%M:%S",
+        level=logging.INFO if localRank in [-1, 0] else logging.WARN,
+    )
+    logger.warning(
+        "Process rank: %s, device: %s, n_gpu: %s, distributed training: %s",
+        localRank,
+        device,
+        n_gpu,
+        bool(localRank != -1)
+    )
+
+    # Set seed
+    set_seed(42, n_gpu)
+
+    # Load pretrained model and tokenizer
+    if localRank not in [-1, 0]:
+        torch.distributed.barrier()  # Make sure only the first process in distributed training will download model & vocab
+
+    # Load model and tokenizer
+    tokenizer = BertTokenizer.from_pretrained(modelName)
+    model = BertModel.from_pretrained(modelName, output_hidden_states=True)
+
+    if localRank == 0:
+        torch.distributed.barrier()  # Make sure only the first process in distributed training will download model & vocab
+
+    model.to(device)
 
     # multi-gpu training (should be after apex fp16 initialization)
     if n_gpu > 1:
@@ -220,6 +244,7 @@ def main():
                 curr_idx[lemma] += 1
                 nUsages += 1
 
+    iterator.close()
     np.savez_compressed(outPath, **usages)
 
     logging.info('usages: %d' % (nUsages))
