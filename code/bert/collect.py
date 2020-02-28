@@ -4,6 +4,8 @@ from gensim.models.word2vec import PathLineSentences
 from docopt import docopt
 import logging
 import time
+
+from torch.utils.data import DataLoader, SequentialSampler
 from tqdm import tqdm
 from transformers import BertTokenizer, BertModel
 
@@ -34,6 +36,39 @@ def get_context(token_ids, target_position, sequence_length):
     return context_ids, new_target_position
 
 
+class ContextsDataset(torch.utils.data.Dataset):
+
+    def __init__(self, targets_i2w, sentences, context_size, tokenizer, n_sentences=None):
+        super(ContextsDataset).__init__()
+        self.data = []
+        self.tokenizer = tokenizer
+        self.context_size = context_size
+        self.CLS_id = tokenizer.encode('[CLS]')[0]
+        self.SEP_id = tokenizer.encode('[SEP]')[0]
+
+        for s_id, sentence in enumerate(tqdm(sentences, total=n_sentences)):
+            token_ids = tokenizer.encode(' '.join(sentence))
+            for spos, tok_id in enumerate(token_ids):
+                if tok_id in targets_i2w:
+                    context_ids, pos_in_context = get_context(token_ids, spos, context_size)
+                    input_ids = [self.CLS_id] + context_ids + [self.SEP_id]
+                    self.data.append((input_ids, targets_i2w[tok_id], pos_in_context))
+
+    def __len__(self):
+        return len(self.data)
+
+    def __getitem__(self, index):
+        input_ids, lemma, pos_in_context = self.data[index]
+        return torch.tensor(input_ids), lemma, pos_in_context
+
+
+def set_seed(seed):
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    if torch.cuda.is_available():
+        torch.cuda.manual_seed_all(seed)
+
+
 def main():
     """
     Collect BERT representations from corpus.
@@ -43,7 +78,7 @@ def main():
     args = docopt("""Collect BERT representations from corpus.
 
     Usage:
-        collect.py [--context=64 --buffer=64] <modelConfig> <corpDir> <testSet> <outPath>
+        collect.py [--context=64 --batch=64 --localRank=-1] <modelConfig> <corpDir> <testSet> <outPath>
 
     Arguments:
         <modelConfig> = path to file with model name, number of layers, and layer dimensionality (space-separated)    
@@ -53,15 +88,16 @@ def main():
 
     Options:
         --context=N  The length of a token's entire context window [default: 64]
-        --buffer=B  The number of usages to process with a single model execution [default: 64]
-
+        --batch=B  The batch size [default: 64]
+        --localRank=R For distributed training [default: -1]
     """)
 
     corpDir = args['<corpDir>']
     testSet = args['<testSet>']
     outPath = args['<outPath>']
     contextSize = int(args['--context'])
-    bufferSize = int(args['--buffer'])
+    batchSize = int(args['--batch'])
+    localRank = args['--localRank']
     with open(args['<modelConfig>'], 'r', encoding='utf-8') as f_in:
         modelConfig = f_in.readline().split()
         modelName, nLayers, nDims = modelConfig[0], int(modelConfig[1]), int(modelConfig[2])
@@ -70,17 +106,32 @@ def main():
     logging.info(__file__.upper())
     start_time = time.time()
 
-
     # Load model and tokenizer
     tokenizer = BertTokenizer.from_pretrained(modelName)
     model = BertModel.from_pretrained(modelName, output_hidden_states=True)
     if torch.cuda.is_available():
         model.to('cuda')
 
-    # Get vocab indices of special tokens
-    UNK_id = tokenizer.encode('[UNK]')[0]
-    CLS_id = tokenizer.encode('[CLS]')[0]
-    SEP_id = tokenizer.encode('[SEP]')[0]
+    # Setup CUDA, GPU & distributed training
+    # if localRank == -1:
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    n_gpu = torch.cuda.device_count()
+    # else:  # Initializes the distributed backend which will take care of sychronizing nodes/GPUs
+    #     torch.cuda.set_device(localRank)
+    #     device = torch.device("cuda", localRank)
+    #     torch.distributed.init_process_group(backend="nccl")
+    #     n_gpu = 1
+
+
+    # multi-gpu training (should be after apex fp16 initialization)
+    if n_gpu > 1:
+        model = torch.nn.DataParallel(model)
+
+    # Distributed training (should be after apex fp16 initialization)
+    if localRank != -1 and torch.cuda.is_available():
+        model = torch.nn.parallel.DistributedDataParallel(
+            model, device_ids=[localRank], output_device=localRank, find_unused_parameters=True,
+        )
 
     # Load targets
     targets = []
@@ -100,6 +151,7 @@ def main():
 
     # Store vocabulary indices of target words
     i2w = {}
+    UNK_id = tokenizer.encode('[UNK]')[0]
     for t, t_id in zip(targets, tokenizer.encode(' '.join(targets))):
         if t_id == UNK_id:
             tokenizer.add_tokens([t])
@@ -111,14 +163,13 @@ def main():
     # Get sentence iterator
     sentences = PathLineSentences(corpDir)
 
+    nSentences = 0
     target_counter = {target: 0 for target in i2w}
     for sentence in sentences:
+        nSentences += 1
         for tok_id in tokenizer.encode(' '.join(sentence)):
             if tok_id in target_counter:
                 target_counter[tok_id] += 1
-
-    # Buffers for batched processing
-    batch_input_ids, batch_targets, batch_spos = [], [], []
 
     # Container for usages
     usages = {
@@ -126,75 +177,51 @@ def main():
         for (target, target_count) in target_counter.items()
     }
 
-    nSentences = 0
-    for _ in PathLineSentences(corpDir):
-        nSentences += 1
-
-    # Get sentence iterator
-    sentences = PathLineSentences(corpDir)
-
     # Iterate over sentences and collect representations
-    nTokens = 0
     nUsages = 0
     curr_idx = {i2w[target]: 0 for target in target_counter}
 
-    for s_id, sentence in enumerate(tqdm(sentences, total=nSentences)):
+    dataset = ContextsDataset(i2w, sentences, contextSize, tokenizer, nSentences)
+    sampler = SequentialSampler(dataset)
+    dataloader = DataLoader(dataset, sampler=sampler, batch_size=batchSize)
+    iterator = tqdm(dataloader, desc="Iteration", disable=localRank not in [-1, 0])
 
-        token_ids = tokenizer.encode(' '.join(sentence))
+    for step, batch in enumerate(iterator):
+        model.eval()
+        batch_tuple = tuple()
+        for t in batch:
+            try:
+                batch_tuple += (t.to(device),)
+            except AttributeError:
+                batch_tuple += (t,)
 
-        for spos, tok_id in enumerate(token_ids):
-            nTokens += 1
+        batch_input_ids = batch_tuple[0].squeeze(1)
+        batch_lemmas, batch_spos = batch_tuple[1], batch_tuple[2]
 
-            # store usage info of target words only
-            if tok_id in i2w:
+        with torch.no_grad():
+            if torch.cuda.is_available():
+                batch_input_ids = batch_input_ids.to('cuda')
 
-                # obtain context window
-                context_ids, pos_in_context = get_context(token_ids, spos, contextSize)
+            outputs = model(batch_input_ids)
 
-                # add special tokens: [CLS] and [SEP]
-                input_ids = [CLS_id] + context_ids + [SEP_id]
+            if torch.cuda.is_available():
+                hidden_states = [l.detach().cpu().clone().numpy() for l in outputs[2]]
+            else:
+                hidden_states = [l.clone().numpy() for l in outputs[2]]
 
-                # add usage info to buffers
-                batch_input_ids.append(input_ids)
-                batch_targets.append(i2w[tok_id])
-                batch_spos.append(pos_in_context)
+            # store usage tuples in a dictionary: lemma -> (vector, position)
+            for b_id in np.arange(len(batch_input_ids)):
+                lemma = batch_lemmas[b_id]
 
-            # run model if the buffers are full or if we're at the end of the dataset
-            if (len(batch_input_ids) >= bufferSize) or (s_id == nSentences - 1 and len(batch_input_ids) > 0):
+                layers = [layer[b_id, batch_spos[b_id] + 1, :] for layer in hidden_states]
+                usage_vector = np.concatenate(layers)
+                usages[lemma][curr_idx[lemma], :] = usage_vector
 
-                with torch.no_grad():
-                    # collect list of input ids into a single batch tensor
-                    input_ids_tensor = torch.tensor(batch_input_ids)
-                    if torch.cuda.is_available():
-                        input_ids_tensor = input_ids_tensor.to('cuda')
-
-                    outputs = model(input_ids_tensor)
-
-                    # extract hidden states [(bufferSize, sentLen, nDims) for l in nLayers+1]
-                    if torch.cuda.is_available():
-                        hidden_states = [l.detach().cpu().clone().numpy() for l in outputs[2]]
-                    else:
-                        hidden_states = [l.clone().numpy() for l in outputs[2]]
-
-                # store usage tuples in a dictionary: lemma -> (vector, position)
-                for b_id in np.arange(len(batch_input_ids)):
-                    lemma = batch_targets[b_id]
-
-                    # extract activations corresponding to target position
-                    layers = [layer[b_id, batch_spos[b_id] + 1, :] for layer in hidden_states]
-                    usage_vector = np.concatenate(layers)
-
-                    usages[lemma][curr_idx[lemma], :] = usage_vector
-
-                    curr_idx[lemma] += 1
-                    nUsages += 1
-
-                # finally, empty the buffers
-                batch_input_ids, batch_targets, batch_spos = [], [], []
+                curr_idx[lemma] += 1
+                nUsages += 1
 
     np.savez_compressed(outPath, **usages)
 
-    logging.info('tokens: %d' % (nTokens))
     logging.info('usages: %d' % (nUsages))
     logging.info("--- %s seconds ---" % (time.time() - start_time))
 
