@@ -90,7 +90,7 @@ def main():
     Options:
         --context=N  The length of a token's entire context window [default: 64]
         --batch=B  The batch size [default: 64]
-        --localRank=R For distributed training [default: -1]
+        --localRank=R  For distributed training [default: -1]
     """)
 
     corpDir = args['<corpDir>']
@@ -108,14 +108,18 @@ def main():
     start_time = time.time()
 
     # Setup CUDA, GPU & distributed training
-    if localRank == -1:
-        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        n_gpu = torch.cuda.device_count()
-    else:  # Initializes the distributed backend which will take care of sychronizing nodes/GPUs
-        torch.cuda.set_device(localRank)
-        device = torch.device("cuda", localRank)
-        torch.distributed.init_process_group(backend="nccl")
-        n_gpu = 1
+    # if localRank == -1:
+    #     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    #     n_gpu = torch.cuda.device_count()
+    # else:  # Initializes the distributed backend which will take care of sychronizing nodes/GPUs
+    #     torch.cuda.set_device(localRank)
+    #     device = torch.device("cuda", localRank)
+    #     torch.distributed.init_process_group(backend="nccl")
+    #     n_gpu = 1
+
+    device = torch.device("cuda")
+    torch.distributed.init_process_group(backend="nccl")
+    n_gpu = torch.cuda.device_count()
 
     # Setup logging
     logging.basicConfig(
