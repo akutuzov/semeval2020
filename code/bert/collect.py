@@ -98,7 +98,7 @@ def main():
     outPath = args['<outPath>']
     contextSize = int(args['--context'])
     batchSize = int(args['--batch'])
-    localRank = args['--localRank']
+    localRank = int(args['--localRank'])
     with open(args['<modelConfig>'], 'r', encoding='utf-8') as f_in:
         modelConfig = f_in.readline().split()
         modelName, nLayers, nDims = modelConfig[0], int(modelConfig[1]), int(modelConfig[2])
@@ -147,16 +147,6 @@ def main():
 
     model.to(device)
 
-    # multi-gpu training (should be after apex fp16 initialization)
-    if n_gpu > 1:
-        model = torch.nn.DataParallel(model)
-
-    # Distributed training (should be after apex fp16 initialization)
-    if localRank != -1:
-        model = torch.nn.parallel.DistributedDataParallel(
-            model, device_ids=[localRank], output_device=localRank, find_unused_parameters=True
-        )
-
     # Load targets
     targets = []
     with open(testSet, 'r', encoding='utf-8') as f_in:
@@ -183,6 +173,16 @@ def main():
             i2w[len(tokenizer) - 1] = t
         else:
             i2w[t_id] = t
+
+    # multi-gpu training (should be after apex fp16 initialization)
+    if n_gpu > 1:
+        model = torch.nn.DataParallel(model)
+
+    # Distributed training (should be after apex fp16 initialization)
+    if localRank != -1:
+        model = torch.nn.parallel.DistributedDataParallel(
+            model, device_ids=[localRank], output_device=localRank, find_unused_parameters=True
+        )
 
     # Get sentence iterator
     sentences = PathLineSentences(corpDir)
