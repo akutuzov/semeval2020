@@ -113,14 +113,14 @@ def main():
         model.to('cuda')
 
     # Setup CUDA, GPU & distributed training
-    # if localRank == -1:
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    n_gpu = torch.cuda.device_count()
-    # else:  # Initializes the distributed backend which will take care of sychronizing nodes/GPUs
-    #     torch.cuda.set_device(localRank)
-    #     device = torch.device("cuda", localRank)
-    #     torch.distributed.init_process_group(backend="nccl")
-    #     n_gpu = 1
+    if localRank == -1:
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        n_gpu = torch.cuda.device_count()
+    else:  # Initializes the distributed backend which will take care of sychronizing nodes/GPUs
+        torch.cuda.set_device(localRank)
+        device = torch.device("cuda", localRank)
+        torch.distributed.init_process_group(backend="nccl")
+        n_gpu = 1
 
 
     # multi-gpu training (should be after apex fp16 initialization)
@@ -128,9 +128,9 @@ def main():
         model = torch.nn.DataParallel(model)
 
     # Distributed training (should be after apex fp16 initialization)
-    if localRank != -1 and torch.cuda.is_available():
+    if localRank != -1:
         model = torch.nn.parallel.DistributedDataParallel(
-            model, device_ids=[localRank], output_device=localRank, find_unused_parameters=True,
+            model, device_ids=[localRank], output_device=localRank, find_unused_parameters=True
         )
 
     # Load targets
