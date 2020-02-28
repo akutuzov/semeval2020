@@ -108,18 +108,14 @@ def main():
     start_time = time.time()
 
     # Setup CUDA, GPU & distributed training
-    # if localRank == -1:
-    #     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    #     n_gpu = torch.cuda.device_count()
-    # else:  # Initializes the distributed backend which will take care of sychronizing nodes/GPUs
-    #     torch.cuda.set_device(localRank)
-    #     device = torch.device("cuda", localRank)
-    #     torch.distributed.init_process_group(backend="nccl")
-    #     n_gpu = 1
-
-    device = torch.device("cuda")
-    torch.distributed.init_process_group(backend="nccl")
-    n_gpu = torch.cuda.device_count()
+    if localRank == -1:
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        n_gpu = torch.cuda.device_count()
+    else:  # Initializes the distributed backend which will take care of sychronizing nodes/GPUs
+        torch.cuda.set_device(localRank)
+        device = torch.device("cuda", localRank)
+        torch.distributed.init_process_group(backend="nccl")
+        n_gpu = 1
 
     # Setup logging
     logging.basicConfig(
