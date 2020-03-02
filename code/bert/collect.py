@@ -44,11 +44,11 @@ class ContextsDataset(torch.utils.data.Dataset):
         self.data = []
         self.tokenizer = tokenizer
         self.context_size = context_size
-        self.CLS_id = tokenizer.encode('[CLS]')[0]
-        self.SEP_id = tokenizer.encode('[SEP]')[0]
+        self.CLS_id = tokenizer.encode('[CLS]', add_special_tokens=False)[0]
+        self.SEP_id = tokenizer.encode('[SEP]', add_special_tokens=False)[0]
 
         for s_id, sentence in enumerate(tqdm(sentences, total=n_sentences)):
-            token_ids = tokenizer.encode(' '.join(sentence))
+            token_ids = tokenizer.encode(' '.join(sentence), add_special_tokens=False)
             for spos, tok_id in enumerate(token_ids):
                 if tok_id in targets_i2w:
                     context_ids, pos_in_context = get_context(token_ids, spos, context_size)
@@ -165,14 +165,15 @@ def main():
 
     # Store vocabulary indices of target words
     i2w = {}
-    UNK_id = tokenizer.encode('[UNK]')[0]
-    for t, t_id in zip(targets, tokenizer.encode(' '.join(targets))):
-        if t_id == UNK_id:
+    targets_ids = [tokenizer.encode(t, add_special_tokens=False) for t in targets]
+    assert len(targets) == len(targets_ids)
+    for t, t_id in zip(targets, targets_ids):
+        if len(t_id) > 1:
             tokenizer.add_tokens([t])
             model.resize_token_embeddings(len(tokenizer))
             i2w[len(tokenizer) - 1] = t
         else:
-            i2w[t_id] = t
+            i2w[t_id[0]] = t
 
     # multi-gpu training (should be after apex fp16 initialization)
     if n_gpu > 1:
@@ -191,7 +192,7 @@ def main():
     target_counter = {target: 0 for target in i2w}
     for sentence in sentences:
         nSentences += 1
-        for tok_id in tokenizer.encode(' '.join(sentence)):
+        for tok_id in tokenizer.encode(' '.join(sentence), add_special_tokens=False):
             if tok_id in target_counter:
                 target_counter[tok_id] += 1
 
