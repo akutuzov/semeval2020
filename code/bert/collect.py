@@ -1,6 +1,6 @@
 import numpy as np
 import torch
-from gensim.models.word2vec import PathLineSentences
+from code.utils_ import PathLineSentences
 from docopt import docopt
 import logging
 import time
