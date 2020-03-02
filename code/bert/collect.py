@@ -60,13 +60,14 @@ class PathLineSentences(object):
         """iterate through the files"""
         for file_name in self.input_files:
             logger.info('reading file %s', file_name)
-            with gensim_utils.smart_open(file_name) as fin:
+            with gensim_utils.file_or_filename(file_name) as fin:
                 for line in itertools.islice(fin, self.limit):
                     line = gensim_utils.to_unicode(line, encoding='latin-1').split()
                     i = 0
                     while i < len(line):
                         yield line[i:i + self.max_sentence_length]
                         i += self.max_sentence_length
+
 
 def get_context(token_ids, target_position, sequence_length):
     """
