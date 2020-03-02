@@ -23,4 +23,4 @@ python3 code/elmo/get_coeffs.py -i0 ${FILENAME1}.npz -i1 ${FILENAME2}.npz > ${FI
 
 echo 'Preparing a submission...'
 mkdir -p results_elmo/answer/task2/ && mv ${FILENAME1}_${FILENAME2}.tsv results_elmo/answer/task2/$LANG.txt
-zip -r results_elmo/answer.zip results_elmo/answer/ && rm -r results_elmo/answer/
+# zip -r results_elmo/answer.zip results_elmo/answer/ && rm -r results_elmo/answer/
