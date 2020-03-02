@@ -108,7 +108,7 @@ class ContextsDataset(torch.utils.data.Dataset):
 
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
-            for s_id, sentence in enumerate(tqdm(sentences, total=n_sentences)):
+            for sentence in tqdm(sentences, total=n_sentences):
                 token_ids = tokenizer.encode(' '.join(sentence), add_special_tokens=False)
                 for spos, tok_id in enumerate(token_ids):
                     if tok_id in targets_i2w:
@@ -164,7 +164,7 @@ def main():
         modelConfig = f_in.readline().split()
         modelName, nLayers, nDims = modelConfig[0], int(modelConfig[1]), int(modelConfig[2])
 
-    logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.ERROR)
+    logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s')
     logging.info(__file__.upper())
     start_time = time.time()
 
@@ -250,7 +250,8 @@ def main():
     sentences = PathLineSentences(corpDir)
 
     with warnings.catch_warnings():
-        warnings.simplefilter("ignore")
+        warnings.resetwarnings()
+        warnings.simplefilter("always")
         nSentences = 0
         target_counter = {target: 0 for target in i2w}
         for sentence in sentences:
@@ -258,6 +259,8 @@ def main():
             for tok_id in tokenizer.encode(' '.join(sentence), add_special_tokens=False):
                 if tok_id in target_counter:
                     target_counter[tok_id] += 1
+
+    logger.warning('usages: %d' % (sum(list(target_counter.values()))))
 
     # Container for usages
     usages = {
@@ -311,8 +314,8 @@ def main():
     iterator.close()
     np.savez_compressed(outPath, **usages)
 
-    logging.info('usages: %d' % (nUsages))
-    logging.info("--- %s seconds ---" % (time.time() - start_time))
+    logger.warning('usages: %d' % (nUsages))
+    logger.warning("--- %s seconds ---" % (time.time() - start_time))
 
 
 if __name__ == '__main__':
