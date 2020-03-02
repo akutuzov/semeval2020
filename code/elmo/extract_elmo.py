@@ -12,12 +12,13 @@ if __name__ == '__main__':
     arg('--elmo', '-e', help='Path to ELMo model', required=True)
     arg('--outfile', '-o', help='Output file to save embeddings', required=True)
     arg('--vocab', '-v', help='Path to vocabulary file', required=True)
-    arg('--batch', '-b', help='ELMo batch size', default=64, type=int)
+    arg('--batch', '-b', help='ELMo batch size', default=32, type=int)
 
     args = parser.parse_args()
     data_path = args.input
     batch_size = args.batch
     vocab_path = args.vocab
+    WORD_LIMIT = 400
 
     vect_dict = {}
     with open(vocab_path, 'r') as f:
@@ -54,7 +55,7 @@ if __name__ == '__main__':
         lines_cache = []
         with open(data_path, 'r') as dataset:
             for line in dataset:
-                res = line.strip().split()[:500]
+                res = line.strip().split()[:WORD_LIMIT]
                 if target_words & set(res):
                     lines_cache.append(res)
                     lines_processed += 1
