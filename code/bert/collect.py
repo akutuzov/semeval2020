@@ -1,10 +1,12 @@
-import numpy as np
+import os
 import torch
-from docopt import docopt
-import logging
 import time
-from torch.utils.data import DataLoader, SequentialSampler
+import logging
+import itertools
+import numpy as np
 from tqdm import tqdm
+from docopt import docopt
+from torch.utils.data import DataLoader, SequentialSampler
 from transformers import BertTokenizer, BertModel
 from gensim import utils as gensim_utils
 
