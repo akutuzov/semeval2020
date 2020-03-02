@@ -78,7 +78,7 @@ if __name__ == '__main__':
 
                     lines_cache = []
                     if lines_processed % 256 == 0:
-                        logger.info('%s; Lines processed: %d', (data_path, lines_processed))
+                        logger.info('%s; Lines processed: %d' % (data_path, lines_processed))
 
     logger.info('Vector extracted. Pruning zeros...')
     vect_dict = {w: vect_dict[w][~(vect_dict[w] == 0).all(1)] for w in vect_dict}
