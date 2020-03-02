@@ -1,4 +1,5 @@
 import os
+import warnings
 import torch
 import time
 import logging
@@ -105,13 +106,15 @@ class ContextsDataset(torch.utils.data.Dataset):
         self.CLS_id = tokenizer.encode('[CLS]', add_special_tokens=False)[0]
         self.SEP_id = tokenizer.encode('[SEP]', add_special_tokens=False)[0]
 
-        for s_id, sentence in enumerate(tqdm(sentences, total=n_sentences)):
-            token_ids = tokenizer.encode(' '.join(sentence), add_special_tokens=False)
-            for spos, tok_id in enumerate(token_ids):
-                if tok_id in targets_i2w:
-                    context_ids, pos_in_context = get_context(token_ids, spos, context_size)
-                    input_ids = [self.CLS_id] + context_ids + [self.SEP_id]
-                    self.data.append((input_ids, targets_i2w[tok_id], pos_in_context))
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            for s_id, sentence in enumerate(tqdm(sentences, total=n_sentences)):
+                token_ids = tokenizer.encode(' '.join(sentence), add_special_tokens=False)
+                for spos, tok_id in enumerate(token_ids):
+                    if tok_id in targets_i2w:
+                        context_ids, pos_in_context = get_context(token_ids, spos, context_size)
+                        input_ids = [self.CLS_id] + context_ids + [self.SEP_id]
+                        self.data.append((input_ids, targets_i2w[tok_id], pos_in_context))
 
     def __len__(self):
         return len(self.data)
@@ -246,13 +249,15 @@ def main():
     # Get sentence iterator
     sentences = PathLineSentences(corpDir)
 
-    nSentences = 0
-    target_counter = {target: 0 for target in i2w}
-    for sentence in sentences:
-        nSentences += 1
-        for tok_id in tokenizer.encode(' '.join(sentence), add_special_tokens=False):
-            if tok_id in target_counter:
-                target_counter[tok_id] += 1
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        nSentences = 0
+        target_counter = {target: 0 for target in i2w}
+        for sentence in sentences:
+            nSentences += 1
+            for tok_id in tokenizer.encode(' '.join(sentence), add_special_tokens=False):
+                if tok_id in target_counter:
+                    target_counter[tok_id] += 1
 
     # Container for usages
     usages = {
