@@ -3,8 +3,8 @@ import numpy as np
 from docopt import docopt
 import logging
 import time
-
 from scipy.spatial.distance import pdist
+from tqdm import tqdm
 
 
 def mean_relatedness_difference(word_usages1, word_usages2, metric):
@@ -27,6 +27,9 @@ def mean_relatedness_difference(word_usages1, word_usages2, metric):
         usage_matrix2, _, _ = word_usages2
     else:
         usage_matrix2 = word_usages2
+
+    if usage_matrix1.shape[0] == 0 or usage_matrix2.shape[0] == 0:
+        return 0.
 
     mean_rel1 = np.mean(pdist(usage_matrix1, metric=metric))
     mean_rel2 = np.mean(pdist(usage_matrix2, metric=metric))
@@ -103,7 +106,7 @@ def main():
 
     # Print only targets to output file
     with open(outPath, 'w', encoding='utf-8') as f_out:
-        for target in targets:
+        for target in tqdm(targets):
             diff = mean_relatedness_difference(usages1[target], usages2[target], distMetric)
             if isAbsolute:
                 diff = abs(diff)

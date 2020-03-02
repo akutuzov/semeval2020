@@ -3,8 +3,8 @@ import numpy as np
 from docopt import docopt
 import logging
 import time
-
 from scipy.spatial.distance import cdist
+from tqdm import tqdm
 
 
 def mean_pairwise_distance(word_usages1, word_usages2, metric):
@@ -27,6 +27,9 @@ def mean_pairwise_distance(word_usages1, word_usages2, metric):
         usage_matrix2, _, _ = word_usages2
     else:
         usage_matrix2 = word_usages2
+
+    if usage_matrix1.shape[0] == 0 or usage_matrix2.shape[0] == 0:
+        return 0.
 
     return np.mean(cdist(usage_matrix1, usage_matrix2, metric=metric))
 
@@ -98,7 +101,7 @@ def main():
 
     # Print only targets to output file
     with open(outPath, 'w', encoding='utf-8') as f_out:
-        for target in targets:
+        for target in tqdm(targets):
             distance = mean_pairwise_distance(usages1[target], usages2[target], distMetric)
             f_out.write('{}\t{}\n'.format(target, distance))
 
