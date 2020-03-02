@@ -4,6 +4,10 @@
 import argparse
 from smart_open import open
 from elmo_helpers import *
+import logging
+
+logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
@@ -26,15 +30,18 @@ if __name__ == '__main__':
             word = line.strip()
             vect_dict[word] = 0
 
-    print('Words to test:', len(vect_dict), file=sys.stderr)
-    print('Counting occurrences...:', file=sys.stderr)
+    logger.info('Words to test: %d' % len(vect_dict))
+    logger.info('Counting occurrences...')
 
+    wordcount = 0
     with open(data_path, 'r') as corpus:
         for line in corpus:
-            res = line.strip().split()[:500]
+            res = line.strip().split()[:WORD_LIMIT]
             for word in res:
                 if word in vect_dict:
                     vect_dict[word] += 1
+                    wordcount += 1
+    logger.info('Total occurrences of target words: %d' % wordcount)
 
     # Loading a pre-trained ELMo model:
     # You can call load_elmo_embeddings() with top=True to use only the top ELMo layer
@@ -48,9 +55,9 @@ if __name__ == '__main__':
 
     # Actually producing ELMo embeddings for our data:
     lines_processed = 0
-    with tf.Session() as sess:
+    with tf.compat.v1.Session() as sess:
         # It is necessary to initialize variables once before running inference.
-        sess.run(tf.global_variables_initializer())
+        sess.run(tf.compat.v1.global_variables_initializer())
 
         lines_cache = []
         with open(data_path, 'r') as dataset:
@@ -71,13 +78,13 @@ if __name__ == '__main__':
 
                     lines_cache = []
                     if lines_processed % 256 == 0:
-                        print(data_path, 'Lines processed:', lines_processed, file=sys.stderr)
+                        logger.info('%s; Lines processed: %d', (data_path, lines_processed))
 
-    print('Vector extracted. Pruning zeros...', file=sys.stderr)
+    logger.info('Vector extracted. Pruning zeros...')
     vect_dict = {w: vect_dict[w][~(vect_dict[w] == 0).all(1)] for w in vect_dict}
 
-    print('ELMo embeddings for your input are ready', file=sys.stderr)
+    logger.info('ELMo embeddings for your input are ready. Saving...')
 
     np.savez_compressed(args.outfile, **vect_dict)
 
-    print('Vectors saved to', args.outfile, file=sys.stderr)
+    logger.info('Vectors saved to %s' % args.outfile)

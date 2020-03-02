@@ -1,3 +1,5 @@
+h5py
+sklearn
 tqdm
 scipy
 tensorflow
