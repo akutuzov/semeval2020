@@ -1,0 +1,29 @@
+lemma	POS	type	description	earlier	later	delta_later	compare	frequency_1750-1800/1850-1900	source
+Abend	NN*	innovation	evening, time of day around sunset > evening, time around sunset; event in the evening, evening party	3.61	3.73	0.12	3.79	4144/4372	Paul 2002
+Anstalt	NN*	innovation	order, venture, arrangement > order, venture, arrangement; (public) institution	2.06	2.52	0.46	2.07	425/911	Paul 2002
+Anstellung	NN*	innovation	facility, order, execution, event; delay; hiring > facility, order, execution, event; delay; hiring; position, post	2.33	3.15	0.82	2.68	53/499	Paul 2002
+Anstellung	NN*	innovation	facility, order, execution, event; delay > facility, order, execution, event; delay; hiring	2.33	3.15	0.82	2.68	53/499	-
+Bilanz	NN*	innovation	balance > balance; result	3.15	3.26	0.11	3.2	51/58	-
+billig	AD*	innovation	justified, appropriate > justified, appropriate; inexpensive, of bad quality, trivial	2.92	2.48	-0.44	2.43	2067/1705	Paul 2002
+Donnerwetter	NN*	innovation	thunderstorm > thunderstorm; blowup	3.55	2.24	-1.31	1.84	100/89	Paul 2002
+Feder	NN*	innovation	bird feather > bird feather; steel spring	2.58	2.45	-0.13	2.14	1486/3022	Paul 2002
+flott	AD*	innovation	afloat > afloat; lively, quick; dressy	2.33	2.42	0.08	1.84	23/259	Paul 2002
+geharnischt	AD*	innovation	armoured > armoured; sharply-worded, strong	3.62	2.61	-1.01	3	56/117	Paul 2002
+Kinderstube	NN*	innovation	nursery > nursery; education, manners	3.29	3.25	-0.03	3.23	21/73	Paul 2002
+locker	AD*	innovation	not tense, not tight > not tense, not tight; frivolous, loose	2.93	2.83	-0.1	2.84	413/740	Paul 2002
+Motiv	NN*	innovation	motivation, reason > motivation, reason; thematic, pictorial or musical motif/detail	3.49	2.66	-0.83	2.66	104/2551	Paul 2002
+packen	VV*	innovation	to store, to leave, to grab >to store, to leave, to grab; to be hit figuratively	2.6	2.69	0.1	2.74	279/1057	Paul 2002
+Presse	NN*	innovation	(being in a) tight spot/difficulties; wine press, press; book printing press >(being in a) tight spot/difficulties; wine press, press; book printing press; print product or print producer	2.74	2.86	0.12	1.88	192/1519	Paul 2002
+Reichstag	NN*	innovation	meeting/congregation of the estates of the realm > parliament in the German Reich	3.64	3.66	0.02	3.45	609/1781	-
+Steckenpferd	NN*	innovation	toy > toy; hobby	2.39	2.92	0.53	2.57	42/34	Paul 2002
+technisch	AD*	innovation	relating to the rules for the exercise of a procedure, procedural > relating to the rules for the exercise of a procedure, procedural; technological	2.95	2.99	0.04	2.89	25/2177	Paul 2002
+Vorwort	NN*	innovation	advocacy > advocacy; preface	2.85	3.67	0.82	1.58	85/273	-
+Anstalt	NN*	reduction	order, venture, arrangement; (public) institution > (public) institution	2.06	2.52	0.46	2.07	425/911	-
+Anstellung	NN*	reduction	facility, order, execution, event; delay; hiring, position, post > execution, hiring, position, post	2.33	3.15	0.82	2.68	53/499	-
+englisch	AD*	reduction	from England; angelic > from England	3.15	3.55	0.4	3.34	1921/7280	Osman 1971
+Feine	NN*	reduction	fineness; grandeur > grandeur	2.39	2.16	-0.23	1.93	112/80	Osman 1971
+Museum	NN*	reduction	study; art and antiquities collection > art and antiquities collection	3.77	3.74	-0.04	3.7	397/1735	Paul 2002
+Vorwort	NN*	reduction	advocacy; preface > preface	2.85	3.67	0.82	1.58	85/273	-
+Vorwort	NN*	reduction	pronoun; preposition > preposition	2.85	3.67	0.82	1.58	85/273	Osman 1971
+Vorwort	NN*	reduction	preposition; advocacy > advocacy	2.85	3.67	0.82	1.58	85/273	-
+Zufall	NN*	reduction	seizure, attack; unpredictability > unpredictability	2.7	3.67	0.97	3.11	2444/1618	Osman 1971
