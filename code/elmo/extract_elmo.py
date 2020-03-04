@@ -16,13 +16,13 @@ if __name__ == '__main__':
     arg('--elmo', '-e', help='Path to ELMo model', required=True)
     arg('--outfile', '-o', help='Output file to save embeddings', required=True)
     arg('--vocab', '-v', help='Path to vocabulary file', required=True)
-    arg('--batch', '-b', help='ELMo batch size', default=32, type=int)
+    arg('--batch', '-b', help='ELMo batch size', default=64, type=int)
 
     args = parser.parse_args()
     data_path = args.input
     batch_size = args.batch
     vocab_path = args.vocab
-    WORD_LIMIT = 400
+    WORD_LIMIT = 500
 
     vect_dict = {}
     with open(vocab_path, 'r') as f:
@@ -42,6 +42,7 @@ if __name__ == '__main__':
                     vect_dict[word] += 1
                     wordcount += 1
     logger.info('Total occurrences of target words: %d' % wordcount)
+    logger.info(vect_dict)
 
     # Loading a pre-trained ELMo model:
     # You can call load_elmo_embeddings() with top=True to use only the top ELMo layer
@@ -78,7 +79,7 @@ if __name__ == '__main__':
 
                     lines_cache = []
                     if lines_processed % 256 == 0:
-                        logger.info('%s; Lines processed: %d' % (data_path, lines_processed))
+                        logger.info('%s; Lines processed: %d', data_path, lines_processed)
 
     logger.info('Vector extracted. Pruning zeros...')
     vect_dict = {w: vect_dict[w][~(vect_dict[w] == 0).all(1)] for w in vect_dict}
