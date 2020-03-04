@@ -43,7 +43,6 @@ def get_num_senses(filepath, algorithm, args_dict):
     num_senses = {w: 0 for w in usage_dict}
 
     for w, usage_matrix in tqdm(usage_dict.items()):
-        usage_matrix = usage_matrix[:, :768]
         num_senses_w, _ = cluster(usage_matrix, algorithm, args_dict)
         num_senses[w] = num_senses_w
 
