@@ -1,8 +1,8 @@
 import numpy as np
 from docopt import docopt
+from tqdm import tqdm
 from sklearn.cluster import DBSCAN, AffinityPropagation
 from sklearn.preprocessing import StandardScaler
-from tqdm import tqdm
 
 
 def cluster(usage_matrix, algorithm, args_dict):
@@ -73,10 +73,19 @@ def main():
 
     args_dicts = {
         'DB': {
-            'eps': 0.5, 'min_samples': 5, 'metric': 'euclidean', 'algorithm': 'auto', 'leaf_size': 30, 'p': None,
+            'eps': 0.5,
+            'min_samples': 5,
+            'metric': 'euclidean',
+            'algorithm': 'auto',
+            'leaf_size': 30,
+            'p': None,
         },
         'AP': {
-            'damping': 0.5, 'max_iter': 200, 'convergence_iter': 15, 'preference': None, 'affinity': 'euclidean'
+            'damping': 0.5,
+            'max_iter': 200,
+            'convergence_iter': 15,
+            'preference': None,
+            'affinity': 'euclidean'
         }
     }
 
