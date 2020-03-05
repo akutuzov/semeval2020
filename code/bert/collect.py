@@ -63,7 +63,7 @@ class PathLineSentences(object):
             logger.info('reading file %s', file_name)
             with gensim_utils.file_or_filename(file_name) as fin:
                 for line in itertools.islice(fin, self.limit):
-                    line = gensim_utils.to_unicode(line, encoding='latin-1').split()
+                    line = gensim_utils.to_unicode(line, encoding='utf-8').split()
                     i = 0
                     while i < len(line):
                         yield line[i:i + self.max_sentence_length]
