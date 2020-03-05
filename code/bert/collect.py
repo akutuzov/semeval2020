@@ -220,9 +220,9 @@ def main():
             except IndexError:
                 targets.append(target)
 
-    print('='*80)
-    print('targets:', targets)
-    print('=' * 80)
+    # print('='*80)
+    # print('targets:', targets)
+    # print('=' * 80)
 
     # Store vocabulary indices of target words
     i2w = {}
