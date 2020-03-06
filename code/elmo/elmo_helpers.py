@@ -37,11 +37,12 @@ def get_elmo_vectors(sess, texts, batcher, sentence_character_ids, elmo_sentence
 
     # Create batches of data.
     sentence_ids = batcher.batch_sentences(texts)
-    # print('Sentences in this batch:', len(texts), file=sys.stderr)
+    # logger.info('Sentences in this batch: %d', len(texts))
 
     # Compute ELMo representations.
     elmo_sentence_input_ = sess.run(elmo_sentence_input['weighted_op'],
                                     feed_dict={sentence_character_ids: sentence_ids})
+    # logger.info(elmo_sentence_input_.shape)
 
     return elmo_sentence_input_
 
@@ -90,7 +91,7 @@ def load_elmo_embeddings(directory, top=False):
 
     # Build the biLM graph.
     bilm = BidirectionalLanguageModel(options_file, weight_file, max_batch_size=128)
-    dimensionality = int(bilm.options['lstm']['dim'] / 2)
+    dimensionality = int(bilm.options['lstm']['projection_dim'] * 2)
 
     # Get ops to compute the LM embeddings.
     sentence_embeddings_op = bilm(sentence_character_ids)
