@@ -24,9 +24,8 @@ python3.6 graph_induction.py --emb EMBEDDINGS --eval TARGET_WORDS
 Based on https://github.com/uhh-lt/158/blob/master/158_disambiguator/models/graph_induction.py
 """
 
-
 # Max number of neighbors
-verbose = True
+verbose = False
 LIMIT = 100000
 BATCH_SIZE = 2000
 GPU_DEVICE = 0
@@ -264,17 +263,13 @@ def get_cluster_lines(graph, nodes):
         keyword = sorted(scored_words, reverse=True)[0][1]
 
         lines.append("{}\t{}\t{}\t{}\n".format(graph.name, label, keyword, ", ".join(cluster)))
+    if len(lines) == 0:
+        lines.append("{}\t{}\t{}\t{}\n".format(graph.name, 1, graph.name, 'None'))
     return lines
 
 
 def run(embfile=None, eval_vocabulary=None, visualize: bool = True,
-        show_plot: bool = False, faiss_gpu: bool = True):
-    inventory_path = "inventories"
-    log_dir_path = os.path.join(inventory_path, "logs")
-
-    # Create folder for language
-    os.makedirs(log_dir_path, exist_ok=True)
-
+        show_plot: bool = False, faiss_gpu: bool = True, outfile=None):
     # Get w2v models paths
     wv_fpath = embfile
 
@@ -302,7 +297,7 @@ def run(embfile=None, eval_vocabulary=None, visualize: bool = True,
     # Init folder for inventory plots
     plt_path = None
     if visualize:
-        plt_path = os.path.join(inventory_path, "plots")
+        plt_path = "plots"
         os.makedirs(plt_path, exist_ok=True)
 
     # perform word sense induction
@@ -319,14 +314,10 @@ def run(embfile=None, eval_vocabulary=None, visualize: bool = True,
 
         logger.info("{} neighbors".format(topn))
 
-        inventory_file = "{}.top{}.inventory.tsv".format(embfile.split('/')[-1], topn)
-        output_fpath = os.path.join(inventory_path, inventory_file)
-
-        with open(output_fpath, "w") as out:
+        with open(outfile, "w") as out:
             out.write("word\tcid\tkeyword\tcluster\n")
 
         for index, word in enumerate(words):
-
             if index + 1 == LIMIT:
                 print("OUT OF LIMIT {}".format(LIMIT))
 
@@ -350,21 +341,18 @@ def run(embfile=None, eval_vocabulary=None, visualize: bool = True,
                     plt_topn_path_word = os.path.join(plt_topn_path, "{}.png".format(word))
                     draw_ego(words[word]["network"], show_plot, plt_topn_path_word)
                 lines = get_cluster_lines(words[word]["network"], words[word]["nodes"])
-                with open(output_fpath, "a") as out:
+                with open(outfile, "a") as out:
                     for l in lines:
                         out.write(l)
 
             except KeyboardInterrupt:
                 break
-            # except:
-            #    print("Error:", word)
-            #    print(format_exc())
-            #    logger.error("{} neighbors, {}: {}".format(topn, word, format_exc()))
 
 
 def main():
     parser = argparse.ArgumentParser(description='Graph-Vector Word Sense Induction approach.')
     parser.add_argument("--emb", '-e', help="Path to embeddings")
+    parser.add_argument("--outfile", '-o', help="Path to output file with senses")
     parser.add_argument("--eval",
                         help="Use only evaluation vocabulary, not all words in the model.",
                         default=None)
@@ -374,7 +362,7 @@ def main():
     args = parser.parse_args()
 
     run(embfile=args.emb, eval_vocabulary=args.eval, visualize=args.viz,
-        faiss_gpu=args.faiss_gpu)
+        faiss_gpu=args.faiss_gpu, outfile=args.outfile)
 
 
 if __name__ == '__main__':
