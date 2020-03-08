@@ -32,20 +32,31 @@ if __name__ == '__main__':
             words1[word] = 0
         words1[word] += 1
 
-    assert len(words0) == len(words1)
-    for word in words0:
+    common = set(words0) & set(words1)
+    if set(words0) != set(words1):
+        all_words = set(words0).union(set(words1))
+        diff = all_words - common
+        for word in diff:
+            nword = word.split('_')[0]
+            if args.strength:
+                print('\t'.join([nword, '10']))
+            else:
+                print('\t'.join([nword, '1']))
+
+    for word in common:
+        nword = word.split('_')[0]
         if args.strength:
             strength = abs(words0[word] - words1[word])
-            print('\t'.join([word, str(strength)]))
+            print('\t'.join([nword, str(strength)]))
         else:
             if words0[word] != words1[word]:
                 if args.threshold != 0:
                     delta = abs(words0[word] - words1[word])
                     if delta > args.threshold:
-                        print('\t'.join([word, '1']))
+                        print('\t'.join([nword, '1']))
                     else:
-                        print('\t'.join([word, '0']))
+                        print('\t'.join([nword, '0']))
                     continue
-                print('\t'.join([word, '1']))
+                print('\t'.join([nword, '1']))
             else:
-                print('\t'.join([word, '0']))
+                print('\t'.join([nword, '0']))
