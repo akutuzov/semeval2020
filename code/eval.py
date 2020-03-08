@@ -1,6 +1,7 @@
 import numpy as np
 from docopt import docopt
 from scipy.stats import spearmanr
+import os
 
 
 def get_ys(model_answers, true_answers):
@@ -79,10 +80,13 @@ def main():
     trueAnsPath1 = args['<trueAnsPath1>']
     trueAnsPath2 = args['<trueAnsPath2>']
 
-    acc = eval_task1(modelAnsPath1, trueAnsPath1)
-    r, p = eval_task2(modelAnsPath2, trueAnsPath2)
+    if os.path.isfile(modelAnsPath1):
+        acc = eval_task1(modelAnsPath1, trueAnsPath1)
+        print('Task 1 Accuracy: {:.2f}'.format(acc))
+    else:
+        print('Task 1 predictions not found!')
 
-    print('Task 1 Accuracy: {:.2f}'.format(acc))
+    r, p = eval_task2(modelAnsPath2, trueAnsPath2)
     print('Task 2 r: {:.3f}  p: {:.3f}'.format(r, p))
 
 

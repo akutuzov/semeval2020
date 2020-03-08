@@ -26,6 +26,7 @@ do
     python3 code/diff.py -a $data/$language/targets.txt $data/results/$language/freq_corpus1.csv $data/results/$language/freq_corpus2.csv $data/results/$language/fd.csv
     # Classify results into two classes according to threshold
     python3 code/class.py $data/results/$language/fd.csv $data/results/$language/fd_classes.csv 0.0000005
+
     ### Baseline 2: Count Vectors with Column Intersection and Cosine Distance (CNT+CI+CD) ###
     # Get co-occurrence matrices for both corpora
     python3 code/cnt.py $data/$language/corpus1/lemma $data/matrices/$language/cnt_matrix1 1
