@@ -109,7 +109,7 @@ def main():
     args = docopt("""Collect BERT representations from corpus.
 
     Usage:
-        collect.py [--context=64 --batch=64 --localRank=-1] <modelConfig> <corpDir> <testSet> <outPath>
+        collect.py [--batch=64 --localRank=-1] <modelConfig> <corpDir> <outPath>
 
     Arguments:
         <modelConfig> = path to file with model name, number of layers, and layer dimensionality (space-separated)    
