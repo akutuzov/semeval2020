@@ -22,7 +22,7 @@ declare -a languages=(english german)
 for language in "${languages[@]}"
 do
     echo ${language}
-    declare -a methods=(fd cnt_ci_cd word2vec_incremental word2vec_procrustes wsi_scratch wsi_incremental)
+    declare -a methods=(fd cnt_ci_cd word2vec_incremental word2vec_procrustes wsi_scratch wsi_incremental elmo_single_top elmo_single_mean elmo_incremental_top elmo_incremental_mean)
     for method in "${methods[@]}"
     do
         echo $method

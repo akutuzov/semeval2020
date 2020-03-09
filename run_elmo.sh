@@ -22,5 +22,5 @@ echo 'Calculating diversity coefficients...'
 python3 code/elmo/get_coeffs.py -i0 ${FILENAME1}.npz -i1 ${FILENAME2}.npz > ${FILENAME1}_${FILENAME2}.tsv
 
 echo 'Preparing a submission...'
-mkdir -p results_elmo/answer/task2/ && mv ${FILENAME1}_${FILENAME2}.tsv results_elmo/answer/task2/$LANG.txt
-# zip -r results_elmo/answer.zip results_elmo/answer/ && rm -r results_elmo/answer/
+mkdir -p elmo_embeddings/answer/task2/ && mv ${FILENAME1}_${FILENAME2}.tsv elmo_embeddings/answer/task2/$LANG.txt
+# zip -r elmo_embeddings/answer.zip elmo_embeddings/answer/ && rm -r elmo_embeddings/answer/
