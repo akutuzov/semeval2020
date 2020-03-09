@@ -109,7 +109,7 @@ def main():
     args = docopt("""Collect BERT representations from corpus.
 
     Usage:
-        collect.py [--context=64 --batch=64 --localRank=-1] <modelConfig> <corpDir> <testSet> <outPath>
+        collect.py [--batch=64 --localRank=-1] <modelConfig> <corpDir> <outPath>
 
     Arguments:
         <modelConfig> = path to file with model name, number of layers, and layer dimensionality (space-separated)    
@@ -177,7 +177,8 @@ def main():
     targets = []
     vocab = PathLineSentences(corpDir)
     for line in vocab:
-        target = line.strip()
+        assert len(line) == 1
+        target = line[0].strip()
         targets.append(target)
 
     # print('='*80)
@@ -193,8 +194,11 @@ def main():
             tokenizer.add_tokens([t])
             model.resize_token_embeddings(len(tokenizer))
             i2w[len(tokenizer) - 1] = t
-        else:
+        elif len(t_id) == 1:
             i2w[t_id[0]] = t
+        else:
+            logger.warning('Skipped word "{}", encoded as {}'.format(t, t_id))
+
 
     # multi-gpu training (should be after apex fp16 initialization)
     if n_gpu > 1:
