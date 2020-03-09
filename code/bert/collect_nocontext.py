@@ -177,7 +177,8 @@ def main():
     targets = []
     vocab = PathLineSentences(corpDir)
     for line in vocab:
-        target = line.strip()
+        assert len(line) == 1
+        target = line[0].strip()
         targets.append(target)
 
     # print('='*80)
