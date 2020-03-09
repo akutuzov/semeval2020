@@ -50,5 +50,5 @@ if __name__ == '__main__':
                 vector = np.average(m, axis=0)
                 vectors.append(vector)
         vectors = [preprocessing.normalize(v.reshape(1, -1), norm='l2') for v in vectors]
-        shift = 1 / np.dot(vectors[0], vectors[1])
+        shift = abs(1 / np.dot(vectors[0].reshape(-1), vectors[1].reshape(-1)))
         print('\t'.join([word.split('_')[0], str(shift)]))
