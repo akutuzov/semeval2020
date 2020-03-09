@@ -194,8 +194,11 @@ def main():
             tokenizer.add_tokens([t])
             model.resize_token_embeddings(len(tokenizer))
             i2w[len(tokenizer) - 1] = t
-        else:
+        elif len(t_id) == 1:
             i2w[t_id[0]] = t
+        else:
+            logger.warning('Skipped word "{}", encoded as {}'.format(t, t_id))
+
 
     # multi-gpu training (should be after apex fp16 initialization)
     if n_gpu > 1:
