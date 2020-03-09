@@ -113,8 +113,7 @@ def main():
 
     Arguments:
         <modelConfig> = path to file with model name, number of layers, and layer dimensionality (space-separated)    
-        <corpDir> = path to corpus or corpus directory (iterates through files)
-        <testSet> = path to file with one target per line
+        <corpDir> = path to file with one target per line
         <outPath> = output path for usage matrices
 
     Options:
@@ -123,7 +122,6 @@ def main():
     """)
 
     corpDir = args['<corpDir>']
-    testSet = args['<testSet>']
     outPath = args['<outPath>']
     batchSize = int(args['--batch'])
     localRank = int(args['--localRank'])
@@ -177,7 +175,7 @@ def main():
 
     # Load targets
     targets = []
-    vocab = PathLineSentences(testSet)
+    vocab = PathLineSentences(corpDir)
     for line in vocab:
         target = line.strip()
         targets.append(target)
