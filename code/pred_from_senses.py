@@ -38,14 +38,14 @@ if __name__ == '__main__':
         diff = all_words - common
         for word in diff:
             nword = word.split('_')[0]
-            if args.strength == True:
+            if args.strength:
                 print('\t'.join([nword, '10']))
             else:
                 print('\t'.join([nword, '1']))
 
     for word in common:
         nword = word.split('_')[0]
-        if args.strength == True:
+        if args.strength:
             strength = abs(words0[word] - words1[word])
             print('\t'.join([nword, str(strength)]))
         else:
