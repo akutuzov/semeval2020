@@ -177,15 +177,10 @@ def main():
 
     # Load targets
     targets = []
-    with open(testSet, 'r', encoding='utf-8') as f_in:
-        for line in f_in.readlines():
-            target = line.strip()
-            try:
-                lemma_pos = target.split('_')
-                lemma, pos = lemma_pos[0], lemma_pos[1]
-                targets.append(lemma)
-            except IndexError:
-                targets.append(target)
+    vocab = PathLineSentences(testSet)
+    for line in vocab:
+        target = line.strip()
+        targets.append(target)
 
     # print('='*80)
     # print('targets:', targets)
