@@ -25,7 +25,7 @@ def cluster(usage_matrix, algorithm, args_dict, word):
     if algorithm.lower() not in ['dbscan', 'db', 'affinity', 'affinity propagation', 'ap']:
         raise ValueError('Invalid clustering method:', algorithm)
 
-    logger.info('{} matrix shape: {}'.format(word, usage_matrix.shape))
+    # logger.info('{} matrix shape: {}'.format(word, usage_matrix.shape))
     usage_matrix = StandardScaler().fit_transform(usage_matrix)
 
     if algorithm.lower() in ['dbscan', 'db']:
@@ -38,13 +38,13 @@ def cluster(usage_matrix, algorithm, args_dict, word):
         n_clusters = len(set(labels))
 
     assert len(labels) == usage_matrix.shape[0]
-
+    logger.info('{} has {} clusters'.format(word, n_clusters))
     return n_clusters, labels
 
 
 def get_num_senses(filepath, algorithm, args_dict, words):
     """
-    :param filepath: path to .nzp file containing a dictionary
+    :param filepath: path to .npz file containing a dictionary
     {lemma: usage matrix for lemma in targets}
     :param algorithm: the clustering algorithm: DBSCAN or Affinity Propagation
     :param args_dict: the sklearn parameters of the chosen clustering algorithm
@@ -77,9 +77,9 @@ def main():
         <targets> = path to target words file
         <representationsFile1> = path to .npz file containing a dictionary that maps words to usage matrices (corpus1)
         <representationsFile2> = path to .npz file containing a dictionary that maps words to usage matrices (corpus2)
-        <outPath1> = output filepath *without extension* for csv file with number of senses for corpus 1 
+        <outPath1> = output filepath *without extension* for csv file with number of senses for corpus 1
                     (format: 'lemma sense_id label related_terms')
-        <outPath2> = output filepath *without extension* for csv file with number of senses for corpus 2 
+        <outPath2> = output filepath *without extension* for csv file with number of senses for corpus 2
                     (format: 'lemma sense_id label related_terms')
     """)
 
@@ -103,7 +103,7 @@ def main():
         },
         'AP': {
             'damping': 0.5,
-            'max_iter': 200,
+            'max_iter': 150,
             'convergence_iter': 15,
             'preference': None,
             'affinity': 'euclidean'
