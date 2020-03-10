@@ -100,7 +100,10 @@ def compute_jsd_scores(filepath1, filepath2, algorithm, args_dict, words):
 
     jsd_scores = {}
     for word in words:
-        jsd_scores[word] = jsd(sense_distributions1[word], sense_distributions2[word])
+        try:
+            jsd_scores[word] = jsd(sense_distributions1[word], sense_distributions2[word])
+        except KeyError:
+            jsd_scores[word] = 1.0
         # jsd_scores[word] =
         # distance.jensenshannon(sense_distributions1[word], sense_distributions2[word])
 
