@@ -3,14 +3,20 @@
 
 import argparse
 from smart_open import open
+import numpy as np
+
+def change(couple):
+    mean = np.average(couple)
+    shift_degree = np.std(couple) / mean
+    return shift_degree
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     arg = parser.add_argument
     arg('--input0', '-i0', help='Path to 1st file with the senses', required=True)
     arg('--input1', '-i1', help='Path to 2nd file with the senses', required=True)
-    arg('--threshold', '-t', help='Optional degree of sense change to predict a shift', type=int,
-        default=1)
+    arg('--threshold', '-t', help='Optional degree of sense change to predict a shift', type=float,
+        default=0.4)
     arg('--strength', help='Predict strength of shift?', default=False, type=bool)
 
     args = parser.parse_args()
@@ -46,12 +52,14 @@ if __name__ == '__main__':
     for word in common:
         nword = word.split('_')[0]
         if args.strength:
-            strength = abs(words0[word] - words1[word])
+            # strength = abs(words0[word] - words1[word])
+            strength = change([words0[word], words1[word]])
             print('\t'.join([nword, str(strength)]))
         else:
             if words0[word] != words1[word]:
                 if args.threshold != 0:
-                    delta = abs(words0[word] - words1[word])
+                    # delta = abs(words0[word] - words1[word])
+                    delta = change([words0[word], words1[word]])
                     if delta > args.threshold:
                         print('\t'.join([nword, '1']))
                     else:
