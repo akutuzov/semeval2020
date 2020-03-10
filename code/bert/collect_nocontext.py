@@ -77,6 +77,7 @@ class ContextsDataset(torch.utils.data.Dataset):
         self.data = []
         self.tokenizer = tokenizer
 
+        logger.warning('Create ContextsDataset')
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
             for sentence in tqdm(sentences, total=n_sentences):
@@ -175,11 +176,13 @@ def main():
 
     # Load targets
     targets = []
+    nSentences = 0
     vocab = PathLineSentences(corpDir)
     for line in vocab:
         assert len(line) == 1
         target = line[0].strip()
         targets.append(target)
+        nSentences += 1
 
     # print('='*80)
     # print('targets:', targets)
@@ -210,33 +213,33 @@ def main():
             model, device_ids=[localRank], output_device=localRank, find_unused_parameters=True
         )
 
-    # Get sentence iterator
-    sentences = PathLineSentences(corpDir)
-
-    with warnings.catch_warnings():
-        warnings.resetwarnings()
-        warnings.simplefilter("always")
-        nSentences = 0
-        target_counter = {target: 0 for target in i2w}
-        for sentence in sentences:
-            nSentences += 1
-            for tok_id in tokenizer.encode(' '.join(sentence), add_special_tokens=False):
-                if tok_id in target_counter:
-                    target_counter[tok_id] += 1
-
-    logger.warning('lemmas: %d' % (len(list(target_counter.keys()))))
-    logger.warning('usages: %d' % (sum(list(target_counter.values()))))
+    # # Get sentence iterator
+    # sentences = PathLineSentences(corpDir)
+    #
+    # with warnings.catch_warnings():
+    #     warnings.resetwarnings()
+    #     warnings.simplefilter("always")
+    #     nSentences = 0
+    #     target_counter = {target: 0 for target in i2w}
+    #     for sentence in sentences:
+    #         nSentences += 1
+    #         for tok_id in tokenizer.encode(' '.join(sentence), add_special_tokens=False):
+    #             if tok_id in target_counter:
+    #                 target_counter[tok_id] += 1
+    #
+    # logger.warning('lemmas: %d' % (len(list(target_counter.keys()))))
+    # logger.warning('usages: %d' % (sum(list(target_counter.values()))))
 
     # Container for usages
     usages = {
         i2w[target]: np.empty((1, nLayers * nDims))  # usage matrix
-        for (target, target_count) in target_counter.items()
+        for target in i2w
     }
 
     # Iterate over sentences and collect representations
     nUsages = 0
 
-    dataset = ContextsDataset(i2w, sentences, tokenizer, nSentences)
+    dataset = ContextsDataset(i2w, PathLineSentences(corpDir), tokenizer, nSentences)
     sampler = SequentialSampler(dataset)
     dataloader = DataLoader(dataset, sampler=sampler, batch_size=batchSize)
     iterator = tqdm(dataloader, desc="Iteration", disable=localRank not in [-1, 0])
