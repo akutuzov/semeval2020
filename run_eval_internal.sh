@@ -10,7 +10,8 @@ declare -a languages=(russian)
 for language in "${languages[@]}"
 do
     echo ${language}
-    declare -a methods=(fd cnt_ci_cd wsi_scratch wsi_incremental)
+    declare -a methods=(fd cnt_ci_cd wsi_scratch wsi_incremental elmo-cluster_bigone_mean elmo-cluster_bigone_top elmo-cluster_incremental_mean elmo-cluster_incremental_top elmo-cluster_single_mean elmo-cluster_single_top)
+
     for method in "${methods[@]}"
     do
         echo $method

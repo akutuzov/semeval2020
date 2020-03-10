@@ -43,13 +43,12 @@ do
     declare -a models=(bigone incremental single)
     for method in "${models[@]}"
 	do
-	python3 code/cluster.py $data/$language/targets.txt elmo_embeddings/test/$method/$language/top/corpus1.npz elmo_embeddings/test/$method/$language/top/corpus2.npz $data/results/$language/inventories/elmo-cluster_${method}_top1.csv $data/results/$language/inventories/elmo-cluster_${method}_top2.csv
-	python3 code/cluster.py $data/$language/targets.txt elmo_embeddings/test/$method/$language/average/corpus1.npz elmo_embeddings/test/$method/$language/average/corpus2.npz $data/results/$language/inventories/elmo-cluster_${method}_mean1.csv $data/results/$language/inventories/elmo-cluster_${method}_mean2.csv
+	python3 code/cluster.py $data/$language/targets.txt elmo_embeddings/test/$method/$language/top/corpus1.npz elmo_embeddings/test/$method/$language/top/corpus2.npz $data/results/$language/inventories/elmo-cluster_${method}_top1 $data/results/$language/inventories/elmo-cluster_${method}_top2
+	python3 code/cluster.py $data/$language/targets.txt elmo_embeddings/test/$method/$language/average/corpus1.npz elmo_embeddings/test/$method/$language/average/corpus2.npz $data/results/$language/inventories/elmo-cluster_${method}_mean1 $data/results/$language/inventories/elmo-cluster_${method}_mean2
+	python3 code/pred_from_senses.py -i0 $data/results/$language/inventories/elmo-cluster_${method}_top1.csv -i1 $data/results/$language/inventories/elmo-cluster_${method}_top2.csv > $data/results/$language/elmo-cluster_${method}_top_classes.csv
+	python3 code/pred_from_senses.py -i0 $data/results/$language/inventories/elmo-cluster_${method}_mean1.csv -i1 $data/results/$language/inventories/elmo-cluster_${method}_mean2.csv > $data/results/$language/elmo-cluster_${method}_mean_classes.csv
 
-	python3 code/pred_from_senses.py -i0 $data/results/$language/inventories/elmo-cluster_${method}_top1.csv -i 1 $data/results/$language/inventories/elmo-cluster_${method}_top2.csv > $data/results/$language/elmo-cluster_${method}_top_classes.csv
-	python3 code/pred_from_senses.py -i0 $data/results/$language/inventories/elmo-cluster_${method}_mean1.csv -i 1 $data/results/$language/inventories/elmo-cluster_${method}_mean2.csv > $data/results/$language/elmo-cluster_${method}_mean_classes.csv
-
-	python3 code/pred_from_senses.py --strength=True -i0 $data/results/$language/inventories/elmo-cluster_${method}_top1.csv -i 1 $data/results/$language/inventories/elmo-cluster_${method}_top2.csv > $data/results/$language/elmo-cluster_${method}_top.csv
-	python3 code/pred_from_senses.py --strength=True -i0 $data/results/$language/inventories/elmo-cluster_${method}_mean1.csv -i 1 $data/results/$language/inventories/elmo-cluster_${method}_mean2.csv > $data/results/$language/elmo-cluster_${method}_mean.csv
+	python3 code/pred_from_senses.py --strength=True -i0 $data/results/$language/inventories/elmo-cluster_${method}_top1.csv -i1 $data/results/$language/inventories/elmo-cluster_${method}_top2.csv > $data/results/$language/elmo-cluster_${method}_top.csv
+	python3 code/pred_from_senses.py --strength=True -i0 $data/results/$language/inventories/elmo-cluster_${method}_mean1.csv -i1 $data/results/$language/inventories/elmo-cluster_${method}_mean2.csv > $data/results/$language/elmo-cluster_${method}_mean.csv
 	done
 done
