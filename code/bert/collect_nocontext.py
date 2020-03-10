@@ -84,7 +84,7 @@ class ContextsDataset(torch.utils.data.Dataset):
                 token_ids = tokenizer.encode(' '.join(sentence), add_special_tokens=False)
                 for spos, tok_id in enumerate(token_ids):
                     if tok_id in targets_i2w:
-                        self.data.append(([tok_id], targets_i2w[tok_id]))
+                        self.data.append((tok_id, targets_i2w[tok_id]))
 
     def __len__(self):
         return len(self.data)
