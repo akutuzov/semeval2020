@@ -1,7 +1,6 @@
 # python3
 # coding: utf-8
 
-import numpy as np
 from docopt import docopt
 from tqdm import tqdm
 from sklearn.cluster import DBSCAN, AffinityPropagation
@@ -64,8 +63,12 @@ def get_num_senses(filepath, algorithm, args_dict, words):
     for word in tqdm(num_senses):
         if word in usage_dict:
             if usage_dict[word].shape[0] > 0:
-                num_senses_w, _ = cluster(usage_dict[word], algorithm, args_dict, word)
+                num_senses_w, labels = cluster(usage_dict[word], algorithm, args_dict, word)
                 num_senses[word] = num_senses_w
+            else:
+                print('no vectors for ', word)
+        else:
+            print(word, 'not in collected usages')
     return num_senses
 
 
@@ -101,11 +104,11 @@ def main():
 
     args_dicts = {
         'DB': {
-            'eps': 0.5,
+            'eps': 0.2,
             'min_samples': 5,
             'metric': 'euclidean',
             'algorithm': 'auto',
-            'leaf_size': 30,
+            'leaf_size': 10,
             'p': None,
         },
         'AP': {
@@ -121,7 +124,7 @@ def main():
 
     for filepath, outfile in zip([filepath1, filepath2], [outPath1, outPath2]):
         senses = get_num_senses(filepath, CLUSTERING, args_dicts[CLUSTERING], target_words)
-        with open('{}.csv'.format(outfile), 'w') as f:
+        with open('{}.csv'.format(outfile), 'w', encoding='utf-8') as f:
             f.write('word\tcid\tkeyword\tcluster\n')
             for w in senses:
                 for sense in range(senses[w]):
