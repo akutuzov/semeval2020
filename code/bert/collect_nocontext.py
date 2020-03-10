@@ -72,19 +72,35 @@ class PathLineSentences(object):
 
 class ContextsDataset(torch.utils.data.Dataset):
 
-    def __init__(self, targets_i2w, sentences, tokenizer, n_sentences=None):
+    def __init__(self, corpDir, model, tokenizer):
         super(ContextsDataset).__init__()
         self.data = []
         self.tokenizer = tokenizer
+        self.id2lemma = {}
 
         logger.warning('Create ContextsDataset')
-        with warnings.catch_warnings():
-            warnings.simplefilter("ignore")
-            for sentence in tqdm(sentences, total=n_sentences):
-                token_ids = tokenizer.encode(' '.join(sentence), add_special_tokens=False)
-                for spos, tok_id in enumerate(token_ids):
-                    if tok_id in targets_i2w:
-                        self.data.append((tok_id, targets_i2w[tok_id]))
+
+        # Load targets
+        targets = []
+        vocab = PathLineSentences(corpDir)
+        for line in vocab:
+            assert len(line) == 1
+            target = line[0].strip()
+            targets.append(target)
+
+            if len(tokenizer.encode(target, add_special_tokens=False)) > 1:
+                tokenizer.add_tokens([target])
+                model.resize_token_embeddings(len(tokenizer))
+
+            tok_id = tokenizer.encode(target, add_special_tokens=False)
+
+            if len(tok_id) == 1:
+                tok_id = tok_id[0]
+                self.id2lemma[tok_id] = target
+                self.data.append(([tok_id], target))
+            else:
+                logger.warning('Skipped word "{}", encoded as {}'.format(
+                    target, tokenizer.tokenize(target, add_special_tokens=False)))
 
     def __len__(self):
         return len(self.data)
@@ -174,35 +190,6 @@ def main():
 
     model.to(device)
 
-    # Load targets
-    targets = []
-    nSentences = 0
-    vocab = PathLineSentences(corpDir)
-    for line in vocab:
-        assert len(line) == 1
-        target = line[0].strip()
-        targets.append(target)
-        nSentences += 1
-
-    # print('='*80)
-    # print('targets:', targets)
-    # print('=' * 80)
-
-    # Store vocabulary indices of target words
-    i2w = {}
-    targets_ids = [tokenizer.encode(t, add_special_tokens=False) for t in targets]
-    assert len(targets) == len(targets_ids)
-    for t, t_id in zip(targets, targets_ids):
-        if len(t_id) > 1:
-            tokenizer.add_tokens([t])
-            model.resize_token_embeddings(len(tokenizer))
-            i2w[len(tokenizer) - 1] = t
-        elif len(t_id) == 1:
-            i2w[t_id[0]] = t
-        else:
-            logger.warning('Skipped word "{}", encoded as {}'.format(t, t_id))
-
-
     # multi-gpu training (should be after apex fp16 initialization)
     if n_gpu > 1:
         model = torch.nn.DataParallel(model)
@@ -213,36 +200,17 @@ def main():
             model, device_ids=[localRank], output_device=localRank, find_unused_parameters=True
         )
 
-    # # Get sentence iterator
-    # sentences = PathLineSentences(corpDir)
-    #
-    # with warnings.catch_warnings():
-    #     warnings.resetwarnings()
-    #     warnings.simplefilter("always")
-    #     nSentences = 0
-    #     target_counter = {target: 0 for target in i2w}
-    #     for sentence in sentences:
-    #         nSentences += 1
-    #         for tok_id in tokenizer.encode(' '.join(sentence), add_special_tokens=False):
-    #             if tok_id in target_counter:
-    #                 target_counter[tok_id] += 1
-    #
-    # logger.warning('lemmas: %d' % (len(list(target_counter.keys()))))
-    # logger.warning('usages: %d' % (sum(list(target_counter.values()))))
-
-    # Container for usages
-    usages = {
-        i2w[target]: np.empty((1, nLayers * nDims))  # usage matrix
-        for target in i2w
-    }
-
-    # Iterate over sentences and collect representations
-    nUsages = 0
-
-    dataset = ContextsDataset(i2w, PathLineSentences(corpDir), tokenizer, nSentences)
+    dataset = ContextsDataset(corpDir, model, tokenizer)
     sampler = SequentialSampler(dataset)
     dataloader = DataLoader(dataset, sampler=sampler, batch_size=batchSize)
     iterator = tqdm(dataloader, desc="Iteration", disable=localRank not in [-1, 0])
+
+    # Container for usages
+    usages = {
+        target: np.empty((1, nLayers * nDims))  # usage matrix
+        for target in dataset.id2lemma.values()
+    }
+    nUsages = 0
 
     for step, batch in enumerate(iterator):
         model.eval()
