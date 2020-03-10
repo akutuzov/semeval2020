@@ -10,7 +10,8 @@ mkdir -p $data/results/
 
 
 # Iterate over languages
-declare -a languages=(english german russian)
+#declare -a languages=(english german russian)
+declare -a languages=(russian)
 for language in "${languages[@]}"
 do
     # Make folders
@@ -29,14 +30,15 @@ do
     # No alignment:
     python3 code/graph_induction.py --emb static_embeddings/word2vec/$language/corpus1.model --eval $data/$language/targets.txt --outfile $data/results/$language/model1.inventory.csv
     python3 code/graph_induction.py --emb static_embeddings/word2vec/$language/corpus2.model --eval $data/$language/targets.txt --outfile $data/results/$language/model2.inventory.csv
-
-    python3 code/pred_from_senses.py -i0 $data/results/$language/model1.inventory.csv -i1 $data/results/$language/model2.inventory.csv > $data/results/$language/wsi_scratch_classes.csv
-    python3 code/pred_from_senses.py --strength=True -i0 $data/results/$language/model1.inventory.csv -i1 $data/results/$language/model2.inventory.csv > $data/results/$language/wsi_scratch.csv
+    
+    THRESHOLD=0.09
+    python3 code/pred_from_senses.py -t ${THRESHOLD} -i0 $data/results/$language/model1.inventory.csv -i1 $data/results/$language/model2.inventory.csv > $data/results/$language/wsi_scratch_classes.csv
+    python3 code/pred_from_senses.py -t ${THRESHOLD} --strength=True -i0 $data/results/$language/model1.inventory.csv -i1 $data/results/$language/model2.inventory.csv > $data/results/$language/wsi_scratch.csv
 
     # With alignment:
-    python3 code/graph_induction.py --emb static_embeddings/word2vec/$language/corpus2_incremental.model --eval $data/$language/targets.txt --outfile $data/results/$language/model2_incremental.inventory.csv
+     python3 code/graph_induction.py --emb static_embeddings/word2vec/$language/corpus2_incremental.model --eval $data/$language/targets.txt --outfile $data/results/$language/model2_incremental.inventory.csv
 
-    python3 code/pred_from_senses.py -i0 $data/results/$language/model1.inventory.csv -i1 $data/results/$language/model2_incremental.inventory.csv > $data/results/$language/wsi_incremental_classes.csv
-    python3 code/pred_from_senses.py --strength=True -i0 $data/results/$language/model1.inventory.csv -i1 $data/results/$language/model2_incremental.inventory.csv > $data/results/$language/wsi_incremental.csv
+    python3 code/pred_from_senses.py -t ${THRESHOLD} -i0 $data/results/$language/model1.inventory.csv -i1 $data/results/$language/model2_incremental.inventory.csv > $data/results/$language/wsi_incremental_classes.csv
+    python3 code/pred_from_senses.py -t ${THRESHOLD} --strength=True -i0 $data/results/$language/model1.inventory.csv -i1 $data/results/$language/model2_incremental.inventory.csv > $data/results/$language/wsi_incremental.csv
 
 done
