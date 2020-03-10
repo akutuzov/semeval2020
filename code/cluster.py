@@ -93,14 +93,14 @@ def main():
                     (format: 'lemma sense_id label related_terms')
     """)
 
-    CLUSTERING = 'AP'
+    clustering_method = 'AP'
 
     target_words = set([w.strip() for w in open(args['<targets>'], 'r').readlines()])
 
     filepath1 = args['<representationsFile1>']
     filepath2 = args['<representationsFile2>']
-    outPath1 = args['<outPath1>']
-    outPath2 = args['<outPath2>']
+    outpath1 = args['<outPath1>']
+    outpath2 = args['<outPath2>']
 
     args_dicts = {
         'DB': {
@@ -120,10 +120,11 @@ def main():
         }
     }
 
-    logger.info('Clustering using %s' % CLUSTERING)
+    logger.info('Clustering using %s' % clustering_method)
 
-    for filepath, outfile in zip([filepath1, filepath2], [outPath1, outPath2]):
-        senses = get_num_senses(filepath, CLUSTERING, args_dicts[CLUSTERING], target_words)
+    for filepath, outfile in zip([filepath1, filepath2], [outpath1, outpath2]):
+        senses = get_num_senses(filepath, clustering_method, args_dicts[clustering_method],
+                                target_words)
         with open('{}.csv'.format(outfile), 'w', encoding='utf-8') as f:
             f.write('word\tcid\tkeyword\tcluster\n')
             for w in senses:

@@ -1,13 +1,12 @@
 # python3
 # coding: utf-8
 
-from docopt import docopt
-from scipy.stats import entropy
-from sklearn.preprocessing import StandardScaler
-from sklearn.cluster import DBSCAN, AffinityPropagation
 import logging
 import numpy as np
-from scipy.spatial import distance
+from docopt import docopt
+from scipy.stats import entropy
+from sklearn.cluster import DBSCAN, AffinityPropagation
+from sklearn.preprocessing import StandardScaler
 
 logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -85,8 +84,10 @@ def compute_jsd_scores(filepath1, filepath2, algorithm, args_dict, words):
 
                 # Count frequency of each sense in both corpora
                 for sense_label_id in range(num_senses_w):
-                    sense_distributions1[word][sense_label_id] = sum(sense_label_id == labels[:n_usages_corpus1])
-                    sense_distributions2[word][sense_label_id] = sum(sense_label_id == labels[n_usages_corpus1:])
+                    sense_distributions1[word][sense_label_id] = sum(
+                        sense_label_id == labels[:n_usages_corpus1])
+                    sense_distributions2[word][sense_label_id] = sum(
+                        sense_label_id == labels[n_usages_corpus1:])
 
                 # Normalise to obtain sense (probability) distribution
                 for sense_label_id in range(num_senses_w):
@@ -100,7 +101,8 @@ def compute_jsd_scores(filepath1, filepath2, algorithm, args_dict, words):
     jsd_scores = {}
     for word in words:
         jsd_scores[word] = jsd(sense_distributions1[word], sense_distributions2[word])
-        # jsd_scores[word] = distance.jensenshannon(sense_distributions1[word], sense_distributions2[word])
+        # jsd_scores[word] =
+        # distance.jensenshannon(sense_distributions1[word], sense_distributions2[word])
 
     return jsd_scores
 
@@ -126,11 +128,11 @@ def main():
 
     filepath1 = args['<distributionsFile1>']
     filepath2 = args['<distributionsFile2>']
-    outPath = args['<outPath>']
+    outpath = args['<outPath>']
 
     target_words = list(set([w.strip() for w in open(args['<targets>'], 'r').readlines()]))
 
-    CLUSTERING = 'AP'
+    clustering_method = 'AP'
     args_dicts = {
         'DB': {
             'eps': 0.2,
@@ -148,10 +150,11 @@ def main():
             'affinity': 'euclidean'
         }
     }
-    logger.info('Clustering using %s' % CLUSTERING)
+    logger.info('Clustering using %s' % clustering_method)
 
-    jsd_scores = compute_jsd_scores(filepath1, filepath2, CLUSTERING, args_dicts[CLUSTERING], target_words)
-    with open('{}.csv'.format(outPath), 'w', encoding='utf-8') as f:
+    jsd_scores = compute_jsd_scores(
+        filepath1, filepath2, clustering_method, args_dicts[clustering_method], target_words)
+    with open('{}.csv'.format(outpath), 'w', encoding='utf-8') as f:
         for word, score in jsd_scores.items():
             f.write("{}\t{}\n".format(word, score))
 

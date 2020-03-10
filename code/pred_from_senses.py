@@ -5,10 +5,12 @@ import argparse
 from smart_open import open
 import numpy as np
 
+
 def change(couple):
     mean = np.average(couple)
     shift_degree = np.std(couple) / mean
     return shift_degree
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
