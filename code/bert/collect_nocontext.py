@@ -253,7 +253,7 @@ def main():
             except AttributeError:
                 batch_tuple += (t,)
 
-        batch_input_ids = batch_tuple[0].squeeze(1)
+        batch_input_ids = batch_tuple[0] # .squeeze(1)
         batch_lemmas = batch_tuple[1]
 
         with torch.no_grad():
