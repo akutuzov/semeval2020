@@ -118,8 +118,8 @@ def main():
 
     Arguments:
         <targets> = path to target words file
-        <distributionsFile1> = path to .csv file containing word sense distributions
-        <distributionsFile2> = path to .csv file containing word sense distributions
+        <distributionsFile1> = path to .npz file containing a dictionary that maps words to usage matrices (corpus1)
+        <distributionsFile2> = path to .npz file containing a dictionary that maps words to usage matrices (corpus2)
         <outPath> = output filepath *without extension* for csv file with a JSD value for each target word
                     (format: 'lemma jsd')
     """)
