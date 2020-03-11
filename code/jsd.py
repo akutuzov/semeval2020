@@ -85,8 +85,11 @@ def compute_jsd_scores(filepath1, filepath2, algorithm, args_dict, words):
                 sense_distributions1[word] = np.zeros(num_senses_w)
                 sense_distributions2[word] = np.zeros(num_senses_w)
 
+                sense_label_ids = sorted(set(labels))
+                assert num_senses_w == len(sense_label_ids)
+
                 # Count frequency of each sense in both corpora
-                for sense_label_id in range(num_senses_w):
+                for sense_label_id in sense_label_ids:
                     for cl_label, t_label in zip(labels, time_labels):
                         if t_label == 1:
                             sense_distributions1[word][sense_label_id] += (sense_label_id == cl_label)
