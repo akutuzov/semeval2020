@@ -145,8 +145,6 @@ def main():
 
     target_words = list(set([w.strip() for w in open(args['<targets>'], 'r').readlines()]))
 
-    target_words = target_words[:1] + ['extracellular']
-
     clustering_method = 'AP'
     args_dicts = {
         'DB': {
