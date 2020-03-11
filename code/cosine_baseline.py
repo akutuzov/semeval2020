@@ -33,7 +33,8 @@ if __name__ == '__main__':
     for word in target_words:
         if array0[word].shape[0] < 3 or array1[word].shape[0] < 3:
             logger.info('%s omitted because of low frequency' % word)
-            print('\t'.join([word.split('_')[0], '10']))
+            # print('\t'.join([word.split('_')[0], '10']))
+            print('\t'.join([word, '10']))
             continue
         vectors0 = array0[word]
         vectors1 = array1[word]
@@ -51,4 +52,5 @@ if __name__ == '__main__':
                 vectors.append(vector)
         vectors = [preprocessing.normalize(v.reshape(1, -1), norm='l2') for v in vectors]
         shift = abs(1 / np.dot(vectors[0].reshape(-1), vectors[1].reshape(-1)))
-        print('\t'.join([word.split('_')[0], str(shift)]))
+        # print('\t'.join([word.split('_')[0], str(shift)]))
+        print('\t'.join([word, str(shift)]))

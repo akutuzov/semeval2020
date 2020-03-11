@@ -45,14 +45,16 @@ if __name__ == '__main__':
         all_words = set(words0).union(set(words1))
         diff = all_words - common
         for word in diff:
-            nword = word.split('_')[0]
+            # nword = word.split('_')[0]
+            nword = word
             if args.strength:
                 print('\t'.join([nword, '10']))
             else:
                 print('\t'.join([nword, '1']))
 
     for word in common:
-        nword = word.split('_')[0]
+        # nword = word.split('_')[0]
+        nword = word
         if args.strength:
             # strength = abs(words0[word] - words1[word])
             strength = change([words0[word], words1[word]])
