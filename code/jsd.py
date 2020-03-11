@@ -80,7 +80,8 @@ def compute_jsd_scores(filepath1, filepath2, algorithm, args_dict, words):
             time_labels[usage_dict1[word].shape[0]:] = 2
 
             if usage_matrix.shape[0] > 0:
-                num_senses_w, labels, time_labels = cluster(usage_matrix, time_labels, algorithm, args_dict, word)
+                num_senses_w, labels, time_labels = cluster(usage_matrix, time_labels, algorithm,
+                                                            args_dict, word)
 
                 sense_distributions1[word] = np.zeros(num_senses_w)
                 sense_distributions2[word] = np.zeros(num_senses_w)
@@ -92,20 +93,20 @@ def compute_jsd_scores(filepath1, filepath2, algorithm, args_dict, words):
                 for sense_label_id in sense_label_ids:
                     for cl_label, t_label in zip(labels, time_labels):
                         if t_label == 1:
-                            sense_distributions1[word][sense_label_id] += (sense_label_id == cl_label)
+                            sense_distributions1[word][sense_label_id] += (
+                                    sense_label_id == cl_label)
                         else:
-                            sense_distributions2[word][sense_label_id] += (sense_label_id == cl_label)
-                    # sense_distributions1[word][sense_label_id] = sum(
-                    #     sense_label_id == labels[:n_usages_corpus1])
-                    # sense_distributions2[word][sense_label_id] = sum(
-                    #     sense_label_id == labels[n_usages_corpus1:])
+                            sense_distributions2[word][sense_label_id] += (
+                                    sense_label_id == cl_label)
 
                 # Normalise to obtain sense (probability) distribution
                 for sense_label_id in range(num_senses_w):
                     if sum(sense_distributions1[word]) > 0:
-                        sense_distributions1[word][sense_label_id] /= sum(sense_distributions1[word])
+                        sense_distributions1[word][sense_label_id] /= sum(
+                            sense_distributions1[word])
                     if sum(sense_distributions2[word]) > 0:
-                        sense_distributions2[word][sense_label_id] /= sum(sense_distributions2[word])
+                        sense_distributions2[word][sense_label_id] /= sum(
+                            sense_distributions2[word])
             else:
                 print('No vectors for', word)
         else:
