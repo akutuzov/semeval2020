@@ -19,11 +19,12 @@ def jsd(p, q):
     return (entropy(p, m) + entropy(q, m)) / 2
 
 
-def cluster(usage_matrix, algorithm, args_dict, word, max_examples=10000):
+def cluster(usage_matrix, time_labels, algorithm, args_dict, word, max_examples=10000):
     """
     :param word: target word
     :param usage_matrix: a matrix of contextualised word representations of shape
     (num_usages, model_dim)
+    :param time_labels: an array of 0s and 1s labelling each word representation in the usage matrix
     :param algorithm:the clustering algorithm: DBSCAN or Affinity Propagation
     :param args_dict: the sklearn parameters of the chosen clustering algorithm
     :param max_examples: maximum number of usages to cluster (if higher, will be downsampled)
@@ -37,6 +38,7 @@ def cluster(usage_matrix, algorithm, args_dict, word, max_examples=10000):
         prev = usage_matrix.shape[0]
         rand_indices = np.random.choice(prev, max_examples, replace=False)
         usage_matrix = usage_matrix[rand_indices]
+        time_labels = time_labels[rand_indices]
         logger.info('Choosing {} random rows from {} for {}'.format(max_examples, prev, word))
     # logger.info('{} matrix shape: {}'.format(word, usage_matrix.shape))
     usage_matrix = StandardScaler().fit_transform(usage_matrix)
@@ -50,9 +52,9 @@ def cluster(usage_matrix, algorithm, args_dict, word, max_examples=10000):
         labels = clustering.labels_
         n_clusters = len(set(labels))
 
-    assert len(labels) == usage_matrix.shape[0]
+    assert len(labels) == usage_matrix.shape[0] == len(time_labels)
     logger.info('{} has {} clusters'.format(word, n_clusters))
-    return n_clusters, labels
+    return n_clusters, labels, time_labels
 
 
 def compute_jsd_scores(filepath1, filepath2, algorithm, args_dict, words):
@@ -73,28 +75,36 @@ def compute_jsd_scores(filepath1, filepath2, algorithm, args_dict, words):
 
     for word in words:
         if word in usage_dict1 and word in usage_dict2:
-            n_usages_corpus1 = usage_dict1[word].shape[0]
             usage_matrix = np.vstack((usage_dict1[word], usage_dict2[word]))
+            time_labels = np.ones(usage_matrix.shape[0])
+            time_labels[usage_dict1[word].shape[0]:] = 2
 
             if usage_matrix.shape[0] > 0:
-                num_senses_w, labels = cluster(usage_matrix, algorithm, args_dict, word)
+                num_senses_w, labels, time_labels = cluster(usage_matrix, time_labels, algorithm, args_dict, word)
 
                 sense_distributions1[word] = np.zeros(num_senses_w)
                 sense_distributions2[word] = np.zeros(num_senses_w)
 
                 # Count frequency of each sense in both corpora
                 for sense_label_id in range(num_senses_w):
-                    sense_distributions1[word][sense_label_id] = sum(
-                        sense_label_id == labels[:n_usages_corpus1])
-                    sense_distributions2[word][sense_label_id] = sum(
-                        sense_label_id == labels[n_usages_corpus1:])
+                    for cl_label, t_label in zip(labels, time_labels):
+                        if t_label == 1:
+                            sense_distributions1[word][sense_label_id] += (sense_label_id == cl_label)
+                        else:
+                            sense_distributions2[word][sense_label_id] += (sense_label_id == cl_label)
+                    # sense_distributions1[word][sense_label_id] = sum(
+                    #     sense_label_id == labels[:n_usages_corpus1])
+                    # sense_distributions2[word][sense_label_id] = sum(
+                    #     sense_label_id == labels[n_usages_corpus1:])
 
                 # Normalise to obtain sense (probability) distribution
                 for sense_label_id in range(num_senses_w):
-                    sense_distributions1[word][sense_label_id] /= sum(sense_distributions1[word])
-                    sense_distributions2[word][sense_label_id] /= sum(sense_distributions2[word])
+                    if sum(sense_distributions1[word]) > 0:
+                        sense_distributions1[word][sense_label_id] /= sum(sense_distributions1[word])
+                    if sum(sense_distributions2[word]) > 0:
+                        sense_distributions2[word][sense_label_id] /= sum(sense_distributions2[word])
             else:
-                print('no vectors for ', word)
+                print('No vectors for', word)
         else:
             print(word, 'not found in npz dictionary.')
 
@@ -134,6 +144,8 @@ def main():
     outpath = args['<outPath>']
 
     target_words = list(set([w.strip() for w in open(args['<targets>'], 'r').readlines()]))
+
+    target_words = target_words[:1] + ['extracellular']
 
     clustering_method = 'AP'
     args_dicts = {
