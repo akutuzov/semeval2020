@@ -19,7 +19,7 @@ def jsd(p, q):
     return (entropy(p, m) + entropy(q, m)) / 2
 
 
-def cluster(usage_matrix, time_labels, algorithm, args_dict, word, max_examples=10000):
+def cluster(usage_matrix, time_labels, algorithm, args_dict, word, max_examples=5000):
     """
     :param word: target word
     :param usage_matrix: a matrix of contextualised word representations of shape
@@ -56,9 +56,10 @@ def cluster(usage_matrix, time_labels, algorithm, args_dict, word, max_examples=
     return n_clusters, labels, time_labels
 
 
-def compute_jsd_scores(filepath1, filepath2, algorithm, args_dict, words, threshold=0.8):
+def compute_jsd_scores(filepath1, filepath2, algorithm, args_dict, words, threshold=0.8, rat=0.05):
     """
     :param threshold: ratio of time bin occurrences in a cluster to consider it novel
+    :param rat: ratio of all occurrences in a cluster to consider it at all
     :param filepath1: path to .npz file containing a dictionary
     :param filepath2: path to .npz file containing a dictionary
     {lemma: usage matrix for lemma in targets}
@@ -116,8 +117,10 @@ def compute_jsd_scores(filepath1, filepath2, algorithm, args_dict, words, thresh
                     senses[label].append(instance)
 
                 for sense in senses:
+                    if sense == -1:
+                        continue
                     total = len(senses[sense])
-                    if total / len(time_labels) < 0.05:
+                    if total / len(time_labels) < rat:
                         continue
                     ones = senses[sense].count(1) / total
                     twos = senses[sense].count(2) / total
@@ -136,7 +139,7 @@ def compute_jsd_scores(filepath1, filepath2, algorithm, args_dict, words, thresh
             jsd_scores[word] = {'jsd': jsd(sense_distributions1[word], sense_distributions2[word]),
                                 'shift': 0}
         except KeyError:
-            jsd_scores[word] = {'jsd': 1.0, 'shift': 0}
+            jsd_scores[word] = {'jsd': 1.0, 'shift': 1}
         logger.info('======')
         logger.info(word)
         logger.info(round(jsd_scores[word]['jsd'], 3))
@@ -155,18 +158,20 @@ def main():
     args = docopt("""Get number of senses for two sets of usage representations.
 
     Usage:
-        jsd.py <targets> <distributionsFile1> <distributionsFile2> <outPath>
+        jsd.py <targets> <distributionsFile1> <distributionsFile2> <ratio> <outPath>
 
     Arguments:
         <targets> = path to target words file
         <distributionsFile1> = path to .npz file containing a dictionary that maps words to usage matrices (corpus1)
         <distributionsFile2> = path to .npz file containing a dictionary that maps words to usage matrices (corpus2)
+        <ratio> = ratio of word occurrences in a cluster to consider it at all
         <outPath> = output filepath *without extension* for csv file with a JSD value for each target word
                     (format: 'lemma jsd')
     """)
 
     filepath1 = args['<distributionsFile1>']
     filepath2 = args['<distributionsFile2>']
+    ratio = float(args['<ratio>'])
     outpath = args['<outPath>']
 
     target_words = list(set([w.strip() for w in open(args['<targets>'], 'r').readlines()]))
@@ -183,17 +188,17 @@ def main():
         },
         'AP': {
             'damping': 0.5,
-            'max_iter': 150,
+            'max_iter': 200,
             'convergence_iter': 15,
             'preference': None,
             'affinity': 'euclidean'
         }
     }
-    logger.info('Clustering using %s' % clustering_method)
+    logger.info('Clustering using %s and sense frequency ratio %f' % (clustering_method, ratio))
 
     jsd_scores = compute_jsd_scores(
-        filepath1, filepath2, clustering_method, args_dicts[clustering_method], target_words)
-    with open('{}.csv'.format(outpath), 'w', encoding='utf-8') as f:
+        filepath1, filepath2, clustering_method, args_dicts[clustering_method], target_words, rat=ratio)
+    with open('{}'.format(outpath), 'w', encoding='utf-8') as f:
         for word, score in jsd_scores.items():
             # f.write("{}\t{}\t{}\n".format(word, score['jsd'], score['shift']))
             f.write("{}\t{}\n".format(word, score['shift']))
