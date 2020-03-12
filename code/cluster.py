@@ -120,7 +120,7 @@ def main():
         }
     }
 
-    logger.info('Clustering using %s' % clustering_method)
+    logger.info('Clustering %s and %s using %s' % (filepath1, filepath2, clustering_method))
 
     for filepath, outfile in zip([filepath1, filepath2], [outpath1, outpath2]):
         senses = get_num_senses(filepath, clustering_method, args_dicts[clustering_method],
