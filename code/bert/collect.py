@@ -192,21 +192,8 @@ def main():
         bool(localRank != -1)
     )
 
-    # Set seed
+    # Set seeds across modules
     set_seed(42, n_gpu)
-
-    # Load pretrained model and tokenizer
-    if localRank not in [-1, 0]:
-        torch.distributed.barrier()  # Make sure only the first process in distributed training will download model & vocab
-
-    # Load model and tokenizer
-    tokenizer = BertTokenizer.from_pretrained(modelName)
-    model = BertModel.from_pretrained(modelName, output_hidden_states=True)
-
-    if localRank == 0:
-        torch.distributed.barrier()  # Make sure only the first process in distributed training will download model & vocab
-
-    model.to(device)
 
     # Load targets
     targets = []
@@ -220,20 +207,35 @@ def main():
             #     targets.append(lemma)
             # except IndexError:
             #     targets.append(target)
+    print('=' * 80)
+    print('targets:', targets)
+    print('=' * 80)
 
-    # print('='*80)
-    # print('targets:', targets)
-    # print('=' * 80)
+    # Load pretrained model and tokenizer
+    if localRank not in [-1, 0]:
+        torch.distributed.barrier()  # Make sure only the first process in distributed training will download model & vocab
+
+    # Load model and tokenizer
+    tokenizer = BertTokenizer.from_pretrained(modelName, never_split=targets)
+    model = BertModel.from_pretrained(modelName, output_hidden_states=True)
+
+    if localRank == 0:
+        torch.distributed.barrier()  # Make sure only the first process in distributed training will download model & vocab
+
+    model.to(device)
 
     # Store vocabulary indices of target words
-    i2w = {}
+    unk_id = tokenizer.convert_tokens_to_ids('[UNK]')
     targets_ids = [tokenizer.encode(t, add_special_tokens=False) for t in targets]
     assert len(targets) == len(targets_ids)
+    i2w = {}
     for t, t_id in zip(targets, targets_ids):
-        if len(t_id) > 1:
-            tokenizer.add_tokens([t])
-            model.resize_token_embeddings(len(tokenizer))
-            i2w[len(tokenizer) - 1] = t
+        if len(t_id) > 1 or (len(t_id) == 1 and t_id == unk_id):
+            if tokenizer.add_tokens([t]):
+                model.resize_token_embeddings(len(tokenizer))
+                i2w[len(tokenizer) - 1] = t
+            else:
+                logger.error('Word not properly added to tokenizer:', t, tokenizer.tokenize(t))
         else:
             i2w[t_id[0]] = t
 
