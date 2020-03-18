@@ -411,24 +411,28 @@ def train(args, train_dataset, model: PreTrainedModel, tokenizer: PreTrainedToke
                 epoch_iterator.close()
                 break
 
-        # Save model after current epoch
-        checkpoint_prefix = "checkpoint"
-        output_dir = os.path.join(args.output_dir, "{}-{}".format(checkpoint_prefix, epoch_idx))
-        os.makedirs(output_dir, exist_ok=True)
-        model_to_save = (
-            model.module if hasattr(model, "module") else model
-        )  # Take care of distributed/parallel training
-        model_to_save.save_pretrained(output_dir)
-        tokenizer.save_pretrained(output_dir)
+        # just for readability (there's no 'zeroeth epoch')
+        epoch_no = epoch_idx + 1
 
-        torch.save(args, os.path.join(output_dir, "training_args.bin"))
-        logger.info("Saving model checkpoint to %s", output_dir)
+        if epoch_no < int(args.num_train_epochs):
+            # Save model after current epoch
+            checkpoint_prefix = "epoch"
+            output_dir = os.path.join(args.output_dir, "{}-{}".format(checkpoint_prefix, epoch_no))
+            os.makedirs(output_dir, exist_ok=True)
+            model_to_save = (
+                model.module if hasattr(model, "module") else model
+            )  # Take care of distributed/parallel training
+            model_to_save.save_pretrained(output_dir)
+            tokenizer.save_pretrained(output_dir)
 
-        _rotate_checkpoints(args, checkpoint_prefix)
+            torch.save(args, os.path.join(output_dir, "training_args.bin"))
+            logger.info("Saving model checkpoint to %s", output_dir)
 
-        torch.save(optimizer.state_dict(), os.path.join(output_dir, "optimizer.pt"))
-        torch.save(scheduler.state_dict(), os.path.join(output_dir, "scheduler.pt"))
-        logger.info("Saving optimizer and scheduler states to %s", output_dir)
+            _rotate_checkpoints(args, checkpoint_prefix)
+
+            torch.save(optimizer.state_dict(), os.path.join(output_dir, "optimizer.pt"))
+            torch.save(scheduler.state_dict(), os.path.join(output_dir, "scheduler.pt"))
+            logger.info("Saving optimizer and scheduler states to %s", output_dir)
 
         if args.max_steps > 0 and global_step > args.max_steps:
             train_iterator.close()
