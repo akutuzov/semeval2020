@@ -74,17 +74,18 @@ def main():
     logging.info(__file__.upper())
     start_time = time.time()
 
-    # Get targets
+    # Load targets
     targets = []
     with open(testSet, 'r', encoding='utf-8') as f_in:
         for line in f_in.readlines():
             target = line.strip()
-            try:
-                lemma_pos = target.split('_')
-                lemma, pos = lemma_pos[0], lemma_pos[1]
-                targets.append(lemma)
-            except IndexError:
-                targets.append(target)
+            targets.append(target)
+            # try:
+            #     lemma_pos = target.split('_')
+            #     lemma, pos = lemma_pos[0], lemma_pos[1]
+            #     targets.append(lemma)
+            # except IndexError:
+            #     targets.append(target)
 
     # Get usages collected from corpus 1
     if valueFile1.endswith('.dict'):
