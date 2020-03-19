@@ -65,10 +65,7 @@ do
     python3 code/jsd.py $targets $npz1 $npz2 $out/bert_jsd_${method}.csv
 
 	  # Cosine distance between static embeddings
-	  python3 code/create_averaged.py --input $npz1 --outfile $out/corpus1_${method}_static_mean.npz --mode mean
-    python3 code/create_averaged.py --input $npz2 --outfile $out/corpus2_${method}_static_mean.npz --mode mean
-    python3 code/cd.py $targets $npz1 $npz2 $out/bert-mean_cosine_${method}.csv
-
+    python3 code/cosine_baseline.py -t $targets -i0 $npz1 -i1 $npz2 --mode mean > $out/bert-mean_cosine_${method}.csv
 
 
     # TASK 1
