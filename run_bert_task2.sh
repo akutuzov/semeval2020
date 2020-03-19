@@ -36,7 +36,7 @@ rm semeval2020_ulscd_swe.zip
 
 
 declare -a languages=(english latin german swedish)
-declare -a methods=(average top last4 mid4)
+declare -a methods=(avg last last4 mid4)
 
 for language in "${languages[@]}"
 do
