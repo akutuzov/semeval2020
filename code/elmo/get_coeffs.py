@@ -18,7 +18,7 @@ if __name__ == '__main__':
     data_path0 = args.input0
     data_path1 = args.input1
 
-    target_words = set([w.strip() for w in open(args.target, 'r').readlines()])
+    target_words = set([w.strip() for w in open(args.target, 'r', encoding='utf-8').readlines()])
 
     coeffs0 = calc_coeffs(data_path0)
     coeffs1 = calc_coeffs(data_path1)
