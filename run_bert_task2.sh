@@ -48,7 +48,6 @@ do
     npz2=matrices_eval/$language/corpus2_${method}.npz
     out=results_eval/$language
 
-
 	  # TASK 2
 
     # Average pairwise distance
@@ -58,19 +57,14 @@ do
     python3 code/bert/relatedness.py -a $targets $npz1 $npz2 $out/bert_amrd_${method}.csv
 
     # Diversity (pairwise and wrt centroid)
-    python3 code/elmo/get_coeffs.py -t $targets -i0 $npz1 -i1 $npz2 --mode centroid > $out/bert_cdiv_${method}.npz
-    python3 code/elmo/get_coeffs.py -t $targets -i0 $npz1 -i1 $npz2 --mode pairwise > $out/bert_pdiv_${method}.npz
+    python3 code/elmo/get_coeffs.py -t $targets -i0 $npz1 -i1 $npz2 --mode centroid --output $out/bert_cdiv_${method}.csv
+    python3 code/elmo/get_coeffs.py -t $targets -i0 $npz1 -i1 $npz2 --mode pairwise --output $out/bert_pdiv_${method}.csv
 
     # JSD between usage distributions
     python3 code/jsd.py $targets $npz1 $npz2 $out/bert_jsd_${method}.csv
 
 	  # Cosine distance between static embeddings
-    python3 code/cosine_baseline.py -t $targets -i0 $npz1 -i1 $npz2 --mode mean > $out/bert-mean_cosine_${method}.csv
-
-
-    # TASK 1
-#    python3 code/cluster.py $targets $npz1 $npz2 $out/corpus1_${method}_clusters_ap $out/corpus2_${method}_clusters_ap
-#	   python3 code/pred_from_senses.py -i0 $out/corpus1_${method}_clusters_ap -i1 $out/corpus2_${method}_clusters_ap > $out/bert_numsenses_ap.csv
+    python3 code/cosine_baseline.py -t $targets -i0 $npz1 -i1 $npz2 --mode mean --output $out/bert-mean_cosine_${method}.csv
 
 	done
 done
