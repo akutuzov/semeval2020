@@ -23,7 +23,7 @@ if __name__ == '__main__':
     data_path = args.input
     batch_size = args.batch
     vocab_path = args.vocab
-    WORD_LIMIT = 500
+    WORD_LIMIT = 400
 
     vect_dict = {}
     with open(vocab_path, 'r') as f:

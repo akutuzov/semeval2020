@@ -29,7 +29,7 @@ import random
 import re
 import shutil
 from typing import Dict, List, Tuple
-
+from smart_open import open
 import numpy as np
 import torch
 from torch.nn.utils.rnn import pad_sequence
@@ -570,7 +570,7 @@ def main():
     )
     parser.add_argument(
         "--block_size",
-        default=-1,
+        default=400,
         type=int,
         help="Optional input sequence length after tokenization."
         "The training dataset will be truncated in block of this size for training."
