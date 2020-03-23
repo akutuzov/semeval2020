@@ -147,7 +147,7 @@ def main():
     filepath2 = args['<distributionsFile2>']
     outpath = args['<outPath>']
 
-    target_words = list(set([w.strip() for w in open(args['<targets>'], 'r').readlines()]))
+    target_words = list(set([w.strip() for w in open(args['<targets>'], 'r', encoding='utf-8').readlines()]))
 
     clustering_method = 'AP'
     args_dicts = {

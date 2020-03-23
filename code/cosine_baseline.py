@@ -22,7 +22,7 @@ if __name__ == '__main__':
     data_path0 = args.input0
     data_path1 = args.input1
 
-    target_words = set([w.strip() for w in open(args.target, 'r').readlines()])
+    target_words = set([w.strip() for w in open(args.target, 'r', encoding='utf-8').readlines()])
 
     array0 = np.load(data_path0)
     logger.info('Loaded an array of %d entries from %s' % (len(array0), data_path0))
