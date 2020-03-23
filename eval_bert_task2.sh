@@ -18,7 +18,7 @@ do
     for metric in "${metrics[@]}"
     do
 	    echo $metric
-      python3 code/eval.py ${out}/bert${metric}_${method}.csv $gold1 $gold2
+      python3 code/eval.py ${out}/bert${metric}_${method}.csv ${out}/bert${metric}_${method}.csv $gold1 $gold2
     done
 
 	done
