@@ -8,12 +8,14 @@ declare -a metrics=(_apd _amrd _jsd _pdiv _cdiv -mean_cosine)
 
 for language in "${languages[@]}"
 do
+  echo $language
+  gold1=test_data_truth/task1/${language}.txt
+  gold2=test_data_truth/task2/${language}.txt
+  out=results_eval/$language
+
   for method in "${methods[@]}"
   do
-
-    gold1=test_data_truth/task1/${language}.txt
-    gold2=test_data_truth/task2/${language}.txt
-    out=results_eval/$language
+    echo $method
 
     for metric in "${metrics[@]}"
     do
