@@ -16,6 +16,7 @@ if __name__ == '__main__':
     arg('--input0', '-i0', help='Path to 1st npz file with the embeddings', required=True)
     arg('--input1', '-i1', help='Path to 2nd npz file with the embeddings', required=True)
     arg('--target', '-t', help='Path to target words', required=True)
+    arg('--output', '-o', help='Output path (csv)', required=False)
     parser.add_argument('--mode', '-m', default='mean', choices=['mean', 'pca'])
 
     args = parser.parse_args()
@@ -30,11 +31,16 @@ if __name__ == '__main__':
     array1 = np.load(data_path1)
     logger.info('Loaded an array of %d entries from %s' % (len(array1), data_path1))
 
+    try:
+        f_out = open(args.output, 'w', encoding='utf-8')
+    except AttributeError:
+        f_out = None
+
     for word in target_words:
         if array0[word].shape[0] < 3 or array1[word].shape[0] < 3:
             logger.info('%s omitted because of low frequency' % word)
             # print('\t'.join([word.split('_')[0], '10']))
-            print('\t'.join([word, '10']))
+            print('\t'.join([word, '10']), file=f_out)
             continue
         vectors0 = array0[word]
         vectors1 = array1[word]
@@ -53,4 +59,7 @@ if __name__ == '__main__':
         vectors = [preprocessing.normalize(v.reshape(1, -1), norm='l2') for v in vectors]
         shift = abs(1 / np.dot(vectors[0].reshape(-1), vectors[1].reshape(-1)))
         # print('\t'.join([word.split('_')[0], str(shift)]))
-        print('\t'.join([word, str(shift)]))
+        print('\t'.join([word, str(shift)]), file=f_out)
+
+    if f_out:
+        f_out.close()
