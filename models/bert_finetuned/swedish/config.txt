@@ -1,0 +1,1 @@
+models/bert_finetuned/swedish 13 768
