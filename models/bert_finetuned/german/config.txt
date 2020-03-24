@@ -1,0 +1,1 @@
+models/bert_finetuned/german 13 768
