@@ -87,10 +87,10 @@ def weight_layers(name, bilm_ops, l2_coef=0.0,
                     pieces.append(w * tf.squeeze(t, axis=1))
             sum_pieces = tf.add_n(pieces)
 
-            # get the regularizer 
+            # get the regularizer
             reg = [
-                r for r in tf.get_collection(
-                    tf.GraphKeys.REGULARIZATION_LOSSES)
+                r for r in tf.compat.v1.get_collection(
+                    tf.compat.v1.GraphKeys.REGULARIZATION_LOSSES)
                 if r.name.find('{}_ELMo_W/'.format(name)) >= 0
             ]
             if len(reg) != 1:
