@@ -17,13 +17,19 @@ if __name__ == '__main__':
     arg('--outfile', '-o', help='Output file to save embeddings', required=True)
     arg('--vocab', '-v', help='Path to vocabulary file', required=True)
     arg('--batch', '-b', help='ELMo batch size', default=64, type=int)
-    arg('--top', '-t', help='Use only top layer?', default=True, type=bool)
+    arg('--top', '-t', help='Use only top layer?', default=False, action='store_true')
 
     args = parser.parse_args()
     data_path = args.input
     batch_size = args.batch
     vocab_path = args.vocab
     WORD_LIMIT = 400
+
+    if args.top:
+        use_top = True
+    else:
+        use_top = False
+    logger.info(use_top)
 
     vect_dict = {}
     with open(vocab_path, 'r') as f:
@@ -48,7 +54,7 @@ if __name__ == '__main__':
     # Loading a pre-trained ELMo model:
     # You can call load_elmo_embeddings() with top=True to use only the top ELMo layer
     batcher, sentence_character_ids, elmo_sentence_input, vector_size = load_elmo_embeddings(
-        args.elmo, top=args.top)
+        args.elmo, top=use_top)
 
     vect_dict = {word: np.zeros((int(vect_dict[word]), vector_size)) for word in vect_dict}
     target_words = set(vect_dict)
