@@ -512,6 +512,9 @@ def main():
         "--train_data_file", default=None, type=str, required=True, help="The input training data file (a text file)."
     )
     parser.add_argument(
+        "--targets_file", default=None, type=str, required=False, help="The input training data file (a text file)."
+    )
+    parser.add_argument(
         "--output_dir",
         type=str,
         required=True,
@@ -726,10 +729,18 @@ def main():
     else:
         config = config_class()
 
+    # Load targets
+    targets = []
+    if args.targets_file:
+        with open(args.targets_file, 'r', encoding='utf-8') as f_in:
+            for line in f_in.readlines():
+                target = line.strip()
+                targets.append(target)
+
     if args.tokenizer_name:
-        tokenizer = tokenizer_class.from_pretrained(args.tokenizer_name, cache_dir=args.cache_dir)
+        tokenizer = tokenizer_class.from_pretrained(args.tokenizer_name, cache_dir=args.cache_dir, never_split=targets)
     elif args.model_name_or_path:
-        tokenizer = tokenizer_class.from_pretrained(args.model_name_or_path, cache_dir=args.cache_dir)
+        tokenizer = tokenizer_class.from_pretrained(args.model_name_or_path, cache_dir=args.cache_dir, never_split=targets)
     else:
         raise ValueError(
             "You are instantiating a new {} tokenizer. This is not supported, but you can do it from another script, save it,"
@@ -793,7 +804,7 @@ def main():
 
         # Load a trained model and vocabulary that you have fine-tuned
         model = model_class.from_pretrained(args.output_dir)
-        tokenizer = tokenizer_class.from_pretrained(args.output_dir)
+        tokenizer = tokenizer_class.from_pretrained(args.output_dir, never_split=targets)
         model.to(args.device)
 
     # Evaluation
