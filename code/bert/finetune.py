@@ -387,7 +387,7 @@ def train(args, train_dataset, model: PreTrainedModel, tokenizer: PreTrainedToke
                     tb_writer.add_scalar("loss", (tr_loss - logging_loss) / args.logging_steps, global_step)
                     logging_loss = tr_loss
 
-                if args.local_rank in [-1, 0] and args.save_steps > 0 and global_step % args.save_steps == 0:
+                if (args.local_rank in [-1] or torch.distributed.get_rank() == 0) and args.save_steps > 0 and global_step % args.save_steps == 0:
                     checkpoint_prefix = "checkpoint"
                     # Save model checkpoint
                     output_dir = os.path.join(args.output_dir, "{}-{}".format(checkpoint_prefix, global_step))
@@ -414,7 +414,7 @@ def train(args, train_dataset, model: PreTrainedModel, tokenizer: PreTrainedToke
         # just for readability (there's no 'zeroeth epoch')
         epoch_no = epoch_idx + 1
 
-        if epoch_no < int(args.num_train_epochs):
+        if (args.local_rank == -1 or torch.distributed.get_rank() == 0) and epoch_no < int(args.num_train_epochs):
             # Save model after current epoch
             checkpoint_prefix = "epoch"
             output_dir = os.path.join(args.output_dir, "{}-{}".format(checkpoint_prefix, epoch_no))
