@@ -1,3 +1,5 @@
+matplotlib
+tensorboardX
 networkx
 h5py
 sklearn
