@@ -68,6 +68,7 @@ def main():
     plt.legend(labels, prop={'size': 15})
 
     plt.savefig(out_path)
+    print('Saved plot to file: {}'.format(out_path))
 
 
 if __name__ == '__main__':
