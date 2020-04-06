@@ -18,6 +18,7 @@ if __name__ == '__main__':
     arg('--vocab', '-v', help='Path to vocabulary file', required=True)
     arg('--batch', '-b', help='ELMo batch size', default=64, type=int)
     arg('--top', '-t', help='Use only top layer?', default=False, action='store_true')
+    arg('--warmup', '-w', help='Warmup before extracting?', default='no', choices=['yes', 'no'])
 
     args = parser.parse_args()
     data_path = args.input
@@ -67,6 +68,19 @@ if __name__ == '__main__':
         # It is necessary to initialize variables once before running inference.
         sess.run(tf.compat.v1.global_variables_initializer())
 
+        if args.warmup == 'yes':
+            w_lines_cache = []
+            warmup_counter = 0
+            with open(data_path, 'r') as wdataset:
+                for line in wdataset:
+                    res = line.strip().split()[:WORD_LIMIT]
+                    w_lines_cache.append(res)
+                    if len(w_lines_cache) == batch_size:
+                        elmo_vectors = get_elmo_vectors(sess, w_lines_cache, batcher,
+                                                        sentence_character_ids, elmo_sentence_input)
+                        warmup_counter += 1
+                        w_lines_cache = []
+
         lines_cache = []
         with open(data_path, 'r') as dataset:
             for line in dataset:
@@ -87,6 +101,15 @@ if __name__ == '__main__':
                     lines_cache = []
                     if lines_processed % 256 == 0:
                         logger.info('%s; Lines processed: %d', data_path, lines_processed)
+            if lines_cache:
+                elmo_vectors = get_elmo_vectors(sess, lines_cache, batcher,
+                                                sentence_character_ids, elmo_sentence_input)
+
+                for sent, matrix in zip(lines_cache, elmo_vectors):
+                    for word, vector in zip(sent, matrix):
+                        if word in vect_dict:
+                            vect_dict[word][counters[word], :] = vector
+                            counters[word] += 1
 
     logger.info('Vector extracted. Pruning zeros...')
     vect_dict = {w: vect_dict[w][~(vect_dict[w] == 0).all(1)] for w in vect_dict}
