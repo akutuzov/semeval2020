@@ -33,7 +33,7 @@ if __name__ == '__main__':
 
     try:
         f_out = open(args.output, 'w', encoding='utf-8')
-    except AttributeError:
+    except TypeError:
         f_out = None
 
     for word in target_words:

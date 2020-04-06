@@ -84,7 +84,8 @@ def main():
         acc = eval_task1(modelAnsPath1, trueAnsPath1)
         print('Task 1 Accuracy: {:.2f}'.format(acc))
     else:
-        print('Task 1 predictions not found!')
+        # print('Task 1 predictions not found!')
+        pass
 
     if os.path.isfile(modelAnsPath2):
         r, p = eval_task2(modelAnsPath2, trueAnsPath2)
