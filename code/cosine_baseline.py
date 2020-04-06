@@ -2,6 +2,7 @@
 # coding: utf-8
 
 import numpy as np
+import sys
 import argparse
 import logging
 from sklearn.decomposition import PCA
@@ -17,7 +18,7 @@ if __name__ == '__main__':
     arg('--input1', '-i1', help='Path to 2nd npz file with the embeddings', required=True)
     arg('--target', '-t', help='Path to target words', required=True)
     arg('--output', '-o', help='Output path (csv)', required=False)
-    parser.add_argument('--mode', '-m', default='mean', choices=['mean', 'pca', 'sum'])
+    arg('--mode', '-m', default='mean', choices=['mean', 'pca', 'sum'])
 
     args = parser.parse_args()
     data_path0 = args.input0
@@ -61,7 +62,7 @@ if __name__ == '__main__':
                 vector = np.sum(m, axis=0)
                 vectors.append(vector)
         vectors = [preprocessing.normalize(v.reshape(1, -1), norm='l2') for v in vectors]
-        shift = abs(1 / np.dot(vectors[0].reshape(-1), vectors[1].reshape(-1)))
+        shift = 1 / np.dot(vectors[0].reshape(-1), vectors[1].reshape(-1))
         # print('\t'.join([word.split('_')[0], str(shift)]))
         print('\t'.join([word, str(shift)]), file=f_out)
 
