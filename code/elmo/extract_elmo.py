@@ -17,7 +17,7 @@ if __name__ == '__main__':
     arg('--outfile', '-o', help='Output file to save embeddings', required=True)
     arg('--vocab', '-v', help='Path to vocabulary file', required=True)
     arg('--batch', '-b', help='ELMo batch size', default=64, type=int)
-    arg('--top', '-t', help='Use only top layer?', default=False, action='store_true')
+    arg('--top', '-t', help='Use only top layer?', default='top', choices=['top', 'average'])
     arg('--warmup', '-w', help='Warmup before extracting?', default='no', choices=['yes', 'no'])
 
     args = parser.parse_args()
@@ -26,7 +26,7 @@ if __name__ == '__main__':
     vocab_path = args.vocab
     WORD_LIMIT = 400
 
-    if args.top:
+    if args.top == 'top':
         use_top = True
     else:
         use_top = False
