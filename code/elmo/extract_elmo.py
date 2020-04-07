@@ -71,8 +71,12 @@ if __name__ == '__main__':
         if args.warmup == 'yes':
             w_lines_cache = []
             warmup_counter = 0
+            logger.info('Warming up ELMo...')
             with open(data_path, 'r') as wdataset:
                 for line in wdataset:
+                    if warmup_counter == 10:
+                        logger.info('Warming up finished.')
+                        break
                     res = line.strip().split()[:WORD_LIMIT]
                     w_lines_cache.append(res)
                     if len(w_lines_cache) == batch_size:
