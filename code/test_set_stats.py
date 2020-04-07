@@ -6,6 +6,13 @@ import sys
 import matplotlib.pyplot as plt
 from smart_open import open
 from sklearn.preprocessing import minmax_scale
+import numpy as np
+
+
+def rand_jitter(arr):
+    stdev = .005 * (max(arr) - min(arr))
+    return arr + np.random.randn(len(arr)) * stdev
+
 
 if __name__ == '__main__':
     testset_dir = sys.argv[1]
@@ -22,12 +29,13 @@ if __name__ == '__main__':
     fig, ax = plt.subplots()
     for language in sorted(data, reverse=True):
         x_data = minmax_scale([float(el[1]) for el in data[language]])
-        y_data = [language for el in x_data]
-        ax.scatter(x_data, y_data, s=10, label=language)
-
         much_shifted = [val for val in x_data if val > 0.6]
         much_shifted_ratio = len(much_shifted) / len(x_data)
         print('%s: %0.3f of words with change degree > 0.6' % (language, much_shifted_ratio))
+
+        x_data = rand_jitter(x_data)
+        y_data = [language for el in x_data]
+        ax.scatter(x_data, y_data, s=12, label=language)
 
     ax.set(xlabel='Degree of change (normalized)', ylabel='Languages',
            title='Distribution of shift degrees across target words')
@@ -50,12 +58,13 @@ if __name__ == '__main__':
                     if word in words:
                         words[word] += 1
             for el in data[language]:
-                ipm = words[el] / (size / 1000000)
+                ipm = words[el[0]] / (size / 1000000)
                 data[language[el]].append(ipm)
 
         frequencies = []
         for language in sorted(data, reverse=True):
             freqs = [el[2] for el in data[language]]
+            print(language, sum(freqs) / len(freqs))
             frequencies.append(freqs)
         fig, ax = plt.subplots()
 
