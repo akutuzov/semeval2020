@@ -34,7 +34,38 @@ if __name__ == '__main__':
     ax.grid()
     # ax.legend(loc='best')
     fig.savefig('degree_distribution.png', dpi=300)
-    # plt.show()
+    plt.close()
 
     if len(sys.argv) > 2:
         corpora_dir = sys.argv[2]
+        for language in sorted(data, reverse=True):
+            print('Counting frequencies for %s...' % language)
+            words = {el[0]: 0 for el in data[language]}
+            size = 0
+            corpus = os.path.join(corpora_dir, language, 'corpus.txt.gz')
+            for line in open(corpus, 'r'):
+                sentence = line.strip().split()
+                size += len(sentence)
+                for word in sentence:
+                    if word in words:
+                        words[word] += 1
+            for el in data[language]:
+                ipm = words[el] / (size / 1000000)
+                data[language[el]].append(ipm)
+
+        frequencies = []
+        for language in sorted(data, reverse=True):
+            freqs = [el[2] for el in data[language]]
+            frequencies.append(freqs)
+        fig, ax = plt.subplots()
+
+        ax.boxplot(frequencies, labels=sorted(data, reverse=True), whis='range')
+        plot_title = 'Word frequencies'
+        ax.title(plot_title)
+        ax.grid()
+        ax.xlabel('')
+        ax.ylabel('Istances per million (IPM)')
+        ax.savefig('ipm.png', dpi=300)
+        ax.close()
+        ax.legend(loc='best')
+        fig.savefig('degree_distribution.png', dpi=300)
