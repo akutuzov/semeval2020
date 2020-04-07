@@ -37,7 +37,7 @@ if __name__ == '__main__':
         y_data = [language for el in x_data]
         ax.scatter(x_data, y_data, s=12, label=language)
 
-    ax.set(xlabel='Degree of change (normalized)', ylabel='Languages',
+    ax.set(xlabel='Degree of change (normalized)', ylabel='Datasets',
            title='Distribution of shift degrees across target words')
     ax.grid()
     # ax.legend(loc='best')
@@ -46,8 +46,10 @@ if __name__ == '__main__':
 
     if len(sys.argv) > 2:
         corpora_dir = sys.argv[2]
+        frequencies = []
         for language in sorted(data, reverse=True):
             print('Counting frequencies for %s...' % language)
+            ipms = []
             words = {el[0]: 0 for el in data[language]}
             size = 0
             corpus = os.path.join(corpora_dir, language, 'corpus.txt.gz')
@@ -59,22 +61,18 @@ if __name__ == '__main__':
                         words[word] += 1
             for el in data[language]:
                 ipm = words[el[0]] / (size / 1000000)
-                data[language[el]].append(ipm)
+                ipms.append(ipm)
+            frequencies.append(ipms)
+            print(language, np.mean(ipms))
+            print([round(i, 2) for i in ipms])
 
-        frequencies = []
-        for language in sorted(data, reverse=True):
-            freqs = [el[2] for el in data[language]]
-            print(language, sum(freqs) / len(freqs))
-            frequencies.append(freqs)
         fig, ax = plt.subplots()
 
         ax.boxplot(frequencies, labels=sorted(data, reverse=True), whis='range')
-        plot_title = 'Word frequencies'
-        ax.title(plot_title)
+        title = 'Word frequencies'
+        xlabel = ''
+        ylabel = 'Istances per million (IPM)'
+        ax.set(xlabel=xlabel, ylabel=ylabel, title=title)
         ax.grid()
-        ax.xlabel('')
-        ax.ylabel('Istances per million (IPM)')
-        ax.savefig('ipm.png', dpi=300)
-        ax.close()
-        ax.legend(loc='best')
-        fig.savefig('degree_distribution.png', dpi=300)
+        fig.savefig('ipm.png', dpi=300)
+
