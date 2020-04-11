@@ -171,7 +171,7 @@ def main():
 
     jsd_scores = compute_jsd_scores(
         filepath1, filepath2, clustering_method, args_dicts[clustering_method], target_words)
-    with open('{}.csv'.format(outpath), 'w', encoding='utf-8') as f:
+    with open('{}'.format(outpath), 'w', encoding='utf-8') as f:
         for word, score in jsd_scores.items():
             f.write("{}\t{}\n".format(word, score))
 

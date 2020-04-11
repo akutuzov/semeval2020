@@ -52,4 +52,4 @@ if __name__ == '__main__':
             vector0 = models[0][word]
             vector1 = models[1][word]
             shift = 1 / np.dot(vector0, vector1)
-        print('\t'.join([word.split('_')[0], str(shift)]))
+        print('\t'.join([word, str(shift)]))
