@@ -5,7 +5,7 @@ from tqdm import tqdm
 
 def reduce(method, matrix, hdim=768, nlayers=13, skipL0=True):
     """
-    :param method: 'last', 'avg', 'mid4', or 'last4'
+    :param method: 'top', 'average', 'mid4', 'last4'
     :param matrix: a usage matrix of shape (n_occurrences, n_layers * hdim)
     :param hdim: the dimension of a hidden layer in BERT (default: 768)
     :param nlayers: the number of extracted BERT layers (default: 13)
@@ -14,21 +14,30 @@ def reduce(method, matrix, hdim=768, nlayers=13, skipL0=True):
     """
     assert matrix.shape[1] == nlayers * hdim, 'Invalid vector dimensionality: {}'.format(matrix.shape[1])
 
-    if method == 'last':
-        return matrix[:, -hdim:]
+    # if method == 'top':
+    #     return matrix[:, -hdim:]
 
     if skipL0:
         split = np.split(matrix[:, hdim:], nlayers - 1, axis=1)
     else:
         split = np.split(matrix, nlayers, axis=1)
 
-    if method == 'avg':
+    if method == 'last':
+        return np.array(split[-1])
+    elif method == 'average':
         return np.mean(np.array(split), axis=0)
-    elif method == 'last4':
+    elif method == 'sum':
+        return np.sum(np.array(split), axis=0)
+    elif method == 'mean-last4':
         return np.mean(np.array(split[-4:]), axis=0)
-    elif method == 'mid4':
+    elif method == 'sum-last4':
+        return np.sum(np.array(split[-4:]), axis=0)
+    elif method == 'mean-mid4':
         mid_layer = int(np.floor((nlayers - bool(skipL0)) / 2))
         return np.mean(np.array(split[mid_layer-1: mid_layer+3]), axis=0)
+    elif method == 'sum-mid4':
+        mid_layer = int(np.floor((nlayers - bool(skipL0)) / 2))
+        return np.sum(np.array(split[mid_layer-1: mid_layer+3]), axis=0)
     else:
         raise ValueError('Invalid method:', method)
 
@@ -45,7 +54,7 @@ def main():
         layer_selection.py <method> <allLayersPath> <outPath>
 
     Arguments:
-        <method> = 'last', 'avg', 'mid4', 'last4'
+        <method> = 'last', 'average', 'mean-mid4', 'sum-mid4', 'mean-last4', 'sum-last4'
         <allLayersPath> = path to .npz file containing a dictionary that maps words to usage matrices
         <outPath> = path to output .npz file with aggregated layers
     """)
