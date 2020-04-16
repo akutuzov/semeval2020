@@ -11,6 +11,9 @@ from nltk import sent_tokenize
 from collections import Counter
 from transformers import BertTokenizer, BertModel
 
+import logging
+logger = logging.getLogger(__name__)
+
 
 # def load_coha_sentences(decade, coha_path):
 #     coha_path = coha_path + str(decade)
@@ -65,7 +68,7 @@ def get_embedding_for_sentence(tokenized_sent):
 
 
 def get_embeddings_for_word(word, sentences):
-    print("Getting BERT embeddings for word:", word)
+    logger.info("Getting BERT embeddings for word:", word)
     word_embeddings = []
     # valid_sentences = []
     for i, sentence in enumerate(sentences):
@@ -105,20 +108,20 @@ def extract_vocabulary(sentences):
 
 
 def get_embeddings_for_word_oov(word, sentences, oneEmbPerSentence = True):
-    print("Getting BERT embeddings for word:", word)
+    logger.info("Getting BERT embeddings for word:", word)
     # test to see if it is a divided word
     marked_sent = "[CLS] " + sentences[0] + " [SEP]"
     tokenized_sent = tokenizer.tokenize(marked_sent)
     word_embeddings = []
     sent_embedding = get_embedding_for_sentence(tokenized_sent)
     if word not in tokenized_sent:
-        print("Divided word !! ")
-        print(tokenized_sent)
+        logger.info("Divided word !! ")
+        logger.info(tokenized_sent)
     # prepare sentences for BERT
     for i, sentence in enumerate(sentences):
         sent_embs = []
         if i%500==0:
-            print('step2: sent ' + str(i) + ' out of ' + str(len(sentences)))
+            logger.info('step2: sent ' + str(i) + ' out of ' + str(len(sentences)))
         marked_sent = "[CLS] " + sentence + " [SEP]"
         tokenized_sent = tokenizer.tokenize(marked_sent)
         # get set of token embeddings
@@ -204,24 +207,24 @@ if __name__ == '__main__':
 
     skip = ['extracellular', 'sulphate', 'assay', 'mediaeval']
 
-    print('Read targets: {}'.format(path_targets))
+    logger.info('Read targets: {}'.format(path_targets))
     with open(path_targets, 'r', encoding='utf-8') as f:
         targets = [w.strip() for w in f.readlines() if w not in skip]
 
-    print('{} target words'.format(len(targets)))
+    logger.info('{} target words'.format(len(targets)))
 
-    print('Load sentences: {}'.format(path_corpus))
+    logger.info('Load sentences: {}'.format(path_corpus))
     sentences = load_coha_sentences(path_corpus)
-    print('{} - {} sentences'.format(path_corpus, len(sentences)))
+    logger.info('{} - {} sentences'.format(path_corpus, len(sentences)))
 
     tokenizer = BertTokenizer.from_pretrained(bert_model)
     model = BertModel.from_pretrained(bert_model, output_hidden_states=True)
     model.eval()
 
-    print('Collect usages')
+    logger.info('Collect usages')
     usages = {}
     for word in targets:
         usages[word] = get_embeddings_for_word(word, sentences)
 
-    print('Save usages: {}'.format(out_path))
+    logger.info('Save usages: {}'.format(out_path))
     np.savez_compressed(out_path, **usages)
