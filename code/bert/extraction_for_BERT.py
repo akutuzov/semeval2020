@@ -27,6 +27,7 @@ from transformers import BertTokenizer, BertModel
 #             sentences.extend(sent_tokenize(text))
 #     return sentences
 
+
 def load_coha_sentences(path):
     sentences = []
     try:
@@ -207,16 +208,20 @@ if __name__ == '__main__':
 
     skip = ['extracellular', 'sulphate', 'assay', 'mediaeval']
 
+    print('Read targets: {}'.format(path_targets))
     with open(path_targets, 'r', encoding='utf-8') as f:
         targets = [w.strip() for w in f.readlines() if w not in skip]
 
     print('{} target words'.format(len(targets)))
 
+    print('Load sentences: {}'.format(path_corpus))
     sentences = load_coha_sentences(path_corpus)
     print('{} - {} sentences'.format(path_corpus, len(sentences)))
 
+    print('Collect usages')
     usages = {}
     for word in targets:
         usages[word] = get_embeddings_for_word(word, sentences)
 
+    print('Save usages: {}'.format(out_path))
     np.savez_compressed(out_path, **usages)
