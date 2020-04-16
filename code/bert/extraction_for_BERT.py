@@ -226,5 +226,5 @@ if __name__ == '__main__':
     for word in targets:
         usages[word] = get_embeddings_for_word(word, sentences)
 
-    logger.info('Save usages: {}'.format(out_path))
-    np.savez_compressed(out_path, **usages)
+        logger.info('Save usages: {}'.format(out_path))
+        np.savez_compressed(out_path, **usages)
