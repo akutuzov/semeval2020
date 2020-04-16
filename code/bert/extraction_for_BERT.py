@@ -200,11 +200,7 @@ if __name__ == '__main__':
     path_targets = args['<targets>']
     path_corpus = args['<corpus>']
     out_path = args['<outPath>']
-
     bert_model = args['<model>']
-    tokenizer = BertTokenizer.from_pretrained(bert_model)
-    model = BertModel.from_pretrained(bert_model, output_hidden_states=True)
-    model.eval()
 
     skip = ['extracellular', 'sulphate', 'assay', 'mediaeval']
 
@@ -217,6 +213,10 @@ if __name__ == '__main__':
     print('Load sentences: {}'.format(path_corpus))
     sentences = load_coha_sentences(path_corpus)
     print('{} - {} sentences'.format(path_corpus, len(sentences)))
+
+    tokenizer = BertTokenizer.from_pretrained(bert_model)
+    model = BertModel.from_pretrained(bert_model, output_hidden_states=True)
+    model.eval()
 
     print('Collect usages')
     usages = {}
