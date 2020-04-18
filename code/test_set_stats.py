@@ -14,6 +14,27 @@ def rand_jitter(arr):
     return arr + np.random.randn(len(arr)) * stdev
 
 
+def degree_plot(scores_data, fname, add_title=''):
+    figure, ax = plt.subplots()
+    for element in sorted(scores_data, reverse=True):
+        x_data = minmax_scale([float(el[1]) for el in scores_data[element]])
+        much_shifted = [val for val in x_data if val > 0.6]
+        much_shifted_ratio = len(much_shifted) / len(x_data)
+        print('%s: %0.3f of words with change degree > 0.6' % (element, much_shifted_ratio))
+
+        x_data = rand_jitter(x_data)
+        y_data = [element] * len(x_data)
+        ax.scatter(x_data, y_data, s=12, label=element)
+
+    ax.set(xlabel='Degree of change (normalized)', ylabel='Datasets',
+           title='Distribution of shift degrees across target words' + add_title)
+    ax.grid()
+    # ax.legend(loc='best')
+    figure.savefig(fname, dpi=300)
+    plt.close()
+    return figure
+
+
 if __name__ == '__main__':
     testset_dir = sys.argv[1]
     testset_files = [f for f in os.listdir(testset_dir) if f.endswith('.txt')]
@@ -26,23 +47,7 @@ if __name__ == '__main__':
         for l in lines:
             data[lang].append(l.split('\t'))
 
-    fig, ax = plt.subplots()
-    for language in sorted(data, reverse=True):
-        x_data = minmax_scale([float(el[1]) for el in data[language]])
-        much_shifted = [val for val in x_data if val > 0.6]
-        much_shifted_ratio = len(much_shifted) / len(x_data)
-        print('%s: %0.3f of words with change degree > 0.6' % (language, much_shifted_ratio))
-
-        x_data = rand_jitter(x_data)
-        y_data = [language for el in x_data]
-        ax.scatter(x_data, y_data, s=12, label=language)
-
-    ax.set(xlabel='Degree of change (normalized)', ylabel='Datasets',
-           title='Distribution of shift degrees across target words')
-    ax.grid()
-    # ax.legend(loc='best')
-    fig.savefig('degree_distribution.png', dpi=300)
-    plt.close()
+    fig = degree_plot(data, 'degree_distribution.png')
 
     if len(sys.argv) > 2:
         corpora_dir = sys.argv[2]
@@ -75,4 +80,3 @@ if __name__ == '__main__':
         ax.set(xlabel=xlabel, ylabel=ylabel, title=title)
         ax.grid()
         fig.savefig('ipm.png', dpi=300)
-
