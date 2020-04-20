@@ -6,6 +6,7 @@ import sys
 import matplotlib.pyplot as plt
 from smart_open import open
 from sklearn.preprocessing import minmax_scale
+from scipy.stats import entropy
 import numpy as np
 
 
@@ -35,6 +36,24 @@ def degree_plot(scores_data, fname, add_title=''):
     return figure
 
 
+def calc_entropy(words_data):
+    elements = [float(el[1]) for el in words_data]
+    return entropy(elements)
+
+
+def calc_bias(words_data):
+    elements = [float(el[1]) for el in words_data]
+    mean = np.mean(elements)
+    high = [el for el in elements if el > mean]
+    return len(high) / len(elements)
+
+
+def calc_median(words_data):
+    elements = [float(el[1]) for el in words_data]
+    elements = minmax_scale(elements)
+    return np.median(elements)
+
+
 if __name__ == '__main__':
     testset_dir = sys.argv[1]
     testset_files = [f for f in os.listdir(testset_dir) if f.endswith('.txt')]
@@ -47,6 +66,9 @@ if __name__ == '__main__':
         for l in lines:
             data[lang].append(l.split('\t'))
 
+    for lang in data:
+        print('Entropy', lang, round(calc_entropy(data[lang]), 3))
+        print('Median gold score', lang, round(calc_median(data[lang]), 3))
     fig = degree_plot(data, 'degree_distribution.png')
 
     if len(sys.argv) > 2:
