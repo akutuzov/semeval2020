@@ -68,8 +68,8 @@ if __name__ == '__main__':
                 ipm = words[el[0]] / (size / 1000000)
                 ipms.append(ipm)
             frequencies.append(ipms)
-            print(language, np.mean(ipms))
-            print([round(i, 2) for i in ipms])
+            print(language, round(np.mean(ipms), 3), round(np.std(ipms), 3))
+            # print([round(i, 2) for i in ipms])
 
         fig, ax = plt.subplots()
 
