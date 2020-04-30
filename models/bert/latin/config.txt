@@ -1,1 +1,0 @@
-bert-base-multilingual-cased 13  768

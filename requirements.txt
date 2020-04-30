@@ -7,6 +7,5 @@ tqdm
 scipy
 tensorflow
 numpy
-# packages to install:
 docopt>=0.6.2
 gensim>=3.7.1

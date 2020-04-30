@@ -1,1 +1,0 @@
-bert-base-german-cased 13 768

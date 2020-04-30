@@ -15,7 +15,7 @@ do
     for method in "${methods[@]}"
     do
         echo $method
-        python3 code/eval.py $data/results/$language/${method}_classes.csv $data/results/$language/${method}.csv gold/$language/task1/true_answers.tsv gold/$language/task1/true_answers.tsv
+        python3 code/eval.py $data/results/$language/${method}_classes.csv $data/results/$language/${method}.csv gold_internal/$language/task1/true_answers.tsv gold_internal/$language/task1/true_answers.tsv
     done
 done
 
@@ -27,6 +27,6 @@ do
     for method in "${methods[@]}"
     do
         echo $method
-        python3 code/eval.py $data/results/$language/${method}_classes.csv $data/results/$language/${method}.csv gold/$language/task2/true_answers.tsv gold/$language/task2/true_answers.tsv
+        python3 code/eval.py $data/results/$language/${method}_classes.csv $data/results/$language/${method}.csv gold_internal/$language/task2/true_answers.tsv gold_internal/$language/task2/true_answers.tsv
     done
 done

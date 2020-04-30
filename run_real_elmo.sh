@@ -19,16 +19,15 @@ declare -a languages=(english german swedish latin)
 for language in "${languages[@]}"
 do
     # Make folders
-#    mkdir -p $data/results/$language/
-#    declare -a models=(single)
+    mkdir -p $data/results/$language/
+    declare -a models=(single)
 
-#    for method in "${models[@]}"
-#    do
+    for method in "${models[@]}"
+    do
         ### Cosine similarity  ###
-	# simple average:
-#	python3 code/cosine_baseline.py -t $gold/$language/targets.txt -i0 elmo_embeddings/real/$method/$language/top/corpus1.npz -i1 elmo_embeddings/real/$method/$language/top/corpus2.npz > $data/${our_answer}/answer/task2/$language.txt
-	
-#    done
+        # simple average:
+	      python3 code/cosine_baseline.py -t $gold/$language/targets.txt -i0 elmo_embeddings/real/$method/$language/top/corpus1.npz -i1 elmo_embeddings/real/$method/$language/top/corpus2.npz > $data/${our_answer}/answer/task2/$language.txt
+	    done
 
 ### TASK 1
     # Make folders

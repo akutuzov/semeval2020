@@ -1,1 +1,0 @@
-DeepPavlov/rubert-base-cased 13 768

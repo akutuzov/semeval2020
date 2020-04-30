@@ -10,8 +10,7 @@ mkdir -p $data/results/
 
 
 # Iterate over languages
-#declare -a languages=(english german russian)
-declare -a languages=(russian)
+declare -a languages=(english german russian)
 for language in "${languages[@]}"
 do
     # Make folders

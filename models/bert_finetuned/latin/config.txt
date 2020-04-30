@@ -1,1 +1,0 @@
-models/bert_finetuned/latin 13  768
