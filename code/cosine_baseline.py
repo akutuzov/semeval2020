@@ -63,7 +63,6 @@ if __name__ == '__main__':
                 vectors.append(vector)
         vectors = [preprocessing.normalize(v.reshape(1, -1), norm='l2') for v in vectors]
         shift = 1 / np.dot(vectors[0].reshape(-1), vectors[1].reshape(-1))
-        # print('\t'.join([word.split('_')[0], str(shift)]))
         print('\t'.join([word, str(shift)]), file=f_out)
 
     if f_out:
