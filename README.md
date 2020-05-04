@@ -20,10 +20,23 @@ These scripts produce `npz` archives containing numpy arrays with token embeddin
 These scripts produce plain text files containing lists of words with their corresponding degree of semantic change between
 *corpus0* and *corpus1*.
 
+## Download pre-trained embeddings
+
+### ELMo
+- [English](http://vectors.nlpl.eu/repository/20/193.zip)
+- [German](http://vectors.nlpl.eu/repository/20/201.zip)
+- [Latin](http://vectors.nlpl.eu/repository/20/203.zip)
+- [Swedish](http://vectors.nlpl.eu/repository/20/202.zip)
+
+### BERT
+- [English](https://huggingface.co/bert-base-uncased)
+- [German](https://huggingface.co/bert-base-german-cased)
+- [Latin](https://huggingface.co/bert-base-multilingual-cased)
+- [Swedish](https://huggingface.co/af-ai-center/bert-large-swedish-uncased)
+
 ## Authors
 - Andrey Kutuzov (University of Oslo, Norway)
 - Mario Giulianelli (University of Amsterdam, Netherlands)
-
 
 
 ### SemEval-2020 Task 1 Reference
