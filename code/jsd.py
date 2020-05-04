@@ -8,6 +8,8 @@ from scipy.stats import entropy
 from sklearn.cluster import DBSCAN, AffinityPropagation
 from sklearn.preprocessing import StandardScaler
 
+# Jensen-Shannon divergence (JSD) algorithm
+
 logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO)
 logger = logging.getLogger(__name__)
 
@@ -137,17 +139,20 @@ def main():
 
     Arguments:
         <targets> = path to target words file
-        <distributionsFile1> = path to .npz file containing a dictionary that maps words to usage matrices (corpus1)
-        <distributionsFile2> = path to .npz file containing a dictionary that maps words to usage matrices (corpus2)
-        <outPath> = output filepath *without extension* for csv file with a JSD value for each target word
-                    (format: 'lemma jsd')
+        <distributionsFile1> = path to .npz file containing a dictionary that maps words to 
+        usage matrices (corpus1)
+        <distributionsFile2> = path to .npz file containing a dictionary that maps words to 
+        usage matrices (corpus2)
+        <outPath> = output filepath *without extension* for csv file with a JSD value for each 
+        target word (format: 'lemma jsd')
     """)
 
     filepath1 = args['<distributionsFile1>']
     filepath2 = args['<distributionsFile2>']
     outpath = args['<outPath>']
 
-    target_words = list(set([w.strip() for w in open(args['<targets>'], 'r', encoding='utf-8').readlines()]))
+    target_words = list(set([w.strip() for w in open(args['<targets>'], 'r',
+                                                     encoding='utf-8').readlines()]))
 
     clustering_method = 'AP'
     args_dicts = {

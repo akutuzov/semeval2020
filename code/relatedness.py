@@ -3,20 +3,23 @@ import numpy as np
 from docopt import docopt
 import logging
 import time
-from scipy.spatial.distance import cdist
+from scipy.spatial.distance import pdist
 from tqdm import tqdm
 
 
-def mean_pairwise_distance(word_usages1, word_usages2, metric):
-    """
-    Computes the mean pairwise distance between two usage matrices.
+# Mean relatedness algorithm
 
-    :param word_usages1: a three-place tuple including, in this order, a usage matrix, a list of snippets,
-                         and a list of integers indicating the lemma's position in the snippet
-    :param word_usages2: a three-place tuple including, in this order, a usage matrix, a list of snippets,
-                         and a list of integers indicating the lemma's position in the snippet
-    :param metric: a distance metric compatible with `scipy.spatial.distance.cdist` (e.g. 'cosine', 'euclidean')
-    :return: the mean pairwise distance between two usage matrices
+def mean_relatedness_difference(word_usages1, word_usages2, metric):
+    """
+    Computes the difference in mean relatedness between two usage matrices.
+
+    :param word_usages1: a three-place tuple including, in this order, a usage matrix, a list of
+    snippets, and a list of integers indicating the lemma's position in the snippet
+    :param word_usages2: a three-place tuple including, in this order, a usage matrix, a list of
+    snippets, and a list of integers indicating the lemma's position in the snippet
+    :param metric: a distance metric compatible with `scipy.spatial.distance.pdist`
+    (e.g. 'cosine', 'euclidean')
+    :return: the difference in mean relatedness between two usage matrices
     """
     if isinstance(word_usages1, tuple):
         usage_matrix1, _, _ = word_usages1
@@ -31,39 +34,47 @@ def mean_pairwise_distance(word_usages1, word_usages2, metric):
     if usage_matrix1.shape[0] == 0 or usage_matrix2.shape[0] == 0:
         return 0.
 
-    return np.mean(cdist(usage_matrix1, usage_matrix2, metric=metric))
+    mean_rel1 = np.mean(pdist(usage_matrix1, metric=metric))
+    mean_rel2 = np.mean(pdist(usage_matrix2, metric=metric))
+
+    return mean_rel2 - mean_rel1
 
 
 def main():
     """
-    Compute (diachronic) distance between sets of contextualised representations.
+    Compute difference in mean relatedness between two sets of contextualised representations.
     """
 
     # Get the arguments
-    args = docopt("""Compute (diachronic) distance between sets of contextualised representations.
+    args = docopt("""Compute difference in mean relatedness between two sets of contextualised 
+    representations.
 
     Usage:
-        distance.py [--metric=<d>] <testSet> <valueFile1> <valueFile2> <outPath>
+        relatedness.py [--metric=<d>, -a] <testSet> <valueFile1> <valueFile2> <outPath>
 
     Arguments:
         <testSet> = path to file with one target per line
         <valueFile1> = path to file containing usage matrices and snippets
         <valueFile2> = path to file containing usage matrices and snippets
         <outPath> = output path for result file
-        
+
     Options:
-        --metric=<d>  The distance metric, which must be compatible with `scipy.spatial.distance.cdist` [default: cosine]
+        --metric=<d>  The distance metric, which must be compatible with 
+        `scipy.spatial.distance.pdist` [default: cosine]
+        -a, --abs  Store absolute (always positive) instead of raw difference
 
     Note:
-        Assumes pickled dictionaries as input: {t: (usage_matrix, snippet_list, target_pos_list) for t in targets}
+        Assumes pickled dictionaries as input: 
+        {t: (usage_matrix, snippet_list, target_pos_list) for t in targets}
         
     """)
 
-    testSet = args['<testSet>']
+    testset = args['<testSet>']
     valueFile1 = args['<valueFile1>']
     valueFile2 = args['<valueFile2>']
     outPath = args['<outPath>']
     distMetric = args['--metric']
+    isAbsolute = args['--abs']
 
     logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO)
     logging.info(__file__.upper())
@@ -71,7 +82,7 @@ def main():
 
     # Load targets
     targets = []
-    with open(testSet, 'r', encoding='utf-8') as f_in:
+    with open(testset, 'r', encoding='utf-8') as f_in:
         for line in f_in.readlines():
             target = line.strip()
             targets.append(target)
@@ -103,8 +114,10 @@ def main():
     # Print only targets to output file
     with open(outPath, 'w', encoding='utf-8') as f_out:
         for target in tqdm(targets):
-            distance = mean_pairwise_distance(usages1[target], usages2[target], distMetric)
-            f_out.write('{}\t{}\n'.format(target, distance))
+            diff = mean_relatedness_difference(usages1[target], usages2[target], distMetric)
+            if isAbsolute:
+                diff = abs(diff)
+            f_out.write('{}\t{}\n'.format(target, diff))
 
     logging.info("--- %s seconds ---" % (time.time() - start_time))
 

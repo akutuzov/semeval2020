@@ -48,7 +48,7 @@ class BidirectionalLanguageModel(object):
                     "not use_character_inputs"
                 )
 
-        self.options = options
+        self._options = options
         self._weight_file = weight_file
         self._embedding_weight_file = embedding_weight_file
         self._use_character_inputs = use_character_inputs
@@ -87,7 +87,7 @@ class BidirectionalLanguageModel(object):
             if len(self._ops) == 0:
                 # first time creating the graph, don't reuse variables
                 lm_graph = BidirectionalLanguageModelGraph(
-                    self.options,
+                    self._options,
                     self._weight_file,
                     ids_placeholder,
                     embedding_weight_file=self._embedding_weight_file,
@@ -96,7 +96,7 @@ class BidirectionalLanguageModel(object):
             else:
                 with tf.compat.v1.variable_scope('', reuse=True):
                     lm_graph = BidirectionalLanguageModelGraph(
-                        self.options,
+                        self._options,
                         self._weight_file,
                         ids_placeholder,
                         embedding_weight_file=self._embedding_weight_file,
@@ -611,7 +611,9 @@ def dump_token_embeddings(vocab_file, options_file, weight_file, outfile):
     vocab = UnicodeCharsVocabulary(vocab_file, max_word_length)
     batcher = Batcher(vocab_file, max_word_length)
 
-    ids_placeholder = tf.compat.v1.placeholder('int32', shape=(None, None, max_word_length))
+    ids_placeholder = tf.compat.v1.placeholder('int32',
+                                     shape=(None, None, max_word_length)
+                                     )
     model = BidirectionalLanguageModel(options_file, weight_file)
     embedding_op = model(ids_placeholder)['token_embeddings']
 
@@ -646,7 +648,9 @@ def dump_bilm_embeddings(vocab_file, dataset_file, options_file,
     vocab = UnicodeCharsVocabulary(vocab_file, max_word_length)
     batcher = Batcher(vocab_file, max_word_length)
 
-    ids_placeholder = tf.compat.v1.placeholder('int32', shape=(None, None, max_word_length))
+    ids_placeholder = tf.compat.v1.placeholder('int32',
+                                     shape=(None, None, max_word_length)
+                                     )
     model = BidirectionalLanguageModel(options_file, weight_file)
     ops = model(ids_placeholder)
 

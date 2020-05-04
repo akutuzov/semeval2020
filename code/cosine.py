@@ -2,11 +2,12 @@
 # coding: utf-8
 
 import numpy as np
-import sys
 import argparse
 import logging
 from sklearn.decomposition import PCA
 from sklearn import preprocessing
+
+# Cosine similarity (COS) algorithm
 
 if __name__ == '__main__':
     logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO)

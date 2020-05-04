@@ -7,8 +7,6 @@ import numpy as np
 import tensorflow as tf
 from bilm import Batcher, BidirectionalLanguageModel, weight_layers
 from sklearn import preprocessing
-from scipy.spatial.distance import cosine
-from scipy.spatial.distance import pdist
 import logging
 
 logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO)
@@ -106,34 +104,3 @@ def divide_chunks(data, n):
         yield data[i:i + n]
 
 
-def calc_coeffs(embfile, method="centroid"):
-    array = np.load(embfile)
-    logger.info('Loaded an array of %d entries from %s' % (len(array), embfile))
-    words = {}
-    for word in array:
-        if array[word].shape[0] < 3:
-            logger.info('%s omitted because of low frequency: %d' % (word, array[word].shape[0]))
-            continue
-        if method == 'pairwise':
-            var_coeff = pairwise_diversity(array[word])
-        else:
-            var_coeff = diversity(array[word])
-        words[word] = var_coeff
-    logger.info('Variation coefficients produced')
-    return words
-
-
-def diversity(matrix):
-    mean = np.average(matrix, axis=0)
-    distances = [cosine(v, mean) for v in matrix]
-    return np.mean(distances)
-
-
-def pairwise_diversity(matrix):
-    distances = pdist(matrix, metric='cosine')
-    return np.mean(distances)
-
-
-def diversity_ax(matrix):
-    stds = np.std(matrix, axis=0)
-    return np.mean(stds)

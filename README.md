@@ -1,18 +1,32 @@
 # Contextualised Embeddings for Lexical Semantic Change Detection
-This code accompanies the paper `*UiO-UvA at SemEval-2020 Task 1: Contextualised Embeddings for Lexical Semantic Change Detection*',
-which describes our participation in [SemEval 2020 Task 1: Unsupervised Lexical Semantic Change Detection](https://competitions.codalab.org/competitions/20948).
+This code accompanies the paper `*[UiO-UvA at SemEval-2020 Task 1: Contextualised Embeddings for Lexical Semantic Change Detection](https://arxiv.org/abs/2005.00050)*',
+which describes our participation in SemEval 2020 Task 1: Unsupervised Lexical Semantic Change Detection.
 
-Some code is based on [LSCDetection repository](https://github.com/Garrafao/LSCDetection).
+##  Extraction of contextualized token embeddings
 
-### Code
+For ELMo: `python3 code/elmo/extract_elmo.py --input <CORPUS> --elmo <ELMO_MODEL> --outfile <OUTFILE> --vocab <TARGET_WORDS>`
 
-We provide implementations for the algorithms we used for the shared task.
+For BERT: `python3 code/bert/collect.py <PATH_TO_MODEL> <CORPUS> <TARGET_WORDS> <OUTFILE>`
 
-### Authors
+These scripts produce `npz` archives containing numpy arrays with token embeddings for each target word in a given corpus.
+
+## Estimating semantic change
+- COS algorithm: `python3 code/cosine.py -t <TARGET_WORDS> -i0 corpus0.npz -i1 corpus1.npz > cosine_change.txt`
+
+- APD algorithm: `python3 code/distance.py <TARGET_WORDS> corpus0.npz corpus1.npz apd_change.txt`
+
+- JSD algorithm: `python3 code/jsd.py <TARGET_WORDS> corpus0.npz corpus1.npz jsd_change.txt`
+
+These scripts produce plain text files containing lists of words with their corresponding degree of semantic change between
+*corpus0* and *corpus1*.
+
+## Authors
 - Andrey Kutuzov (University of Oslo, Norway)
 - Mario Giulianelli (University of Amsterdam, Netherlands)
 
-### Reference
+
+
+### SemEval-2020 Task 1 Reference
 --------
 
 Dominik Schlechtweg, Barbara McGillivray, Simon Hengchen, Haim Dubossarsky and Nina Tahmasebi.

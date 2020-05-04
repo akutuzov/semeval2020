@@ -2,7 +2,9 @@
 # coding: utf-8
 
 import argparse
-from elmo_helpers import *
+from utils_ import *
+
+# Diversity difference (DIV) algorithm
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()

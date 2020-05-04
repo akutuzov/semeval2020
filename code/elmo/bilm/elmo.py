@@ -10,7 +10,7 @@ def weight_layers(name, bilm_ops, l2_coef=0.0,
     For each output layer, this returns two ops.  The first computes
         a layer specific weighted average of the biLM layers, and
         the second the l2 regularizer loss term.
-    The regularization terms are also add to tf.GraphKeys.REGULARIZATION_LOSSES
+    The regularization terms are also add to tf.compat.v1.GraphKeys.REGULARIZATION_LOSSES
 
     Input:
         name = a string prefix used for the trainable variable names
@@ -87,7 +87,7 @@ def weight_layers(name, bilm_ops, l2_coef=0.0,
                     pieces.append(w * tf.squeeze(t, axis=1))
             sum_pieces = tf.add_n(pieces)
 
-            # get the regularizer
+            # get the regularizer 
             reg = [
                 r for r in tf.compat.v1.get_collection(
                     tf.compat.v1.GraphKeys.REGULARIZATION_LOSSES)
