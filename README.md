@@ -23,7 +23,7 @@ These scripts produce plain text files containing lists of words with their corr
 ## Download pre-trained embeddings
 
 ### ELMo
-- [English](http://vectors.nlpl.eu/repository/20/193.zip)
+- [English](http://vectors.nlpl.eu/repository/20/209.zip)
 - [German](http://vectors.nlpl.eu/repository/20/201.zip)
 - [Latin](http://vectors.nlpl.eu/repository/20/203.zip)
 - [Swedish](http://vectors.nlpl.eu/repository/20/202.zip)
