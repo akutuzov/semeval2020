@@ -1,5 +1,5 @@
 # Contextualised Embeddings for Lexical Semantic Change Detection
-This code accompanies the paper `*[UiO-UvA at SemEval-2020 Task 1: Contextualised Embeddings for Lexical Semantic Change Detection](https://arxiv.org/abs/2005.00050)*',
+This code accompanies the paper [UiO-UvA at SemEval-2020 Task 1: Contextualised Embeddings for Lexical Semantic Change Detection](https://arxiv.org/abs/2005.00050),
 which describes our participation in SemEval 2020 Task 1: Unsupervised Lexical Semantic Change Detection.
 
 ##  Extraction of contextualized token embeddings
