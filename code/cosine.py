@@ -20,6 +20,7 @@ if __name__ == '__main__':
     arg('--target', '-t', help='Path to target words', required=True)
     arg('--output', '-o', help='Output path (csv)', required=False)
     arg('--mode', '-m', default='mean', choices=['mean', 'pca', 'sum'])
+    arg('-f', action='store_true', help='Output frequencies?')
 
     args = parser.parse_args()
     data_path0 = args.input0
@@ -28,10 +29,10 @@ if __name__ == '__main__':
     target_words = set([w.strip() for w in open(args.target, 'r', encoding='utf-8').readlines()])
 
     array0 = np.load(data_path0)
-    logger.info('Loaded an array of %d entries from %s' % (len(array0), data_path0))
+    logger.info('Loaded an array of {0} entries from {1}'.format(len(array0), data_path0))
 
     array1 = np.load(data_path1)
-    logger.info('Loaded an array of %d entries from %s' % (len(array1), data_path1))
+    logger.info('Loaded an array of {0} entries from {1}'.format(len(array1), data_path1))
 
     try:
         f_out = open(args.output, 'w', encoding='utf-8')
@@ -39,10 +40,13 @@ if __name__ == '__main__':
         f_out = None
 
     for word in target_words:
+        frequency = np.median(array0[word].shape[0], array1[word].shape[0])
         if array0[word].shape[0] < 3 or array1[word].shape[0] < 3:
-            logger.info('%s omitted because of low frequency' % word)
-            # print('\t'.join([word.split('_')[0], '10']))
-            print('\t'.join([word, '10']), file=f_out)
+            logger.info('{} omitted because of low frequency'.format(word))
+            if args.f:
+                print('\t'.join([word, '10', str(frequency)]), file=f_out)
+            else:
+                print('\t'.join([word, '10']), file=f_out)
             continue
         vectors0 = array0[word]
         vectors1 = array1[word]
@@ -64,7 +68,10 @@ if __name__ == '__main__':
                 vectors.append(vector)
         vectors = [preprocessing.normalize(v.reshape(1, -1), norm='l2') for v in vectors]
         shift = 1 / np.dot(vectors[0].reshape(-1), vectors[1].reshape(-1))
-        print('\t'.join([word, str(shift)]), file=f_out)
+        if args.f:
+            print('\t'.join([word, str(shift), str(frequency)]), file=f_out)
+        else:
+            print('\t'.join([word, str(shift)]), file=f_out)
 
     if f_out:
         f_out.close()

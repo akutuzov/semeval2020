@@ -2,7 +2,6 @@ import pickle
 import numpy as np
 from docopt import docopt
 import logging
-import time
 from scipy.spatial.distance import cdist
 from tqdm import tqdm
 
@@ -57,6 +56,7 @@ def main():
     Options:
         --metric=<d>  The distance metric, which must be compatible with 
         `scipy.spatial.distance.cdist` [default: cosine]
+        --frequency    Output frequency as well.
 
     Note:
         Assumes pickled dictionaries as input: 
@@ -72,7 +72,7 @@ def main():
 
     logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO)
     logging.info(__file__.upper())
-    start_time = time.time()
+    # start_time = time.time()
 
     # Load targets
     targets = []
@@ -80,12 +80,6 @@ def main():
         for line in f_in.readlines():
             target = line.strip()
             targets.append(target)
-            # try:
-            #     lemma_pos = target.split('_')
-            #     lemma, pos = lemma_pos[0], lemma_pos[1]
-            #     targets.append(lemma)
-            # except IndexError:
-            #     targets.append(target)
 
     # Get usages collected from corpus 1
     if value_file1.endswith('.dict'):
@@ -108,10 +102,14 @@ def main():
     # Print only targets to output file
     with open(outpath, 'w', encoding='utf-8') as f_out:
         for target in tqdm(targets):
+            frequency = np.median(usages1[target].shape[0], usages2[target].shape[0])
             distance = mean_pairwise_distance(usages1[target], usages2[target], distmetric)
-            f_out.write('{}\t{}\n'.format(target, distance))
+            if args['--frequency']:
+                f_out.write('{}\t{}\t{}\n'.format(target, distance, frequency))
+            else:
+                f_out.write('{}\t{}\n'.format(target, distance))
 
-    logging.info("--- %s seconds ---" % (time.time() - start_time))
+    # logging.info("--- %s seconds ---" % (time.time() - start_time))
 
 
 if __name__ == '__main__':
