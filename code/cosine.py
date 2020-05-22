@@ -40,7 +40,7 @@ if __name__ == '__main__':
         f_out = None
 
     for word in target_words:
-        frequency = np.median(array0[word].shape[0], array1[word].shape[0])
+        frequency = np.median([array0[word].shape[0], array1[word].shape[0]])
         if array0[word].shape[0] < 3 or array1[word].shape[0] < 3:
             logger.info('{} omitted because of low frequency'.format(word))
             if args.f:

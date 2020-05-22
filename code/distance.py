@@ -45,23 +45,23 @@ def main():
     args = docopt("""Compute (diachronic) distance between sets of contextualised representations.
 
     Usage:
-        distance.py [--metric=<d>] <testSet> <valueFile1> <valueFile2> <outPath>
+        distance.py [--metric=<d> --frequency] <testSet> <valueFile1> <valueFile2> <outPath>
 
     Arguments:
         <testSet> = path to file with one target per line
         <valueFile1> = path to file containing usage matrices and snippets
         <valueFile2> = path to file containing usage matrices and snippets
         <outPath> = output path for result file
-        
+
     Options:
-        --metric=<d>  The distance metric, which must be compatible with 
+        --metric=<d>  The distance metric, which must be compatible with
         `scipy.spatial.distance.cdist` [default: cosine]
         --frequency    Output frequency as well.
 
     Note:
-        Assumes pickled dictionaries as input: 
+        Assumes pickled dictionaries as input:
         {t: (usage_matrix, snippet_list, target_pos_list) for t in targets}
-        
+
     """)
 
     testset = args['<testSet>']
@@ -102,7 +102,7 @@ def main():
     # Print only targets to output file
     with open(outpath, 'w', encoding='utf-8') as f_out:
         for target in tqdm(targets):
-            frequency = np.median(usages1[target].shape[0], usages2[target].shape[0])
+            frequency = np.median([usages1[target].shape[0], usages2[target].shape[0]])
             distance = mean_pairwise_distance(usages1[target], usages2[target], distmetric)
             if args['--frequency']:
                 f_out.write('{}\t{}\t{}\n'.format(target, distance, frequency))
