@@ -67,6 +67,7 @@ def main():
     usage_dict_new = {}
 
     for w in tqdm(usage_dict):
+        # if using Bert-Large, add hdim=1024, nlayers=25 
         usage_dict_new[w] = reduce(method, usage_dict[w])
 
     np.savez_compressed(out_path, **usage_dict_new)

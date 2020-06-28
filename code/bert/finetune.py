@@ -64,10 +64,10 @@ from transformers import (
 )
 
 
-# try:
-#     from torch.utils.tensorboard import SummaryWriter
-# except ImportError:
-from tensorboardX import SummaryWriter
+try:
+    from torch.utils.tensorboard import SummaryWriter
+except ImportError:
+    from tensorboardX import SummaryWriter
 
 
 logger = logging.getLogger(__name__)
