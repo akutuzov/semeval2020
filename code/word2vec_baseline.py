@@ -17,7 +17,8 @@ if __name__ == '__main__':
     arg = parser.add_argument
     arg('--emb_dir', '-e', help='Directory with embeddings', required=True)
     arg('--targets', '-t', help='File with target words', required=True)
-    parser.add_argument('--mode', '-m', default='incremental', choices=['incremental', 'align'])
+    arg('--pos', '-p', help='Add POS tags to words?', default='no', choices=['no', 'yes'])
+    arg('--mode', '-m', default='incremental', choices=['incremental', 'align'])
 
     args = parser.parse_args()
 
@@ -45,6 +46,17 @@ if __name__ == '__main__':
         logger.info('Aligning complete...')
 
     for word in similarities:
+        if args.pos == 'yes':
+            word_n = word + '_NOUN'
+            word_a = word + '_ADJ'
+            a_freq = 0
+            if word_a in models[0] and word_a in models[1]:
+                word = word_a
+                a_freq = models[0].vocab[word].count
+            if word_n in models[0] and word_n in models[1]:
+                n_freq = models[0].vocab[word_n].count
+                if n_freq > a_freq:
+                    word = word_n
         if word not in models[0] or word not in models[1]:
             logger.info('%s not found!' % word)
             shift = 10.0
@@ -52,4 +64,4 @@ if __name__ == '__main__':
             vector0 = models[0][word]
             vector1 = models[1][word]
             shift = 1 / np.dot(vector0, vector1)
-        print('\t'.join([word, str(shift)]))
+        print('\t'.join([word.split('_')[0], str(shift)]))
