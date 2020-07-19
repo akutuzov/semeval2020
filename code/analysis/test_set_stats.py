@@ -27,11 +27,12 @@ def degree_plot(scores_data, fname, add_title=''):
         y_data = [element] * len(x_data)
         ax.scatter(x_data, y_data, s=12, label=element)
 
-    ax.set(xlabel='Degree of change (normalized)', ylabel='Datasets',
-           title='Distribution of shift degrees across target words' + add_title)
+    ax.set_xlabel('Degree of change (normalized)', fontsize=20)
+    ax.set_ylabel('Datasets', fontsize=20)
+    ax.tick_params(labelsize=15)
+    ax.set_title('Distribution of shift degrees across target words' + add_title, size=20)
     ax.grid()
-    # ax.legend(loc='best')
-    figure.savefig(fname, dpi=300)
+    figure.savefig(fname, dpi=300, bbox_inches='tight')
     plt.close()
     return figure
 
@@ -61,14 +62,14 @@ if __name__ == '__main__':
     data = {}
     for f in testset_files:
         lang = f.split('.')[0]
-        lines = [l.strip() for l in open(os.path.join(testset_dir, f), 'r').readlines()]
+        lines = [line.strip() for line in open(os.path.join(testset_dir, f), 'r').readlines()]
         data[lang] = []
-        for l in lines:
-            data[lang].append(l.split('\t'))
+        for line in lines:
+            data[lang].append(line.split('\t'))
 
     for lang in data:
-        print('Entropy', lang, round(calc_entropy(data[lang]), 3))
-        print('Median gold score', lang, round(calc_median(data[lang]), 3))
+        print(f'Entropy: {lang} {calc_entropy(data[lang]):.3f}')
+        print(f'Median gold score: {lang}, {calc_median(data[lang]):.3f}')
     fig = degree_plot(data, 'degree_distribution.png')
 
     if len(sys.argv) > 2:
@@ -90,15 +91,14 @@ if __name__ == '__main__':
                 ipm = words[el[0]] / (size / 1000000)
                 ipms.append(ipm)
             frequencies.append(ipms)
-            print(language, round(np.mean(ipms), 3), round(np.std(ipms), 3))
-            # print([round(i, 2) for i in ipms])
+            print(f'{language}, {np.mean(ipms):.3f}, {np.std(ipms):.3f}')
 
-        fig, ax = plt.subplots()
+        fig, a = plt.subplots()
 
-        ax.boxplot(frequencies, labels=sorted(data, reverse=True), whis='range')
+        a.boxplot(frequencies, labels=sorted(data, reverse=True), whis='range')
         title = 'Word frequencies'
         xlabel = ''
         ylabel = 'Istances per million (IPM)'
-        ax.set(xlabel=xlabel, ylabel=ylabel, title=title)
-        ax.grid()
+        a.set(xlabel=xlabel, ylabel=ylabel, title=title)
+        a.grid()
         fig.savefig('ipm.png', dpi=300)
