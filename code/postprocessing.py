@@ -23,8 +23,6 @@ def main():
     dictionary containing the ranked candidate tokens (key 'candidates') and the ranked log
     probabilities (key 'logp').
     
-    w: [{'candidates': [], 'logp': []}
-
     Usage:
         postprocessing.py [--nSubs=N --language=L --frequency --lemmatise] <subsPath> <outPath>
         

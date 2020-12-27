@@ -221,26 +221,6 @@ def main():
         inputs['attention_mask'] = inputs['attention_mask'].to(device)
         bsz = inputs['input_ids'].shape[0]
 
-        # print('-' * 20)
-        # print('input_ids', inputs['input_ids'].shape)
-        # print('attention_mask', inputs['attention_mask'].shape)
-        # print('tgt', tgt)
-        # print('occurrence_idxs', occurrence_idxs)
-        # print('candidate_tokens', candidate_tokens)
-        # print('tgt_embedding', tgt_embedding.shape)
-        # print('logps', logps)
-        # print('positions', positions)
-
-        # input_ids  torch.Size([2, 9])
-        # attention_mask  torch.Size([2, 9])
-        # tgt  ['blue', 'blue']
-        # candidate_ids  [tensor(2417), tensor(3756)]
-        # candidate_tokens  ['red', 'yellow']
-        # tgt_embedding  torch.Size([2, 768])
-        # logps  [-9.153628, -9.347807]
-        # positions  [2, 2]
-
-
         with torch.no_grad():
             outputs = model(**inputs)  # n_sentences, max_sent_len, vocab_size
 
@@ -249,12 +229,8 @@ def main():
             if normaliseEmbed:
                 last_layer /= last_layer.sum()
 
-            # print('tgt_embedding', tgt_embedding)
-            # print('last_layer', last_layer)
-
             dot_products = torch.sum(tgt_embedding * last_layer, dim=1)  # (bsz)
             dot_products = dot_products / temperature
-            # print(dot_products)
 
             for b_id in np.arange(bsz):
                 tgt_lemma = tgt[b_id]

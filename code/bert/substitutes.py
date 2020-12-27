@@ -170,7 +170,7 @@ def main():
     args = docopt("""Collect lexical substitutes and their probabilities.
 
     Usage:
-        substitutes.py [--nSubs=50 --context=64 --batch=64 --localRank=-1 --ignoreBias] <modelName> <corpDir> <testSet> <outPath>
+        substitutes.py [--nSubs=N --context=C --batch=B --localRank=R --ignoreBias] <modelName> <corpDir> <testSet> <outPath>
 
     Arguments:
         <modelName> = HuggingFace model name 
