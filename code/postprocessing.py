@@ -24,7 +24,7 @@ def main():
     probabilities (key 'logp').
     
     Usage:
-        postprocessing.py [--nSubs=N --language=L --frequency --lemmatise] <subsPath> <outPath>
+        postprocessing.py [--nSubs=N --language=L --frequency=F --lemmatise] <subsPath> <outPath>
         
     Arguments:
         <subsPath> = path to pickle containing substitute lists
@@ -32,7 +32,7 @@ def main():
     Options:
         --nSubs=N  The number of lexical substitutes to keep 
         --language=L  The language code for word frequencies
-        --frequency  Whether to correct for word frequency
+        --frequency=F  Whether to correct for word frequency: 'log' or 'zipf'
         --lemmatise  Whether to lemmatise lexical substitutes
  
     """)
@@ -41,10 +41,11 @@ def main():
     outPath = args['<outPath>']
     nSubs = int(args['--nSubs']) if args['--nSubs'] else None
     lang = args['--language']
-    correctFreq = bool(args['--frequency'])
+    correctFreq = args['--frequency']
     lemmatise = bool(args['--lemmatise'])
 
     assert lang.lower() in ['en', 'de', 'sw', 'la', 'ru', 'it']
+    assert correctFreq in [None, 'log', 'zipf']
 
     with open(subsPath, 'rb') as f_in:
         substitutes_pre = pickle.load(f_in)
@@ -59,8 +60,10 @@ def main():
         for target in substitutes_pre:
             for occurrence in substitutes_pre[target]:
                 for w, logp in zip(occurrence['candidates'], occurrence['logp']):
-                    logp -= zipf_frequency(w, lang, wordlist='best')
-                    logp -= np.log(word_frequency(w, lang, wordlist='best'))
+                    if correctFreq == 'zipf':
+                        logp -= zipf_frequency(w, lang, wordlist='best')
+                    else:
+                        logp -= np.log(word_frequency(w, lang, wordlist='best'))
 
     if lemmatise:
         logger.warning('Lemmatisation postprocessing.')
