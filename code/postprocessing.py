@@ -30,7 +30,7 @@ def main():
         <subsPath> = path to pickle containing substitute lists
         <outPath> = output path for substitutes with updated probabilities
     Options:
-        --nSubs=N  The number of lexical substitutes to extract 
+        --nSubs=N  The number of lexical substitutes to keep 
         --language=L  The language code for word frequencies
         --frequency  Whether to correct for word frequency
         --lemmatise  Whether to lemmatise lexical substitutes
