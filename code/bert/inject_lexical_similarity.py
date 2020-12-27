@@ -91,9 +91,9 @@ def main():
     Options:
         --batch=B  The batch size [default: 64]
         --localRank=R  For distributed training [default: -1]
-        --temperature=T  The temperature value for the lexical similarity calculation
-        --normalise  Whether to normalise the embeddings before dot product [default=False]
-        --ignoreBias  Whether to ignore the bias vector during masked word prediction [default=False]
+        --temperature=T  The temperature value for the lexical similarity calculation [default: 1.]
+        --normalise  Whether to normalise the embeddings before dot product
+        --ignoreBias  Whether to ignore the bias vector during masked word prediction
     """)
 
     modelName = args['<modelName>']

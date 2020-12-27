@@ -183,7 +183,7 @@ def main():
         --context=C  The length of a token's entire context window [default: 64]
         --batch=B  The batch size [default: 64]
         --localRank=R  For distributed training [default: -1]
-        --ignoreBias  Whether to ignore the bias vector during masked word prediction [default=False]
+        --ignoreBias  Whether to ignore the bias vector during masked word prediction
     """)
 
     modelName = args['<modelName>']
