@@ -1,16 +1,14 @@
-from wordfreq import word_frequency, zipf_frequency
+import logging
 import pickle
 import spacy
-import torch
 import time
-import logging
-import itertools
 import numpy as np
-from tqdm import tqdm
 from docopt import docopt
+from wordfreq import word_frequency, zipf_frequency
 
 
 logger = logging.getLogger(__name__)
+
 
 def main():
     """
@@ -18,10 +16,17 @@ def main():
     """
 
     # Get the arguments
-    args = docopt("""Collect BERT representations from corpus.
+    args = docopt("""Postprocessing: correct for substitute word frequency and lemmatise.
+    
+    Input format (<subsPath>): pickle file containing a dictionary. Keys are target words. 
+    Values are lists with as many elements as target word occurrences. A list element is a 
+    dictionary containing the ranked candidate tokens (key 'candidates') and the ranked log
+    probabilities (key 'logp').
+    
+    w: [{'candidates': [], 'logp': []}
 
     Usage:
-        postprocessing.py [--nSubs=N --frequency --language=L --lemmatise] <subsPath> <outPath>
+        postprocessing.py [--nSubs=N --language=L --frequency --lemmatise] <subsPath> <outPath>
         
     Arguments:
         <subsPath> = path to pickle containing substitute lists
@@ -49,6 +54,10 @@ def main():
     start_time = time.time()
 
     if correctFreq:
+        logger.warning('Correct for word frequency.')
+        if lang == 'la':
+            raise NotImplementedError('No Latin word frequencies available.')
+
         for target in substitutes_pre:
             for occurrence in substitutes_pre[target]:
                 for w, logp in zip(occurrence['candidates'], occurrence['logp']):
@@ -56,7 +65,11 @@ def main():
                     logp -= np.log(word_frequency(w, lang, wordlist='best'))
 
     if lemmatise:
-        nlp = spacy.load('en_core_web_sm', disable=['ner', 'parser', 'tagger', 'tokenizer'])
+        logger.warning('Lemmatisation postprocessing.')
+        if lang == 'en':
+            nlp = spacy.load('en_core_web_sm', disable=['ner', 'parser', 'tagger', 'tokenizer'])
+        else:
+            raise NotImplementedError('Only English lemmatisation available.')
 
         for target in substitutes_pre:
             tgt_lemma = nlp(target)[0].lemma_

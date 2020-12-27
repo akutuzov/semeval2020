@@ -167,7 +167,7 @@ def main():
     """
 
     # Get the arguments
-    args = docopt("""Collect BERT representations from corpus.
+    args = docopt("""Collect lexical substitutes and their probabilities.
 
     Usage:
         substitutes.py [--nSubs=50 --context=64 --batch=64 --localRank=-1 --ignoreBias] <modelName> <corpDir> <testSet> <outPath>

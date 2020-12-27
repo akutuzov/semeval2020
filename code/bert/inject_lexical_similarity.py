@@ -78,7 +78,7 @@ def main():
     """
 
     # Get the arguments
-    args = docopt("""Collect BERT representations from corpus.
+    args = docopt("""Modify substitute probabilities based on lexical similarity with target.
 
     Usage:
         inject_lexical_similarity.py [--batch=B --localRank=R --temperature=T --normalise --ignoreBias] <modelName> <testSet> <subsPath> <outPath>
