@@ -71,14 +71,14 @@ def main():
             for w in freqs_tmp:
                 freqs_tmp[w] = np.log(freqs_tmp[w] / sum_fr)
 
-            freqs = defaultdict(lambda: min(freqs_tmp.values()))
-            freqs.update(freqs_tmp)
+            log_relative_freqs = defaultdict(lambda: min(freqs_tmp.values()))
+            log_relative_freqs.update(freqs_tmp)
 
         for target in substitutes_pre:
             for occurrence in substitutes_pre[target]:
                 for w, logp in zip(occurrence['candidates'], occurrence['logp']):
                     if frequencyList:
-                        logp -= freqs[w]
+                        logp -= log_relative_freqs[w]
                     elif correctFreq == 'zipf':
                         logp -= zipf_frequency(w, lang, wordlist='best')
                     else:
