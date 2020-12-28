@@ -1,6 +1,6 @@
 import logging
 import pickle
-import spacy
+import stanza
 import time
 import numpy as np
 from docopt import docopt
@@ -67,18 +67,19 @@ def main():
 
     if lemmatise:
         logger.warning('Lemmatisation postprocessing.')
-        if lang == 'en':
-            nlp = spacy.load('en_core_web_sm', disable=['ner', 'parser', 'tagger', 'tokenizer'])
-        else:
-            raise NotImplementedError('Only English lemmatisation available.')
+        try:
+            nlp = stanza.Pipeline(lang=lang, processors='tokenize, lemma')
+        except FileNotFoundError:
+            stanza.download(lang=lang, processors='tokenize, lemma')
+            nlp = stanza.Pipeline(lang=lang, processors='tokenize, lemma')
 
         for target in substitutes_pre:
-            tgt_lemma = nlp(target)[0].lemma_
+            tgt_lemma = nlp(target).sentences[0].words[0].lemma
             for occurrence in substitutes_pre[target]:
                 subs_lemmas = {}
 
                 for j, w in enumerate(occurrence['candidates']):
-                    lemma = nlp(w)[0].lemma_
+                    lemma = nlp(w).sentences[0].words[0].lemma
 
                     if lemma == tgt_lemma:
                         occurrence['logp'][j] = 100  # remove
