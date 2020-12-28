@@ -3,6 +3,7 @@ import pickle
 import stanza
 import time
 import numpy as np
+from collections import defaultdict
 from docopt import docopt
 from wordfreq import word_frequency, zipf_frequency
 
@@ -24,7 +25,7 @@ def main():
     probabilities (key 'logp').
     
     Usage:
-        postprocessing.py [--nSubs=N --language=L --frequency=F --lemmatise] <subsPath> <outPath>
+        postprocessing.py [--nSubs=N --language=L --frequency=F --lemmatise --frequencyList=P] <subsPath> <outPath>
         
     Arguments:
         <subsPath> = path to pickle containing substitute lists
@@ -34,7 +35,7 @@ def main():
         --language=L  The language code for word frequencies
         --frequency=F  Whether to correct for word frequency: 'log' or 'zipf'
         --lemmatise  Whether to lemmatise lexical substitutes
- 
+        --frequencyList=P  Path to a frequency list tsv file (word\tfreq[\trank]\n)
     """)
 
     subsPath = args['<subsPath>']
@@ -43,9 +44,12 @@ def main():
     lang = args['--language']
     correctFreq = args['--frequency']
     lemmatise = bool(args['--lemmatise'])
+    frequencyList = args['--frequencyList']
 
     assert lang.lower() in ['en', 'de', 'sw', 'la', 'ru', 'it']
     assert correctFreq in [None, 'log', 'zipf']
+    if frequencyList and correctFreq == 'zipf':
+        raise NotImplementedError('No Zipf frequencies available with custom frequency list.')
 
     with open(subsPath, 'rb') as f_in:
         substitutes_pre = pickle.load(f_in)
@@ -54,13 +58,28 @@ def main():
 
     if correctFreq:
         logger.warning('Correct for word frequency.')
-        if lang == 'la':
-            raise NotImplementedError('No Latin word frequencies available.')
+        if frequencyList:
+            logger.warning('Loading frequency list.')
+            freqs_tmp = dict()
+            with open(frequencyList, 'r') as f_in:
+                for line in f_in:
+                    line = line.strip('\n').strip()
+                    w, fr = line.split('\t')[:2]
+                    freqs_tmp[w] = int(fr)
+
+            sum_fr = sum(freqs_tmp.values())
+            for w in freqs_tmp:
+                freqs_tmp[w] = np.log(freqs_tmp[w] / sum_fr)
+
+            freqs = defaultdict(lambda: min(freqs_tmp.values()))
+            freqs.update(freqs_tmp)
 
         for target in substitutes_pre:
             for occurrence in substitutes_pre[target]:
                 for w, logp in zip(occurrence['candidates'], occurrence['logp']):
-                    if correctFreq == 'zipf':
+                    if frequencyList:
+                        logp -= freqs[w]
+                    elif correctFreq == 'zipf':
                         logp -= zipf_frequency(w, lang, wordlist='best')
                     else:
                         logp -= np.log(word_frequency(w, lang, wordlist='best'))
@@ -73,38 +92,36 @@ def main():
             stanza.download(lang=lang, processors='tokenize, lemma')
             nlp = stanza.Pipeline(lang=lang, processors='tokenize, lemma')
 
+        substitutes_post = {
+            w: [{'candidates': [], 'logp': []} for _ in substitutes_pre[w]]
+            for w in substitutes_pre
+        }
+
         for target in substitutes_pre:
             tgt_lemma = nlp(target).sentences[0].words[0].lemma
-            for occurrence in substitutes_pre[target]:
+            for i, occurrence in enumerate(substitutes_pre[target]):
                 subs_lemmas = {}
 
-                for j, w in enumerate(occurrence['candidates']):
-                    lemma = nlp(w).sentences[0].words[0].lemma
+                j = 0
+                for sub, sub_logp in zip(occurrence['candidates'], occurrence['logp']):
+                    sub_lemma = nlp(sub).sentences[0].words[0].lemma
 
-                    if lemma == tgt_lemma:
-                        occurrence['logp'][j] = 100  # remove
+                    if sub_lemma == tgt_lemma:
                         continue
 
-                    if lemma in subs_lemmas:
-                        p = np.exp(occurrence['logp'][subs_lemmas[lemma]]) + np.exp(occurrence['logp'][j])
-                        occurrence['logp'][subs_lemmas[lemma]] = np.log(p)
-                        occurrence['logp'][j] = 100  # remove
+                    if sub_lemma in subs_lemmas:
+                        p = np.exp(occurrence['logp'][subs_lemmas[sub_lemma]]) + np.exp(sub_logp)
+                        substitutes_post[target][i]['logp'][subs_lemmas[sub_lemma]] = np.log(p)
                     else:
-                        subs_lemmas[lemma] = j
+                        subs_lemmas[sub_lemma] = j
+                        substitutes_post[target][i]['candidates'].append(sub_lemma)
+                        substitutes_post[target][i]['logp'].append(sub_logp)
+                        j += 1
+    else:
+        substitutes_post = substitutes_pre
 
-    substitutes_post = {
-        w: [{'candidates': [], 'logp': []} for _ in substitutes_pre[w]]
-        for w in substitutes_pre
-    }
-    for target in substitutes_pre:
-        for j, occurrence in enumerate(substitutes_pre[target]):
-            for w, logp in zip(occurrence['candidates'], occurrence['logp']):
-                if logp != 100:
-                    substitutes_post[target][j]['candidates'].append(w)
-                    substitutes_post[target][j]['logp'].append(logp)
-
-    for lemma in substitutes_post:
-        for occurrence in substitutes_post[lemma]:
+    for sub_lemma in substitutes_post:
+        for occurrence in substitutes_post[sub_lemma]:
             indices = np.argsort(occurrence['logp'])[::-1]
             occurrence['logp'] = [occurrence['logp'][j] for j in indices]
             occurrence['candidates'] = [occurrence['candidates'][j] for j in indices]
