@@ -10,7 +10,9 @@ numpy>1.18
 docopt>=0.6.2
 gensim>=3.7.1
 torch~=1.5.1
-transformers
+transformers~=4.1.1
 nltk~=3.5
 scikit-learn~=0.23.1
 simple-elmo>=0.6.0
+stanza~=1.1.1
+wordfreq~=2.3.2
