@@ -5,7 +5,7 @@ h5py~=2.10.0
 sklearn
 tqdm~=4.46.0
 scipy>1.4
-tensorflow~=1.15.2
+tensorflow>1.15.2
 numpy>1.18
 docopt>=0.6.2
 gensim>=3.7.1
@@ -13,3 +13,4 @@ torch~=1.5.1
 transformers
 nltk~=3.5
 scikit-learn~=0.23.1
+simple-elmo>=0.6.0
