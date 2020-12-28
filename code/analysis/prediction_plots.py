@@ -5,7 +5,10 @@ from test_set_stats import *
 
 if __name__ == '__main__':
     testset_dir = sys.argv[1]
-    method = sys.argv[2]
+    if len(sys.argv) > 2:
+        method = sys.argv[2]
+    else:
+        method = ''
     testset_files = [f for f in os.listdir(testset_dir) if f.endswith(method + '.txt')]
     print(method)
     data = {}
@@ -16,4 +19,7 @@ if __name__ == '__main__':
         for line in lines:
             data[lang].append(line.split('\t'))
 
-    fig = degree_plot(data, method + '_distribution.png', add_title=': %s' % method)
+    if method:
+        fig = degree_plot(data, method + '_distribution.png', add_title=': %s' % method)
+    else:
+        fig = degree_plot(data, 'degree_distribution.png')

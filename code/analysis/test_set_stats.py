@@ -25,7 +25,7 @@ def degree_plot(scores_data, fname, add_title=''):
 
         x_data = rand_jitter(x_data)
         y_data = [element] * len(x_data)
-        ax.scatter(x_data, y_data, s=12, label=element)
+        ax.scatter(x_data, y_data, s=14, label=element)
 
     ax.set_xlabel('Degree of change (normalized)', fontsize=20)
     ax.set_ylabel('Datasets', fontsize=20)
