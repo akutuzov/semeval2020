@@ -29,7 +29,7 @@ language=english  # german, latin, swedish
 preproc=lemma  # token
 model=bert-base-uncased  # bert-base-german-cased, bert-base-multilingual-cased, af-ai-center/bert-base-swedish-uncased
 epochs=10
-batch=64
+batch=16
 
 echo "Run script"
 python3 -m torch.distributed.launch --nproc_per_node=4 --nnodes=1 --node_rank=0 code/bert/run_mlm_wwm.py \
