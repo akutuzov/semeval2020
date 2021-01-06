@@ -1,6 +1,6 @@
 #!/bin/bash
 #SBATCH --nodes=1
-#SBATCH --job-name=ft-en
+#SBATCH --job-name=ft-de
 #SBATCH --time=1:00:00
 #SBATCH --partition=gpu
 #SBATCH --gres=gpu:1
@@ -27,7 +27,7 @@ source ${HOME}/projects/erp/venv/bin/activate
 
 language=german
 preproc=lemma
-model=bert-base-german-cased
+model=bert-base-german-uncased
 epochs=10
 batch=16
 
