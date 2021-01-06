@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH --nodes=1
 #SBATCH --job-name=ft-en
-#SBATCH --time=1:00:00
+#SBATCH --time=15:00:00
 #SBATCH --partition=gpu
 #SBATCH --gres=gpu:1
 

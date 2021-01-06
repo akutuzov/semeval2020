@@ -1,9 +1,9 @@
 #!/bin/bash
 #SBATCH --nodes=1
 #SBATCH --job-name=ft-sw
-#SBATCH --time=1:00:00
+#SBATCH --time=48:00:00
 #SBATCH --partition=gpu
-#SBATCH --gres=gpu:1
+#SBATCH --gres=gpu:2
 
 # Load all necessary modules.
 echo "Loading modules..."
@@ -32,7 +32,7 @@ epochs=10
 batch=16
 
 echo "Run script"
-python3 -m torch.distributed.launch --nproc_per_node=4 --nnodes=1 --node_rank=0 code/bert/run_mlm_wwm.py \
+python3 -m torch.distributed.launch --nproc_per_node=4 --nnodes=2 --node_rank=0 code/bert/run_mlm_wwm.py \
 	--model_type bert \
 	--model_name_or_path $model \
 	--train_file finetuning_corpora/${language}/${preproc}/train.txt \
