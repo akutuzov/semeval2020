@@ -76,6 +76,8 @@ if __name__ == "__main__":
     # Actually producing ELMo embeddings for our data:
     start = time.time()
 
+    CACHE = 12800
+
     lines_processed = 0
     lines_cache = []
     with open(data_path, "r") as dataset:
@@ -84,7 +86,7 @@ if __name__ == "__main__":
             if target_words & set(res):
                 lines_cache.append(res)
                 lines_processed += 1
-            if len(lines_cache) == batch_size:
+            if len(lines_cache) == CACHE:
                 elmo_vectors = model.get_elmo_vectors(lines_cache, layers=args.layers)
                 for sent, matrix in zip(lines_cache, elmo_vectors):
                     for word, vector in zip(sent, matrix):
