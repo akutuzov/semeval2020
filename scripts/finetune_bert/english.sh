@@ -1,8 +1,15 @@
 #!/bin/bash
+#SBATCH --nodes=1
+#SBATCH --job-name=ft-en
+#SBATCH --time=1:00:00
+#SBATCH --partition=gpu
+#SBATCH --gres=gpu:1
 
-# Provide project path as argument to this script!
-project_path=$1
-cd $project_path || exit
+# Load all necessary modules.
+echo "Loading modules..."
+module load 2019
+
+cd ${HOME}/projects/semeval2020 || exit
 
 unzip -n test_data_public.zip
 data=test_data_public
@@ -16,7 +23,7 @@ mv semeval2020_ulscd_eng  $data/english
 rm semeval2020_ulscd_eng.zip
 
 echo "Loading virtual environment..."
-source ${HOME}/nlp-env/bin/activate
+source ${HOME}/projects/erp/venv/bin/activate
 
 language=english  # german, latin, swedish
 preproc=lemma  # token
@@ -24,6 +31,7 @@ model=bert-base-uncased  # bert-base-german-cased, bert-base-multilingual-cased,
 epochs=10
 batch=64
 
+echo "Run script"
 python3 -m torch.distributed.launch --nproc_per_node=4 --nnodes=1 --node_rank=0 code/bert/run_mlm_wwm.py \
 	--model_type bert \
 	--model_name_or_path $model \
