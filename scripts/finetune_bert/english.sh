@@ -41,7 +41,6 @@ python3 -m torch.distributed.launch --nproc_per_node=4 --nnodes=1 --node_rank=0 
 	--do_train \
 	--do_eval \
 	--output_dir finetuned_bert/${language}/ \
-	--line_by_line \
 	--num_train_epochs ${epochs} \
 	--per_device_train_batch_size ${batch} \
 	--per_device_eval_batch_size ${batch} \
