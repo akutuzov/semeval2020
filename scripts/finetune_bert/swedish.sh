@@ -36,7 +36,7 @@ python3 -m torch.distributed.launch --nproc_per_node=4 --nnodes=1 --node_rank=0 
 	--model_type bert \
 	--model_name_or_path $model \
 	--train_file finetuning_corpora/${language}/${preproc}/train.txt \
-	--validation_file finetuning_corpora/${language}/${preproc}/val.txt \
+	--validation_file finetuning_corpora/${language}/${preproc}/test.txt \
 	--targets_file ${data}/${language}/targets.txt \
 	--do_train \
 	--do_eval \
