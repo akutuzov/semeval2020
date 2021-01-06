@@ -59,7 +59,7 @@ if __name__ == '__main__':
     print('Total number of sentences in the corpus: {}'.format(total_length))
     print('Number of test sentences: {}'.format(test_length))
 
-    # test corpus has the same amount of corpus 1 and corpus 2 sentences
+    # test corpus has the same amount of corpus 1 and corpus 2 (and corpus 3) sentences
     if args.corpus3_path:
         test_indices_corpus1 = np.random.choice(np.arange(len(corpus1)), int(test_length / 3), replace=False)
         test_indices_corpus2 = np.random.choice(np.arange(len(corpus2)), int(test_length / 3), replace=False)
