@@ -32,7 +32,7 @@ def main():
         <outPath> = output path for substitutes with updated probabilities
     Options:
         --nSubs=N  The number of lexical substitutes to keep 
-        --language=L  The language code for word frequencies
+        --language=L  The language code for word frequencies and lemmatisation
         --frequency=F  Whether to correct for word frequency: 'log' or 'zipf'
         --lemmatise  Whether to lemmatise lexical substitutes
         --frequencyList=P  Path to a frequency list tsv file (word\tfreq[\trank]\n)
@@ -46,7 +46,8 @@ def main():
     lemmatise = bool(args['--lemmatise'])
     frequencyList = args['--frequencyList']
 
-    assert lang.lower() in ['en', 'de', 'sw', 'la', 'ru', 'it']
+    lang = lang.lower()
+    assert lang in ['en', 'de', 'sw', 'la', 'ru', 'it']
     assert correctFreq in [None, 'log', 'zipf']
     if frequencyList and correctFreq == 'zipf':
         raise NotImplementedError('No Zipf frequencies available with custom frequency list.')
