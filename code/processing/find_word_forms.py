@@ -62,6 +62,9 @@ if __name__ == '__main__':
     with open(args.targets_path, 'r', encoding='utf-8') as f_in:
         for line in f_in.readlines():
             target = line.strip()
+            if not target:
+                continue
+
             if lang == 'en':
                 lemma_pos = target.split('_')
                 lemma, pos = lemma_pos[0], lemma_pos[1]
@@ -69,19 +72,19 @@ if __name__ == '__main__':
                 pos_tags[lemma] = pos
             else:
                 targets.append(target)
-    logger.info('\nTarget words:')
-    logger.info('{}.\n'.format(', '.join(targets)))
-
+    logger.warning('\nTarget words:')
+    logger.warning('{}.\n'.format(', '.join(targets)))
+    
     target_lemmas = {nlp(w).sentences[0].words[0].lemma: w for w in targets}
-    logger.info('\nTarget lemmas:')
-    logger.info('{}.\n'.format(', '.join(targets)))
+    logger.warning('\nTarget lemmas:')
+    logger.warning('{}.\n'.format(', '.join(targets)))
 
     if lang == 'en':
         pos_tags = {w: pos_tags[target_lemmas[w]] for w in target_lemmas}
 
     start_time = time.time()
 
-    logger.info('Lemmatize corpus...')
+    logger.warning('Lemmatize corpus...')
     all_forms = {lemma: {lemma} for lemma in target_lemmas}
     for path in [args.train_path, args.test_path]:
         if not path:
@@ -102,7 +105,7 @@ if __name__ == '__main__':
                             if lang != 'en' or (lang == 'en' and pos_match(pos_tags[w.lemma], w.pos)):
                                 all_forms[w.lemma].add(w.text)
 
-    logger.info("--- %s seconds ---" % (time.time() - start_time))
+    logger.warning("--- %s seconds ---" % (time.time() - start_time))
 
     with open(args.output_path, 'w') as f:
         for lemma in target_lemmas:
@@ -110,4 +113,4 @@ if __name__ == '__main__':
             forms = list(all_forms[lemma])
             f.write('{}\n'.format(', '.join([orig_target] + forms)))
 
-    logger.info('Output written to {}'.format(args.output_path))
+    logger.warning('Output written to {}'.format(args.output_path))
