@@ -53,15 +53,16 @@ if __name__ == '__main__':
                 targets.append(lemma)
             except IndexError:
                 targets.append(target)
-    logger.warning('\nTarget words:')
-    logger.warning('{}.\n'.format(', '.join(targets)))
+    logger.info('\nTarget words:')
+    logger.info('{}.\n'.format(', '.join(targets)))
 
     target_lemmas = {nlp(w).sentences[0].words[0].lemma: w for w in targets}
-    logger.warning('\nTarget lemmas:')
-    logger.warning('{}.\n'.format(', '.join(targets)))
+    logger.info('\nTarget lemmas:')
+    logger.info('{}.\n'.format(', '.join(targets)))
 
     start_time = time.time()
 
+    logger.info('Lemmatize corpus...')
     all_forms = {lemma: {lemma} for lemma in target_lemmas}
     for path in [args.train_path, args.test_path]:
         if not path:
@@ -71,7 +72,7 @@ if __name__ == '__main__':
             n_lines = 0
             for line in f:
                 n_lines += 1
-        logger.warning('Load corpus...')
+
         with gensim_utils.file_or_filename(path) as f:
             lines = ''
             for line in tqdm(f, total=n_lines):
@@ -81,7 +82,7 @@ if __name__ == '__main__':
                         if w.lemma in target_lemmas:
                             all_forms[w.lemma].add(w.text)
 
-    logger.warning("--- %s seconds ---" % (time.time() - start_time))
+    logger.info("--- %s seconds ---" % (time.time() - start_time))
 
     with open(args.output_path, 'w') as f:
         for lemma in target_lemmas:
@@ -89,4 +90,4 @@ if __name__ == '__main__':
             forms = list(all_forms[lemma])
             f.write('{}\n'.format(', '.join([orig_target] + forms)))
 
-    logger.warning('Output written to {}'.format(args.output_path))
+    logger.info('Output written to {}'.format(args.output_path))
