@@ -7,6 +7,14 @@ from tqdm import tqdm
 
 logger = logging.getLogger(__name__)
 
+def pos_match(target_pos, stanza_pos):
+    if target_pos == 'nn' and stanza_pos == 'NOUN':
+        return True
+    elif target_pos == 'vb' and stanza_pos == 'VERB':
+        return True
+    else:
+        return False
+
 
 if __name__ == '__main__':
 
@@ -36,22 +44,30 @@ if __name__ == '__main__':
     lang = args.lang.lower()
     assert lang in ['en', 'de', 'sw', 'la', 'ru', 'it']
 
+    if lang == 'en':
+        processors = 'tokenize, lemma, pos'
+    else:
+        processors = 'tokenize, lemma'
+
     try:
-        nlp = stanza.Pipeline(lang=lang, processors='tokenize, lemma')
+        nlp = stanza.Pipeline(lang=lang, processors=processors)
     except Exception:
-        stanza.download(lang=lang, processors='tokenize, lemma')
-        nlp = stanza.Pipeline(lang=lang, processors='tokenize, lemma')
+        stanza.download(lang=lang, processors=processors)
+        nlp = stanza.Pipeline(lang=lang, processors=processors)
 
     # Load targets
     targets = []
+    if lang == 'en':
+        pos_tags = {}
     with open(args.targets_path, 'r', encoding='utf-8') as f_in:
         for line in f_in.readlines():
             target = line.strip()
-            try:
+            if lang == 'en':
                 lemma_pos = target.split('_')
                 lemma, pos = lemma_pos[0], lemma_pos[1]
                 targets.append(lemma)
-            except IndexError:
+                pos_tags[lemma] = pos
+            else:
                 targets.append(target)
     logger.info('\nTarget words:')
     logger.info('{}.\n'.format(', '.join(targets)))
@@ -59,6 +75,9 @@ if __name__ == '__main__':
     target_lemmas = {nlp(w).sentences[0].words[0].lemma: w for w in targets}
     logger.info('\nTarget lemmas:')
     logger.info('{}.\n'.format(', '.join(targets)))
+
+    if lang == 'en':
+        pos_tags = {w: pos_tags[target_lemmas[w]] for w in target_lemmas}
 
     start_time = time.time()
 
@@ -80,7 +99,8 @@ if __name__ == '__main__':
                 for sentence in nlp(line).sentences:
                     for w in sentence.words:
                         if w.lemma in target_lemmas:
-                            all_forms[w.lemma].add(w.text)
+                            if lang != 'en' or (lang == 'en' and pos_match(pos_tags[w.lemma], w.pos)):
+                                all_forms[w.lemma].add(w.text)
 
     logger.info("--- %s seconds ---" % (time.time() - start_time))
 
