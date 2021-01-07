@@ -42,7 +42,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     lang = args.lang.lower()
-    assert lang in ['en', 'de', 'sw', 'la', 'ru', 'it']
+    assert lang in ['en', 'de', 'sv', 'la', 'ru', 'it']
 
     if lang == 'en':
         processors = 'tokenize, lemma, pos'

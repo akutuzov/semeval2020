@@ -47,7 +47,7 @@ def main():
     frequencyList = args['--frequencyList']
 
     lang = lang.lower()
-    assert lang in ['en', 'de', 'sw', 'la', 'ru', 'it']
+    assert lang in ['en', 'de', 'sv', 'la', 'ru', 'it']
     assert correctFreq in [None, 'log', 'zipf']
     if frequencyList and correctFreq == 'zipf':
         raise NotImplementedError('No Zipf frequencies available with custom frequency list.')
