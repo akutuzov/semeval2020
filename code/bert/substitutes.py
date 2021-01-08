@@ -122,7 +122,7 @@ def get_context(tokenizer, token_ids, target_position, sequence_length):
 
 class ContextsDataset(torch.utils.data.Dataset):
 
-    def __init__(self, targets_i2w, sentences, context_size, tokenizer, n_sentences=None):
+    def __init__(self, target_forms_i2w, form2target, sentences, context_size, tokenizer, n_sentences=None):
         super(ContextsDataset).__init__()
         self.data = []
         self.tokenizer = tokenizer
@@ -133,9 +133,10 @@ class ContextsDataset(torch.utils.data.Dataset):
             for sentence in tqdm(sentences, total=n_sentences):
                 token_ids = tokenizer.encode(' '.join(sentence), add_special_tokens=False)
                 for spos, tok_id in enumerate(token_ids):
-                    if tok_id in targets_i2w:
+                    if tok_id in target_forms_i2w:
+                        form = target_forms_i2w[tok_id]
                         model_input, pos_in_context = get_context(tokenizer, token_ids, spos, context_size)
-                        self.data.append((model_input, targets_i2w[tok_id], pos_in_context))
+                        self.data.append((model_input, form2target[form], pos_in_context))
 
     def __len__(self):
         return len(self.data)
@@ -228,13 +229,19 @@ def main():
     set_seed(42, n_gpu)
 
     # Load targets
-    targets = []
+    form2target = {}
+    target_forms = []
     with open(testSet, 'r', encoding='utf-8') as f_in:
         for line in f_in.readlines():
-            target = line.strip()
-            targets.append(target)
+            line = line.strip()
+            entries = line.split(',')
+            target, forms = entries[0], entries[1:]
+            target_forms.extend(forms)
+            for form in forms:
+                form2target[form] = target
     print('=' * 80)
-    print('targets:', targets)
+    print('targets:', target_forms)
+    print(form2target)
     print('=' * 80)
 
     # Load pretrained model and tokenizer
@@ -242,7 +249,7 @@ def main():
         torch.distributed.barrier()  # Make sure only the first process in distributed training will download model & vocab
 
     # Load model and tokenizer
-    tokenizer = BertTokenizer.from_pretrained(modelName, never_split=targets)
+    tokenizer = BertTokenizer.from_pretrained(modelName, never_split=target_forms, use_fast=False)
     model = BertForMaskedLM.from_pretrained(modelName, output_hidden_states=True)
 
     if ignore_lm_bias:
@@ -254,19 +261,28 @@ def main():
 
     model.to(device)
 
-    # Store vocabulary indices of target words
-    targets_ids = [tokenizer.encode(t, add_special_tokens=False) for t in targets]
-    assert len(targets) == len(targets_ids)
+    # Store vocabulary indices of target word forms
+    targets_ids = [tokenizer.encode(t, add_special_tokens=False) for t in target_forms]
+    assert len(target_forms) == len(targets_ids)
     i2w = {}
-    for t, t_id in zip(targets, targets_ids):
-        if len(t_id) > 1 or (len(t_id) == 1 and t_id == tokenizer.unk_token_id):
+    words_added = []
+    for t, t_id in zip(target_forms, targets_ids):
+        if tokenizer.do_lower_case:
+            t = t.lower()
+        if t in tokenizer.added_tokens_encoder:
+            continue
+
+        assert len(t_id) == 1  # because of never_split list
+        if t_id[0] == tokenizer.unk_token_id:
             if tokenizer.add_tokens([t]):
                 model.resize_token_embeddings(len(tokenizer))
                 i2w[len(tokenizer) - 1] = t
+                words_added.append(t)
             else:
                 logger.error('Word not properly added to tokenizer:', t, tokenizer.tokenize(t))
         else:
             i2w[t_id[0]] = t
+    logger.warning("\nTarget words added to the vocabulary: {}.\n".format(', '.join(words_added)))
 
     # multi-gpu training (should be after apex fp16 initialization)
     if n_gpu > 1:
@@ -285,12 +301,13 @@ def main():
     #     warnings.resetwarnings()
     #     warnings.simplefilter("always")
     nSentences = 0
-    target_counter = {target: 0 for target in i2w}
+    target_counter = {target: 0 for target in form2target.values()}
     for sentence in sentences:
         nSentences += 1
         for tok_id in tokenizer.encode(' '.join(sentence), add_special_tokens=False):
-            if tok_id in target_counter:
-                target_counter[tok_id] += 1
+            if tok_id in i2w:
+                form = i2w[tok_id]
+                target_counter[form2target[form]] += 1
 
     logger.warning('usages: %d' % (sum(list(target_counter.values()))))
 
@@ -304,15 +321,15 @@ def main():
 
     # Container for lexical substitutes
     substitutes = {
-        i2w[target]: [{} for _ in range(target_count)]
+        target: [{} for _ in range(target_count)]
         for (target, target_count) in target_counter.items()
     }
 
     # Iterate over sentences and collect representations
     nUsages = 0
-    curr_idx = {i2w[target]: 0 for target in target_counter}
+    curr_idx = {target: 0 for target in target_counter}
 
-    dataset = ContextsDataset(i2w, sentences, contextSize, tokenizer, nSentences)
+    dataset = ContextsDataset(i2w, form2target, sentences, contextSize, tokenizer, nSentences)
     sampler = SequentialSampler(dataset)
     dataloader = DataLoader(dataset, sampler=sampler, batch_size=batchSize, collate_fn=collate)
     iterator = tqdm(dataloader, desc="Iteration", disable=localRank not in [-1, 0])

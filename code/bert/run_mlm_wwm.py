@@ -106,7 +106,7 @@ class DataTrainingArguments:
     )
     targets_file: Optional[str] = field(
         default=None,
-        metadata={"help": "An optional text file containing one target word per line."},
+        metadata={"help": "An optional csv file containing target word forms."},
     )
     train_ref_file: Optional[str] = field(
         default=None,
@@ -266,13 +266,9 @@ def main():
     if data_args.targets_file:
         with open(data_args.targets_file, 'r', encoding='utf-8') as f_in:
             for line in f_in.readlines():
-                target = line.strip()
-                try:
-                    lemma_pos = target.split('_')
-                    lemma, pos = lemma_pos[0], lemma_pos[1]
-                    targets.append(lemma)
-                except IndexError:
-                    targets.append(target)
+                line = line.strip()
+                forms = line.split(',')[1:]
+                targets.extend(forms)
 
         logger.info("\nTarget words:")
         logger.info("{}.\n".format(", ".join(targets)))
@@ -313,13 +309,18 @@ def main():
         assert len(targets) == len(targets_ids)
         words_added = []
         for t, t_id in zip(targets, targets_ids):
-            if len(t_id) > 1 or (len(t_id) == 1 and t_id == tokenizer.unk_token_id):
+            if tokenizer.do_lower_case:
+                t = t.lower()
+            if t in tokenizer.added_tokens_encoder:
+                continue
+            assert len(t_id) == 1  # because of never_split list
+            if t_id[0] == tokenizer.unk_token_id:
                 if tokenizer.add_tokens([t]):
                     model.resize_token_embeddings(len(tokenizer))
                     words_added.append(t)
                 else:
                     logger.error('Word not properly added to tokenizer:', t, tokenizer.tokenize(t))
-        logger.info("\nTarget words added to the vocabulary: {}.\n".format(', '.join(words_added)))
+        logger.warning("\nTarget words added to the vocabulary: {}.\n".format(', '.join(words_added)))
 
     # Preprocessing the datasets.
     # First we tokenize all the texts.

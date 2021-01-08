@@ -137,14 +137,15 @@ def main():
     # Set seeds across modules
     set_seed(42, n_gpu)
 
-    # Load targets
-    targets = []
+    # Load target forms
+    target_forms = []
     with open(testSet, 'r', encoding='utf-8') as f_in:
         for line in f_in.readlines():
-            target = line.strip()
-            targets.append(target)
+            line = line.strip()
+            forms = line.split(',')[1:]
+            target_forms.extend(forms)
     print('=' * 80)
-    print('targets:', targets)
+    print('targets:', target_forms)
     print('=' * 80)
 
     # Load pretrained model and tokenizer
@@ -152,7 +153,7 @@ def main():
         torch.distributed.barrier()  # Make sure only the first process in distributed training will download model & vocab
 
     # Load model and tokenizer
-    tokenizer = BertTokenizer.from_pretrained(modelName, never_split=targets)
+    tokenizer = BertTokenizer.from_pretrained(modelName, never_split=target_forms, use_fast=False)
     model = BertForMaskedLM.from_pretrained(modelName, output_hidden_states=True)
 
     if ignore_lm_bias:
@@ -165,18 +166,25 @@ def main():
     model.to(device)
 
     # Store vocabulary indices of target words
-    targets_ids = [tokenizer.encode(t, add_special_tokens=False) for t in targets]
-    assert len(targets) == len(targets_ids)
-    i2w = {}
-    for t, t_id in zip(targets, targets_ids):
-        if len(t_id) > 1 or (len(t_id) == 1 and t_id == tokenizer.unk_token_id):
+    targets_ids = [tokenizer.encode(t, add_special_tokens=False) for t in target_forms]
+    assert len(target_forms) == len(targets_ids)
+    words_added = []
+    for t, t_id in zip(target_forms, targets_ids):
+        if tokenizer.do_lower_case:
+            t = t.lower()
+        if t in tokenizer.added_tokens_encoder:
+            continue
+
+        assert len(t_id) == 1  # because of never_split list
+        if t_id[0] == tokenizer.unk_token_id:
             if tokenizer.add_tokens([t]):
                 model.resize_token_embeddings(len(tokenizer))
-                i2w[len(tokenizer) - 1] = t
+                words_added.append(t)
             else:
                 logger.error('Word not properly added to tokenizer:', t, tokenizer.tokenize(t))
-        else:
-            i2w[t_id[0]] = t
+
+    logger.warning("\nTarget words added to the vocabulary: {}.\n".format(', '.join(words_added)))
+
 
     # multi-gpu training (should be after apex fp16 initialization)
     if n_gpu > 1:
