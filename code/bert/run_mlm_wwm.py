@@ -323,9 +323,9 @@ def main():
 
         # check if correctly added
         for t, t_id in zip(targets, targets_ids):
-            if tokenizer.do_lower_case:
-                t = t.lower()
-            assert len(t_id) == 1  # because of never_split list
+            if len(t_id) != 1:
+                print(t, t_id)
+
         logger.warning("\nTarget words added to the vocabulary: {}.\n".format(', '.join(words_added)))
 
     # Preprocessing the datasets.
