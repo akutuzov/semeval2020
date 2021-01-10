@@ -5,16 +5,16 @@
 #SBATCH --partition=gpu
 #SBATCH --gres=gpu:1
 
+source ~/.bashrc
+
 # Load all necessary modules.
 echo "Loading modules..."
 module load 2019
 
-source ~/.bashrc
-
-cd ${HOME}/projects/semeval2020 || exit
-
 echo "Loading virtual environment..."
 source ${HOME}/projects/erp/venv/bin/activate
+
+cd ${HOME}/projects/semeval2020 || exit
 
 language=latin
 preproc=token

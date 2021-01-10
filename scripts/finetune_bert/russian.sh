@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH --nodes=1
-#SBATCH --job-name=ft-en
-#SBATCH --time=24:00:00
+#SBATCH --job-name=ft-sw
+#SBATCH --time=72:00:00
 #SBATCH --partition=gpu
 #SBATCH --gres=gpu:1
 
@@ -16,10 +16,10 @@ source ${HOME}/projects/erp/venv/bin/activate
 
 cd ${HOME}/projects/semeval2020 || exit
 
-language=english 
-preproc=token  # or lemma
-model=bert-base-uncased  # bert-base-german-cased, bert-base-multilingual-cased, af-ai-center/bert-base-swedish-uncased
-epochs=10
+language=russian
+preproc=token
+model=DeepPavlov/rubert-base-cased
+epochs=5
 batch=8
 
 echo "Run script"
@@ -39,5 +39,5 @@ python3 -m torch.distributed.launch --nproc_per_node=4 --nnodes=1 --node_rank=0 
 	--load_best_model_at_end \
 	--save_total_limit 1 \
 	--fp16 \
-	&> out/finetune_${language}_${preproc}_bsz${batch}_fp16
+	&> out/finetune_${language}_${preproc}_bsz${batch}
 
