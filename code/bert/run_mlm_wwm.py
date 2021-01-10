@@ -325,7 +325,6 @@ def main():
         for t, t_id in zip(targets, targets_ids):
             if tokenizer.do_lower_case:
                 t = t.lower()
-            assert t in tokenizer.added_tokens_encoder
             assert len(t_id) == 1  # because of never_split list
         logger.warning("\nTarget words added to the vocabulary: {}.\n".format(', '.join(words_added)))
 
