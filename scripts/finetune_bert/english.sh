@@ -39,5 +39,5 @@ python3 -m torch.distributed.launch --nproc_per_node=4 --nnodes=1 --node_rank=0 
 	--load_best_model_at_end \
 	--save_total_limit 1 \
 	--fp16 \
-	&> out/finetune_${language}_${preproc}_bsz${batch}_fp16
+	&> out/finetune_${language}_${preproc}_bsz${batch}
 
