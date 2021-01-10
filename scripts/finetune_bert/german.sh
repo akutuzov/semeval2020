@@ -1,13 +1,15 @@
 #!/bin/bash
 #SBATCH --nodes=1
 #SBATCH --job-name=ft-de
-#SBATCH --time=48:00:00
+#SBATCH --time=72:00:00
 #SBATCH --partition=gpu
-#SBATCH --gres=gpu:2
+#SBATCH --gres=gpu:1
 
 # Load all necessary modules.
 echo "Loading modules..."
 module load 2019
+
+source ~/.bashrc
 
 cd ${HOME}/projects/semeval2020 || exit
 
@@ -27,12 +29,12 @@ source ${HOME}/projects/erp/venv/bin/activate
 
 language=german
 preproc=lemma
-model=bert-base-german-uncased
+model=bert-base-german-cased
 epochs=10
-batch=16
+batch=8
 
 echo "Run script"
-python3 -m torch.distributed.launch --nproc_per_node=4 --nnodes=2 --node_rank=0 code/bert/run_mlm_wwm.py \
+python3 -m torch.distributed.launch --nproc_per_node=4 --nnodes=1 --node_rank=0 code/bert/run_mlm_wwm.py \
 	--model_type bert \
 	--model_name_or_path $model \
 	--train_file finetuning_corpora/${language}/${preproc}/train.txt \
@@ -47,5 +49,6 @@ python3 -m torch.distributed.launch --nproc_per_node=4 --nnodes=2 --node_rank=0 
 	--evaluation_strategy epoch \
 	--load_best_model_at_end \
 	--save_total_limit 1 \
+	--fp16 \
 	&> out/finetune_${language}_${preproc}_bsz${batch}
 
