@@ -1,13 +1,12 @@
+import argparse
 import os
 import pickle
-import warnings
 import torch
 import time
 import logging
 import itertools
 import numpy as np
 from tqdm import tqdm
-from docopt import docopt
 from torch.utils.data import DataLoader, SequentialSampler
 from torch.nn.functional import log_softmax
 from transformers import BertTokenizer, BertForMaskedLM
@@ -31,6 +30,7 @@ class PathLineSentences(object):
     Does **not recurse** into subdirectories.
 
     """
+
     def __init__(self, source, limit=None, max_sentence_length=100000):
         """
         Parameters
@@ -128,15 +128,13 @@ class ContextsDataset(torch.utils.data.Dataset):
         self.tokenizer = tokenizer
         self.context_size = context_size
 
-        with warnings.catch_warnings():
-            warnings.simplefilter("ignore")
-            for sentence in tqdm(sentences, total=n_sentences):
-                token_ids = tokenizer.encode(' '.join(sentence), add_special_tokens=False)
-                for spos, tok_id in enumerate(token_ids):
-                    if tok_id in target_forms_i2w:
-                        form = target_forms_i2w[tok_id]
-                        model_input, pos_in_context = get_context(tokenizer, token_ids, spos, context_size)
-                        self.data.append((model_input, form2target[form], pos_in_context))
+        for sentence in tqdm(sentences, total=n_sentences):
+            token_ids = tokenizer.encode(' '.join(sentence), add_special_tokens=False)
+            for spos, tok_id in enumerate(token_ids):
+                if tok_id in target_forms_i2w:
+                    form = target_forms_i2w[tok_id]
+                    model_input, pos_in_context = get_context(tokenizer, token_ids, spos, context_size)
+                    self.data.append((model_input, form2target[form], pos_in_context))
 
     def __len__(self):
         return len(self.data)
@@ -166,48 +164,48 @@ def main():
     """
     Collect lexical substitutes and their probabilities.
     """
-
-    # Get the arguments
-    args = docopt("""Collect lexical substitutes and their probabilities.
-
-    Usage:
-        substitutes.py [--nSubs=N --context=C --batch=B --localRank=R --ignoreBias] <modelName> <corpDir> <testSet> <outPath>
-
-    Arguments:
-        <modelName> = HuggingFace model name 
-        <corpDir> = path to corpus or corpus directory (iterates through files)
-        <testSet> = path to file with one target per line
-        <outPath> = output path for substitutes
-
-    Options:
-        --nSubs=N  The number of lexical substitutes to extract [default: 100]
-        --context=C  The length of a token's entire context window [default: 64]
-        --batch=B  The batch size [default: 64]
-        --localRank=R  For distributed training [default: -1]
-        --ignoreBias  Whether to ignore the bias vector during masked word prediction
-    """)
-
-    modelName = args['<modelName>']
-    corpDir = args['<corpDir>']
-    testSet = args['<testSet>']
-    outPath = args['<outPath>']
-    nSubs = int(args['--nSubs'])
-    contextSize = int(args['--context'])
-    batchSize = int(args['--batch'])
-    localRank = int(args['--localRank'])
-    ignore_lm_bias = bool(args['--ignoreBias'])
+    parser = argparse.ArgumentParser(
+        description='Collect lexical substitutes and their probabilities.')
+    parser.add_argument(
+        '--model_name', type=str, required=True,
+        help='HuggingFace model name or path')
+    parser.add_argument(
+        '--corpus_path', type=str, required=True,
+        help='Path to corpus or corpus directory (iterates through files)')
+    parser.add_argument(
+        '--targets_path', type=str, required=True,
+        help='Path to the csv file containing target word forms.')
+    parser.add_argument(
+        '--output_path', type=str, required=True,
+        help='Output path for pickle containing substitutes.')
+    parser.add_argument(
+        '--n_subs', type=int, default=150,
+        help='The number of lexical substitutes to extract.')
+    parser.add_argument(
+        '--seq_len', type=int, default=200,
+        help="The length of a token's entire context window.")
+    parser.add_argument(
+        '--batch_size', type=int, default=64,
+        help='The batch size per device (GPU core / CPU).')
+    parser.add_argument(
+        '--ignore_decoder_bias', action='store_true',
+        help="Whether to ignore the decoder's bias vector during masked word prediction")
+    parser.add_argument(
+        '--local_rank', type=int, default=-1,
+        help='For distributed training.')
+    args = parser.parse_args()
 
     logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s')
     logging.info(__file__.upper())
     start_time = time.time()
 
     # Setup CUDA, GPU & distributed training
-    if localRank == -1:
+    if args.local_rank == -1:
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         n_gpu = torch.cuda.device_count()
     else:  # Initializes the distributed backend which will take care of sychronizing nodes/GPUs
-        torch.cuda.set_device(localRank)
-        device = torch.device("cuda", localRank)
+        torch.cuda.set_device(args.local_rank)
+        device = torch.device("cuda", args.local_rank)
         torch.distributed.init_process_group(backend="nccl")
         n_gpu = 1
 
@@ -215,14 +213,14 @@ def main():
     logging.basicConfig(
         format="%(asctime)s - %(levelname)s - %(name)s -   %(message)s",
         datefmt="%m/%d/%Y %H:%M:%S",
-        level=logging.INFO if localRank in [-1, 0] else logging.WARN,
+        level=logging.INFO if args.local_rank in [-1, 0] else logging.WARN,
     )
     logger.warning(
         "Process rank: %s, device: %s, n_gpu: %s, distributed training: %s",
-        localRank,
+        args.local_rank,
         device,
         n_gpu,
-        bool(localRank != -1)
+        bool(args.local_rank != -1)
     )
 
     # Set seeds across modules
@@ -231,7 +229,7 @@ def main():
     # Load targets
     form2target = {}
     target_forms = []
-    with open(testSet, 'r', encoding='utf-8') as f_in:
+    with open(args.targets_path, 'r', encoding='utf-8') as f_in:
         for line in f_in.readlines():
             line = line.strip()
             entries = line.split(',')
@@ -245,18 +243,18 @@ def main():
     print('=' * 80)
 
     # Load pretrained model and tokenizer
-    if localRank not in [-1, 0]:
+    if args.local_rank not in [-1, 0]:
         torch.distributed.barrier()  # Make sure only the first process in distributed training will download model & vocab
 
     # Load model and tokenizer
-    tokenizer = BertTokenizer.from_pretrained(modelName, never_split=target_forms, use_fast=False)
-    model = BertForMaskedLM.from_pretrained(modelName, output_hidden_states=True)
+    tokenizer = BertTokenizer.from_pretrained(args.model_name, never_split=target_forms, use_fast=False)
+    model = BertForMaskedLM.from_pretrained(args.model_name, output_hidden_states=True)
 
-    if ignore_lm_bias:
+    if args.ignore_decoder_bias:
         logger.warning('Ignoring bias vector for masked word prediction.')
         model.cls.predictions.decoder.bias = None
 
-    if localRank == 0:
+    if args.local_rank == 0:
         torch.distributed.barrier()  # Make sure only the first process in distributed training will download model & vocab
 
     model.to(device)
@@ -289,13 +287,13 @@ def main():
         model = torch.nn.DataParallel(model)
 
     # Distributed training (should be after apex fp16 initialization)
-    if localRank != -1:
+    if args.local_rank != -1:
         model = torch.nn.parallel.DistributedDataParallel(
-            model, device_ids=[localRank], output_device=localRank, find_unused_parameters=True
+            model, device_ids=[args.local_rank], output_device=args.local_rank, find_unused_parameters=True
         )
 
     # Get sentence iterator
-    sentences = PathLineSentences(corpDir)
+    sentences = PathLineSentences(args.corpus_path)
 
     # with warnings.catch_warnings():
     #     warnings.resetwarnings()
@@ -329,10 +327,10 @@ def main():
     nUsages = 0
     curr_idx = {target: 0 for target in target_counter}
 
-    dataset = ContextsDataset(i2w, form2target, sentences, contextSize, tokenizer, nSentences)
+    dataset = ContextsDataset(i2w, form2target, sentences, args.seq_len, tokenizer, nSentences)
     sampler = SequentialSampler(dataset)
-    dataloader = DataLoader(dataset, sampler=sampler, batch_size=batchSize, collate_fn=collate)
-    iterator = tqdm(dataloader, desc="Iteration", disable=localRank not in [-1, 0])
+    dataloader = DataLoader(dataset, sampler=sampler, batch_size=args.batch_size, collate_fn=collate)
+    iterator = tqdm(dataloader, desc="Iteration", disable=args.local_rank not in [-1, 0])
 
     for step, batch in enumerate(iterator):
         model.eval()
@@ -348,7 +346,7 @@ def main():
             logits = outputs[0][np.arange(bsz), positions, :]  # n_sentences, vocab_size
             logp = log_softmax(logits, dim=-1)
             values, indices = torch.sort(logp, dim=-1, descending=True)
-            values, indices = values[:, :nSubs], indices[:, :nSubs]  # n_sentences, n_substitutes
+            values, indices = values[:, :args.n_subs], indices[:, :args.n_subs]  # n_sentences, n_substitutes
 
             hidden_states = outputs[1]
 
@@ -366,13 +364,13 @@ def main():
                 substitutes[lemma][curr_idx[lemma]]['input_ids'] = input_ids[b_id]
                 substitutes[lemma][curr_idx[lemma]]['attention_mask'] = attention_mask[b_id]
                 substitutes[lemma][curr_idx[lemma]]['position'] = positions[b_id]
-                substitutes[lemma][curr_idx[lemma]]['embedding'] = last_layer[b_id, :] # / last_layer[b_id, :].sum()
+                substitutes[lemma][curr_idx[lemma]]['embedding'] = last_layer[b_id, :]  # / last_layer[b_id, :].sum()
 
                 curr_idx[lemma] += 1
                 nUsages += 1
 
     iterator.close()
-    with open(outPath, 'wb') as f_out:
+    with open(args.output_path, 'wb') as f_out:
         pickle.dump(substitutes, f_out)
 
     logger.warning('usages: %d' % (nUsages))

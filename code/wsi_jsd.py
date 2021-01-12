@@ -1,3 +1,4 @@
+import argparse
 import logging
 import pickle
 from collections import defaultdict
@@ -5,7 +6,6 @@ from sklearn.cluster import AgglomerativeClustering
 from sklearn.feature_extraction.text import TfidfTransformer
 import time
 import numpy as np
-from docopt import docopt
 from scipy.stats import entropy
 
 
@@ -23,40 +23,34 @@ def main():
     """
     Word sense induction using lexical substitutes.
     """
+    parser = argparse.ArgumentParser(
+        description='Word sense induction via agglomerative clustering of lexical substitutes.')
+    parser.add_argument(
+        '--subs_path_t1', type=str, required=True,
+        help='Path to the pickle file containing substitute lists (output by postprocessing.py) for period T1.')
+    parser.add_argument(
+        '--subs_path_t2', type=str, required=True,
+        help='Path to the pickle file containing substitute lists (output by postprocessing.py) for period T2.')
+    parser.add_argument(
+        '--output_path', type=str, required=True,
+        help='output path for csv file containing JSD scores')
+    parser.add_argument(
+        '--n_clusters', type=int, default=7,
+        help='The number of clusters to find, fixed for all target words.')
+    parser.add_argument(
+        '--apply_tfidf', action='store_true',
+        help="Whether to use tf-idf before clustering.")
+    parser.add_argument(
+        '--affinity', type=str, default='cosine',
+        help='Metric used to compute the linkage.')
+    parser.add_argument(
+        '--linkage', type=str, default='average',
+        help='linkage criterion to use.')
+    args = parser.parse_args()
 
-    # Get the arguments
-    args = docopt("""Word sense induction via agglomerative clustering of lexical substitutes.
-    
-    Input format (<subsPath>): pickle file containing a dictionary. Keys are target words. 
-    Values are lists with as many elements as target word occurrences. A list element is a 
-    dictionary containing the ranked candidate tokens (key 'candidates') and the ranked log
-    probabilities (key 'logp').
-
-    Usage:
-        wsi.py [--tfidf --nClusters=K --affinity=A --linkage=L] <subsPathT1> <subsPathT2> <outPath>
-
-    Arguments:
-        <subsPathT1> = path to pickle containing substitute lists for period 1
-        <subsPathT2> = path to pickle containing substitute lists for period 2
-        <outPath> = output path for tsv file containing JSD scores
-    Options:
-        --tfidf  Whether to use tf-idf before clustering
-        --nClusters=K  The number of clusters to find  
-        --affinity=A  Metric used to compute the linkage [default: cosine]
-        --linkage=L  Which linkage criterion to use [default: average]
-    """)
-
-    subsPathT1 = args['<subsPathT1>']
-    subsPathT2 = args['<subsPathT2>']
-    outPath = args['<outPath>']
-    useTfidf = bool(args['--tfidf'])
-    nClusters = int(args['--nClusters'])
-    affinity = args['--affinity']
-    linkage = args['--linkage']
-
-    with open(subsPathT1, 'rb') as f_in:
+    with open(args.subs_path_t1, 'rb') as f_in:
         substitutes_t1 = pickle.load(f_in)
-    with open(subsPathT2, 'rb') as f_in:
+    with open(args.subs_path_t2, 'rb') as f_in:
         substitutes_t2 = pickle.load(f_in)
 
     start_time = time.time()
@@ -107,22 +101,24 @@ def main():
 
         assert occ_idx == n_occurrences[target]
 
-        if useTfidf:
+        if args.apply_tfidf:
             logger.warning('Apply tf-idf.')
             tfidf = TfidfTransformer()
             m = tfidf.fit_transform(m).toarray()
 
-        logger.warning('Cluster into {} cluster.'.format(nClusters))
+        logger.warning('Cluster into {} cluster.'.format(args.n_clusters))
         clustering = AgglomerativeClustering(
-            n_clusters=nClusters,
-            affinity=affinity,
-            linkage=linkage
+            n_clusters=args.n_clusters,
+            affinity=args.affinity,
+            linkage=args.linkage
         )
         labels = clustering.fit_predict(m)
 
+        print(labels)
+
         logger.warning('Compute JSD.')
-        usage_distr_t1 = np.zeros(nClusters)
-        usage_distr_t2 = np.zeros(nClusters)
+        usage_distr_t1 = np.zeros(args.n_clusters)
+        usage_distr_t2 = np.zeros(args.n_clusters)
         for j, label in enumerate(labels):
             if j < n_occ_t1:
                 usage_distr_t1[label] += 1
@@ -132,13 +128,15 @@ def main():
         usage_distr_t1 /= usage_distr_t1.sum()
         usage_distr_t2 /= usage_distr_t2.sum()
 
+        print(usage_distr_t1, usage_distr_t2)
+
         jsd_scores[target] = jsd(usage_distr_t1, usage_distr_t2)
 
     logger.warning("--- %s seconds ---" % (time.time() - start_time))
 
-    with open(outPath, 'w', encoding='utf-8') as f:
+    with open(args.output_path, 'w', encoding='utf-8') as f:
         for word, score in jsd_scores.items():
-            f.write("{}\t{}\n".format(word, score))
+            f.write("{},{}\n".format(word, score))
 
 
 if __name__ == '__main__':

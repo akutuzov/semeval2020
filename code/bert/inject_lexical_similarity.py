@@ -1,10 +1,10 @@
+import argparse
 import pickle
 import torch
 import time
 import logging
 import numpy as np
 from tqdm import tqdm
-from docopt import docopt
 from torch.utils.data import DataLoader, SequentialSampler
 from transformers import BertTokenizer, BertForMaskedLM
 
@@ -76,45 +76,45 @@ def main():
     """
     Modify substitute probabilities based on lexical similarity with target.
     """
-
-    # Get the arguments
-    args = docopt("""Modify substitute probabilities based on lexical similarity with target.
-
-    Usage:
-        inject_lexical_similarity.py [--batch=B --localRank=R --normalise --ignoreBias] <modelName> <testSet> <subsPath> <outPath>
-
-    Arguments:
-        <modelName> = HuggingFace model name 
-        <testSet> = path to file with one target per line
-        <subsPath> = path to pickle containing substitute lists
-        <outPath> = output path for substitutes with updated probabilities
-    Options:
-        --batch=B  The batch size [default: 64]
-        --localRank=R  For distributed training [default: -1]
-        --normalise  Whether to normalise the embeddings before dot product
-        --ignoreBias  Whether to ignore the bias vector during masked word prediction
-    """)
-
-    modelName = args['<modelName>']
-    testSet = args['<testSet>']
-    subsPath = args['<subsPath>']
-    outPath = args['<outPath>']
-    batchSize = int(args['--batch'])
-    localRank = int(args['--localRank'])
-    ignore_lm_bias = bool(args['--ignoreBias'])
-    normaliseEmbed = bool(args['--normalise'])
+    parser = argparse.ArgumentParser(
+        description='Modify substitute probabilities based on lexical similarity with target.')
+    parser.add_argument(
+        '--model_name', type=str, required=True,
+        help='HuggingFace model name or path')
+    parser.add_argument(
+        '--subs_path', type=str, required=True,
+        help='Path to the pickle file containing substitute lists (output by substitutes.py).')
+    parser.add_argument(
+        '--targets_path', type=str, required=True,
+        help='Path to the csv file containing target word forms.')
+    parser.add_argument(
+        '--output_path', type=str, required=True,
+        help='Output path for pickle containing substitutes with lexical similarity values.')
+    parser.add_argument(
+        '--batch_size', type=int, default=64,
+        help='The batch size per device (GPU core / CPU).')
+    parser.add_argument(
+        '--ignore_decoder_bias', action='store_true',
+        help="Whether to ignore the decoder's bias vector during masked word prediction")
+    parser.add_argument(
+        '--normalise_embeddings', action='store_true',
+        help="Whether to ignore the decoder's bias vector during masked word prediction")
+    parser.add_argument(
+        '--local_rank', type=int, default=-1,
+        help='For distributed training.')
+    args = parser.parse_args()
 
     logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s')
     logging.info(__file__.upper())
     start_time = time.time()
 
     # Setup CUDA, GPU & distributed training
-    if localRank == -1:
+    if args.local_rank == -1:
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         n_gpu = torch.cuda.device_count()
     else:  # Initializes the distributed backend which will take care of sychronizing nodes/GPUs
-        torch.cuda.set_device(localRank)
-        device = torch.device("cuda", localRank)
+        torch.cuda.set_device(args.local_rank)
+        device = torch.device("cuda", args.local_rank)
         torch.distributed.init_process_group(backend="nccl")
         n_gpu = 1
 
@@ -122,14 +122,14 @@ def main():
     logging.basicConfig(
         format="%(asctime)s - %(levelname)s - %(name)s -   %(message)s",
         datefmt="%m/%d/%Y %H:%M:%S",
-        level=logging.INFO if localRank in [-1, 0] else logging.WARN,
+        level=logging.INFO if args.local_rank in [-1, 0] else logging.WARN,
     )
     logger.warning(
         "Process rank: %s, device: %s, n_gpu: %s, distributed training: %s",
-        localRank,
+        args.local_rank,
         device,
         n_gpu,
-        bool(localRank != -1)
+        bool(args.local_rank != -1)
     )
 
     # Set seeds across modules
@@ -137,7 +137,7 @@ def main():
 
     # Load target forms
     target_forms = []
-    with open(testSet, 'r', encoding='utf-8') as f_in:
+    with open(args.targets_path, 'r', encoding='utf-8') as f_in:
         for line in f_in.readlines():
             line = line.strip()
             forms = line.split(',')[1:]
@@ -147,18 +147,18 @@ def main():
     print('=' * 80)
 
     # Load pretrained model and tokenizer
-    if localRank not in [-1, 0]:
+    if args.local_rank not in [-1, 0]:
         torch.distributed.barrier()  # Make sure only the first process in distributed training will download model & vocab
 
     # Load model and tokenizer
-    tokenizer = BertTokenizer.from_pretrained(modelName, never_split=target_forms, use_fast=False)
-    model = BertForMaskedLM.from_pretrained(modelName, output_hidden_states=True)
+    tokenizer = BertTokenizer.from_pretrained(args.model_name, never_split=target_forms, use_fast=False)
+    model = BertForMaskedLM.from_pretrained(args.model_name, output_hidden_states=True)
 
-    if ignore_lm_bias:
+    if args.ignore_decoder_bias:
         logger.warning('Ignoring bias vector for masked word prediction.')
         model.cls.predictions.decoder.bias = None
 
-    if localRank == 0:
+    if args.local_rank == 0:
         torch.distributed.barrier()  # Make sure only the first process in distributed training will download model & vocab
 
     model.to(device)
@@ -189,12 +189,12 @@ def main():
         model = torch.nn.DataParallel(model)
 
     # Distributed training (should be after apex fp16 initialization)
-    if localRank != -1:
+    if args.local_rank != -1:
         model = torch.nn.parallel.DistributedDataParallel(
-            model, device_ids=[localRank], output_device=localRank, find_unused_parameters=True
+            model, device_ids=[args.local_rank], output_device=args.local_rank, find_unused_parameters=True
         )
 
-    with open(subsPath, 'rb') as f_in:
+    with open(args.subs_path, 'rb') as f_in:
         substitutes_raw = pickle.load(f_in)
 
     substitutes_new = {
@@ -214,10 +214,10 @@ def main():
             [item[6] for item in batch]   #position
         ]
 
-    dataset = SubstitutesDataset(substitutes_raw, tokenizer, normaliseEmbed)
+    dataset = SubstitutesDataset(substitutes_raw, tokenizer, args.normalise_embeddings)
     sampler = SequentialSampler(dataset)
-    dataloader = DataLoader(dataset, sampler=sampler, batch_size=batchSize, collate_fn=collate)
-    iterator = tqdm(dataloader, desc="Iteration", disable=localRank not in [-1, 0])
+    dataloader = DataLoader(dataset, sampler=sampler, batch_size=args.batch_size, collate_fn=collate)
+    iterator = tqdm(dataloader, desc="Iteration", disable=args.local_rank not in [-1, 0])
 
     for step, batch in enumerate(iterator):
         model.eval()
@@ -232,7 +232,7 @@ def main():
 
             hidden_states = outputs[1]
             last_layer = hidden_states[-1][np.arange(bsz), positions, :]  # (bsz, hdims)
-            if normaliseEmbed:
+            if args.normalise_embeddings:
                 last_layer /= last_layer.sum()
 
             dot_products = torch.sum(tgt_embedding * last_layer, dim=1)  # (bsz)
@@ -247,7 +247,7 @@ def main():
 
     iterator.close()
 
-    with open(outPath, 'wb') as f_out:
+    with open(args.output_path, 'wb') as f_out:
         pickle.dump(substitutes_new, f_out)
 
     logger.warning("--- %s seconds ---" % (time.time() - start_time))

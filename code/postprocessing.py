@@ -1,10 +1,10 @@
+import argparse
 import logging
 import pickle
 import stanza
 import time
 import numpy as np
 from collections import defaultdict
-from docopt import docopt
 from wordfreq import word_frequency, zipf_frequency
 
 
@@ -13,48 +13,47 @@ logger = logging.getLogger(__name__)
 
 def main():
     """
-    Postprocessing: correct for substitute word frequency and lemmatise.
+    Correct probabilities with lexical similarity scores, correct for substitute word frequency, lemmatise,
+    and filter out redundant candidates.
     """
+    parser = argparse.ArgumentParser(
+        description='Correct probabilities with lexical similarity scores, correct for substitute word frequency, '
+                    'lemmatise, and filter out redundant candidates.')
+    parser.add_argument(
+        '--subs_path', type=str, required=True,
+        help='Path to the pickle file containing substitute lists (output by inject_word_similarity.py).')
+    parser.add_argument(
+        '--output_path', type=str, required=True,
+        help='Output path for pickle containing substitutes with updated log probabilities.')
+    parser.add_argument(
+        '--lang', type=str, required=True,
+        help='The language code for word frequencies and lemmatisation (e.g., "en", "sv", "ru")')
+    parser.add_argument(
+        '--n_subs', type=int, default=100,
+        help='The number of lexical substitutes to keep.')
+    parser.add_argument(
+        '--temperature', type=float, default=1,
+        help='The temperature value for the lexical similarity calculation.')
+    parser.add_argument(
+        '--lemmatise', action='store_true',
+        help="Whether to lemmatise lexical substitutes, filtering out candidates redundant")
+    parser.add_argument(
+        '--frequency_type', type=str,
+        help='Whether to correct for word frequency using log frequency ("log") or zipf frequency ("zipf"). '
+             'If blank, no frequency correction is performed.')
+    parser.add_argument(
+        '--frequency_list', type=str,
+        help='Path to a frequency list tsv file (word\tfreq[\trank]\n) to use instead of the wordfreq library. '
+             'Only usable with log frequency as frequency_type.')
+    args = parser.parse_args()
 
-    # Get the arguments
-    args = docopt("""Postprocessing: correct for substitute word frequency and lemmatise.
-    
-    Input format (<subsPath>): pickle file containing a dictionary. Keys are target words. 
-    Values are lists with as many elements as target word occurrences. A list element is a 
-    dictionary containing the ranked candidate tokens (key 'candidates') and the ranked log
-    probabilities (key 'logp').
-    
-    Usage: postprocessing.py [--nSubs=N --temperature=T --language=L --frequency=F --lemmatise --frequencyList=P] 
-    <subsPath> <outPath> 
-        
-    Arguments:
-        <subsPath> = path to pickle containing substitute lists
-        <outPath> = output path for substitutes with updated probabilities
-    Options:
-        --nSubs=N  The number of lexical substitutes to keep 
-        --temperature=T  The temperature value for the lexical similarity calculation [default: 1.]
-        --language=L  The language code for word frequencies and lemmatisation
-        --frequency=F  Whether to correct for word frequency: 'log' or 'zipf'
-        --lemmatise  Whether to lemmatise lexical substitutes
-        --frequencyList=P  Path to a frequency list tsv file (word\tfreq[\trank]\n)
-    """)
-
-    subsPath = args['<subsPath>']
-    outPath = args['<outPath>']
-    nSubs = int(args['--nSubs']) if args['--nSubs'] else None
-    temp = float(args['--temperature'])
-    lang = args['--language']
-    correctFreq = args['--frequency']
-    lemmatise = bool(args['--lemmatise'])
-    frequencyList = args['--frequencyList']
-
-    lang = lang.lower()
+    lang = args.lang.lower()
     assert lang in ['en', 'de', 'sv', 'la', 'ru', 'it']
-    assert correctFreq in [None, 'log', 'zipf']
-    if frequencyList and correctFreq == 'zipf':
+    assert args.frequency_type in [None, 'log', 'zipf']
+    if args.frequency_list and args.frequency_type == 'zipf':
         raise NotImplementedError('No Zipf frequencies available with custom frequency list.')
 
-    with open(subsPath, 'rb') as f_in:
+    with open(args.subs_path, 'rb') as f_in:
         substitutes_pre = pickle.load(f_in)
 
     start_time = time.time()
@@ -64,19 +63,19 @@ def main():
 
             # log p(c_j|w,s_i) = log p(c_j|s_i) + log p(c_j|w), with p(c_j|w) = exp(dot(emb_c_j, embed_w))
             for i, dotp in enumerate(occurrence['dot_products']):
-                occurrence['logp'][i] += dotp / temp
+                occurrence['logp'][i] += dotp / args.temperature
 
             # sort candidates by p(c_j|w,s_i)
             indices = np.argsort(occurrence['logp'])[::-1]
             occurrence['logp'] = [occurrence['logp'][j] for j in indices]
             occurrence['candidates'] = [occurrence['candidates'][j] for j in indices]
 
-    if correctFreq:
+    if args.frequency_type:
         logger.warning('Correct for word frequency.')
-        if frequencyList:
+        if args.frequency_list:
             logger.warning('Loading frequency list.')
             freqs_tmp = dict()
-            with open(frequencyList, 'r') as f_in:
+            with open(args.frequency_list, 'r') as f_in:
                 for line in f_in:
                     line = line.strip('\n').strip()
                     w, fr = line.split('\t')[:2]
@@ -92,14 +91,14 @@ def main():
         for target in substitutes_pre:
             for occurrence in substitutes_pre[target]:
                 for w, logp in zip(occurrence['candidates'], occurrence['logp']):
-                    if frequencyList:
+                    if args.frequency_list:
                         logp -= log_relative_freqs[w]
-                    elif correctFreq == 'zipf':
+                    elif args.frequency_type == 'zipf':
                         logp -= zipf_frequency(w, lang, wordlist='best')
                     else:
                         logp -= np.log(word_frequency(w, lang, wordlist='best'))
 
-    if lemmatise:
+    if args.lemmatise:
         logger.warning('Lemmatisation postprocessing.')
         try:
             nlp = stanza.Pipeline(lang=lang, processors='tokenize, lemma')
@@ -143,14 +142,14 @@ def main():
             indices = np.argsort(occurrence['logp'])[::-1]
             occurrence['logp'] = [occurrence['logp'][j] for j in indices]
             occurrence['candidates'] = [occurrence['candidates'][j] for j in indices]
-            if nSubs:
-                occurrence['logp'] = occurrence['logp'][:nSubs]
-                occurrence['candidates'] = occurrence['candidates'][:nSubs]
+            if args.n_subs:
+                occurrence['logp'] = occurrence['logp'][:args.n_subs]
+                occurrence['candidates'] = occurrence['candidates'][:args.n_subs]
 
             # re-normalise
             occurrence['logp'] -= np.log(np.sum(np.exp(occurrence['logp'])))
 
-    with open(outPath, 'wb') as f_out:
+    with open(args.output_path, 'wb') as f_out:
         pickle.dump(substitutes_post, f_out)
 
     logger.warning("--- %s seconds ---" % (time.time() - start_time))
