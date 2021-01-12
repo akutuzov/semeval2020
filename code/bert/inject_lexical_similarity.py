@@ -81,7 +81,7 @@ def main():
     args = docopt("""Modify substitute probabilities based on lexical similarity with target.
 
     Usage:
-        inject_lexical_similarity.py [--batch=B --localRank=R --temperature=T --normalise --ignoreBias] <modelName> <testSet> <subsPath> <outPath>
+        inject_lexical_similarity.py [--batch=B --localRank=R --normalise --ignoreBias] <modelName> <testSet> <subsPath> <outPath>
 
     Arguments:
         <modelName> = HuggingFace model name 
