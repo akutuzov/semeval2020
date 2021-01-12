@@ -5,7 +5,7 @@
 #SBATCH --partition=gpu
 #SBATCH --gres=gpu:1
 
-NPROC=1
+NPROC=4
 
 source ~/.bashrc
 
