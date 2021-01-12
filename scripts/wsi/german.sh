@@ -2,10 +2,10 @@
 #SBATCH --nodes=1
 #SBATCH --job-name=wsi_sv
 #SBATCH --time=20:00:00
-#SBATCH --partition=gpu
+#SBATCH --partition=gpu_shared
 #SBATCH --gres=gpu:1
 
-NPROC=4
+NPROC=1
 
 source ~/.bashrc
 

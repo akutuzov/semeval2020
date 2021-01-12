@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH --nodes=1
 #SBATCH --job-name=wsi_la
-#SBATCH --time=12:00:00
+#SBATCH --time=10:00:00
 #SBATCH --partition=gpu_shared
 #SBATCH --gres=gpu:1
 
