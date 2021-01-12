@@ -91,7 +91,6 @@ def main():
     Options:
         --batch=B  The batch size [default: 64]
         --localRank=R  For distributed training [default: -1]
-        --temperature=T  The temperature value for the lexical similarity calculation [default: 1.]
         --normalise  Whether to normalise the embeddings before dot product
         --ignoreBias  Whether to ignore the bias vector during masked word prediction
     """)
@@ -104,7 +103,6 @@ def main():
     localRank = int(args['--localRank'])
     ignore_lm_bias = bool(args['--ignoreBias'])
     normaliseEmbed = bool(args['--normalise'])
-    temperature = torch.tensor(float(args['--temperature']))
 
     logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s')
     logging.info(__file__.upper())
@@ -200,7 +198,7 @@ def main():
         substitutes_raw = pickle.load(f_in)
 
     substitutes_new = {
-        w: [{'candidates': [], 'logp': []} for _ in substitutes_raw[w]]
+        w: [{'candidates': [], 'logp': [], 'dot_products': []} for _ in substitutes_raw[w]]
         for w in substitutes_raw
     }
 
@@ -238,22 +236,16 @@ def main():
                 last_layer /= last_layer.sum()
 
             dot_products = torch.sum(tgt_embedding * last_layer, dim=1)  # (bsz)
-            dot_products = dot_products / temperature
 
             for b_id in np.arange(bsz):
                 tgt_lemma = tgt[b_id]
                 occurrence_idx = occurrence_idxs[b_id]
 
                 substitutes_new[tgt_lemma][occurrence_idx]['candidates'].append(candidate_tokens[b_id])
-                substitutes_new[tgt_lemma][occurrence_idx]['logp'].append(logps[b_id] + dot_products[b_id].item())
+                substitutes_new[tgt_lemma][occurrence_idx]['logp'].append(logps[b_id])
+                substitutes_new[tgt_lemma][occurrence_idx]['dot_products'].append(dot_products[b_id].item())
 
     iterator.close()
-
-    for lemma in substitutes_new:
-        for occurrence in substitutes_new[lemma]:
-            indices = np.argsort(occurrence['logp'])[::-1]
-            occurrence['logp'] = [occurrence['logp'][j] for j in indices]
-            occurrence['candidates'] = [occurrence['candidates'][j] for j in indices]
 
     with open(outPath, 'wb') as f_out:
         pickle.dump(substitutes_new, f_out)

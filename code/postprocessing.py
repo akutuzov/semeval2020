@@ -24,14 +24,15 @@ def main():
     dictionary containing the ranked candidate tokens (key 'candidates') and the ranked log
     probabilities (key 'logp').
     
-    Usage:
-        postprocessing.py [--nSubs=N --language=L --frequency=F --lemmatise --frequencyList=P] <subsPath> <outPath>
+    Usage: postprocessing.py [--nSubs=N --temperature=T --language=L --frequency=F --lemmatise --frequencyList=P] 
+    <subsPath> <outPath> 
         
     Arguments:
         <subsPath> = path to pickle containing substitute lists
         <outPath> = output path for substitutes with updated probabilities
     Options:
         --nSubs=N  The number of lexical substitutes to keep 
+        --temperature=T  The temperature value for the lexical similarity calculation [default: 1.]
         --language=L  The language code for word frequencies and lemmatisation
         --frequency=F  Whether to correct for word frequency: 'log' or 'zipf'
         --lemmatise  Whether to lemmatise lexical substitutes
@@ -41,6 +42,7 @@ def main():
     subsPath = args['<subsPath>']
     outPath = args['<outPath>']
     nSubs = int(args['--nSubs']) if args['--nSubs'] else None
+    temp = float(args['--temperature'])
     lang = args['--language']
     correctFreq = args['--frequency']
     lemmatise = bool(args['--lemmatise'])
@@ -56,6 +58,18 @@ def main():
         substitutes_pre = pickle.load(f_in)
 
     start_time = time.time()
+
+    for lemma in substitutes_pre:
+        for occurrence in substitutes_pre[lemma]:
+
+            # log p(c_j|w,s_i) = log p(c_j|s_i) + log p(c_j|w), with p(c_j|w) = exp(dot(emb_c_j, embed_w))
+            for i, dotp in enumerate(occurrence['dot_products']):
+                occurrence['logp'][i] += dotp / temp
+
+            # sort candidates by p(c_j|w,s_i)
+            indices = np.argsort(occurrence['logp'])[::-1]
+            occurrence['logp'] = [occurrence['logp'][j] for j in indices]
+            occurrence['candidates'] = [occurrence['candidates'][j] for j in indices]
 
     if correctFreq:
         logger.warning('Correct for word frequency.')
@@ -106,6 +120,9 @@ def main():
                 j = 0
                 for sub, sub_logp in zip(occurrence['candidates'], occurrence['logp']):
                     sub_lemma = nlp(sub).sentences[0].words[0].lemma
+
+                    if len(sub_lemma) <= 1:
+                        continue
 
                     if sub_lemma == tgt_lemma:
                         continue
