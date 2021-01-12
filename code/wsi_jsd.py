@@ -114,8 +114,6 @@ def main():
         )
         labels = clustering.fit_predict(m)
 
-        print(labels)
-
         logger.warning('Compute JSD.')
         usage_distr_t1 = np.zeros(args.n_clusters)
         usage_distr_t2 = np.zeros(args.n_clusters)
@@ -128,15 +126,13 @@ def main():
         usage_distr_t1 /= usage_distr_t1.sum()
         usage_distr_t2 /= usage_distr_t2.sum()
 
-        print(usage_distr_t1, usage_distr_t2)
-
         jsd_scores[target] = jsd(usage_distr_t1, usage_distr_t2)
 
     logger.warning("--- %s seconds ---" % (time.time() - start_time))
 
     with open(args.output_path, 'w', encoding='utf-8') as f:
         for word, score in jsd_scores.items():
-            f.write("{},{}\n".format(word, score))
+            f.write("{}\t{}\n".format(word, score))
 
 
 if __name__ == '__main__':
