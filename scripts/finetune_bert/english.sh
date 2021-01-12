@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH --nodes=1
 #SBATCH --job-name=ft-en
-#SBATCH --time=00:30:00
+#SBATCH --time=48:00:00
 #SBATCH --partition=gpu
 #SBATCH --gres=gpu:1
 
@@ -34,6 +34,7 @@ python3 -m torch.distributed.launch --nproc_per_node=4 --nnodes=1 --node_rank=0 
 	--targets_file finetuning_corpora/${language}/targets/target_forms.csv \
 	--do_train \
 	--output_dir finetuned_bert/${language}/ \
+	--overwrite_output_dir \
 	--num_train_epochs ${epochs} \
 	--per_device_train_batch_size ${bsz} \
 	--per_device_eval_batch_size ${bsz} \
