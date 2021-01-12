@@ -225,6 +225,7 @@ def main():
         inputs, tgt, occurrence_idxs, candidate_tokens, tgt_embedding, logps, positions = batch
         inputs['input_ids'] = inputs['input_ids'].to(device)
         inputs['attention_mask'] = inputs['attention_mask'].to(device)
+        tgt_embedding = tgt_embedding.to(device)
         bsz = inputs['input_ids'].shape[0]
 
         with torch.no_grad():
