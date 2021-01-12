@@ -1,6 +1,6 @@
 #!/bin/bash
 #SBATCH --nodes=1
-#SBATCH --job-name=wsi_en
+#SBATCH --job-name=wsi_la
 #SBATCH --time=12:00:00
 #SBATCH --partition=gpu_shared
 #SBATCH --gres=gpu:1
@@ -18,10 +18,10 @@ source ${HOME}/projects/erp/venv/bin/activate
 
 cd ${HOME}/projects/semeval2020 || exit
 
-language=english
-lang=en
+language=swedish
+lang=sv
 preproc=token  # or lemma
-model=bert-base-uncased  # bert-base-german-cased, bert-base-multilingual-cased, af-ai-center/bert-base-swedish-uncased
+model=bert-base-multilingual-cased
 batch=32
 context=256
 nsubs_start=300
@@ -89,6 +89,7 @@ python3 code/postprocessing.py \
 	--lang ${lang} \
 	--lemmatise \
 	--frequency_type ${freq_type} \
+	--frequency_list finetuning_corpora/${language}/${preproc}/latin_freq.tsv \
 	&> out/postproc_${language}_${preproc}_T1_nsubs${nsubs_start}-${nsubs_end}_ctx${context}_bsz${batch}_temp${temperature}_fr_${freq_type}
 
 echo "postprocessing.py: T2"
@@ -100,6 +101,7 @@ python3 code/postprocessing.py \
 	--lang ${lang} \
 	--lemmatise \
 	--frequency_type ${freq_type} \
+	--frequency_list finetuning_corpora/${language}/${preproc}/latin_freq.tsv \
 	&> out/postproc_${language}_${preproc}_T2_nsubs${nsubs_start}-${nsubs_end}_ctx${context}_bsz${batch}_temp${temperature}_fr_${freq_type}
 
 

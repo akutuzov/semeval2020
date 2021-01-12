@@ -1,11 +1,11 @@
 #!/bin/bash
 #SBATCH --nodes=1
-#SBATCH --job-name=wsi_en
-#SBATCH --time=12:00:00
-#SBATCH --partition=gpu_shared
+#SBATCH --job-name=wsi_ru
+#SBATCH --time=20:00:00
+#SBATCH --partition=gpu
 #SBATCH --gres=gpu:1
 
-NPROC=1
+NPROC=4
 
 source ~/.bashrc
 
@@ -18,10 +18,10 @@ source ${HOME}/projects/erp/venv/bin/activate
 
 cd ${HOME}/projects/semeval2020 || exit
 
-language=english
-lang=en
+language=german
+lang=de
 preproc=token  # or lemma
-model=bert-base-uncased  # bert-base-german-cased, bert-base-multilingual-cased, af-ai-center/bert-base-swedish-uncased
+model=af-ai-center/bert-base-swedish-uncased
 batch=32
 context=256
 nsubs_start=300
