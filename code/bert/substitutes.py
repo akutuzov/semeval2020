@@ -269,17 +269,30 @@ def main():
             t = t.lower()
         if t in tokenizer.added_tokens_encoder:
             continue
-
-        assert len(t_id) == 1  # because of never_split list
-        if t_id[0] == tokenizer.unk_token_id:
+        if len(t_id) > 1 or (len(t_id) == 1 and t_id[0] == tokenizer.unk_token_id):
             if tokenizer.add_tokens([t]):
                 model.resize_token_embeddings(len(tokenizer))
                 i2w[len(tokenizer) - 1] = t
                 words_added.append(t)
             else:
+                i2w[t_id[0]] = t
                 logger.error('Word not properly added to tokenizer:', t, tokenizer.tokenize(t))
-        else:
-            i2w[t_id[0]] = t
+
+    # check if correctly added
+    for t, t_id in zip(target_forms, targets_ids):
+        if len(t_id) != 1:
+            print(t, t_id)
+
+        # assert len(t_id) == 1  # because of never_split list
+        # if t_id[0] == tokenizer.unk_token_id:
+        #     if tokenizer.add_tokens([t]):
+        #         model.resize_token_embeddings(len(tokenizer))
+        #         i2w[len(tokenizer) - 1] = t
+        #         words_added.append(t)
+        #     else:
+        #         logger.error('Word not properly added to tokenizer:', t, tokenizer.tokenize(t))
+        # else:
+        #     i2w[t_id[0]] = t
     logger.warning("\nTarget words added to the vocabulary: {}.\n".format(', '.join(words_added)))
 
     # multi-gpu training (should be after apex fp16 initialization)
