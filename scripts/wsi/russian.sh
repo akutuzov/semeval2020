@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH --nodes=1
 #SBATCH --job-name=wsi_ru
-#SBATCH --time=24:00:00
+#SBATCH --time=48:00:00
 #SBATCH --partition=gpu_shared
 #SBATCH --gres=gpu:1
 
@@ -23,7 +23,7 @@ lang=ru
 preproc=token  # or lemma
 model=DeepPavlov/rubert-base-cased
 batch=32
-context=256
+context=128
 nsubs_start=300
 nsubs_end=200
 temperature=2.5

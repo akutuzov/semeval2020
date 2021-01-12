@@ -1,8 +1,8 @@
 #!/bin/bash
 #SBATCH --nodes=1
 #SBATCH --job-name=wsi_sv
-#SBATCH --time=20:00:00
-#SBATCH --partition=gpu_shared
+#SBATCH --time=36:00:00
+#SBATCH --partition=gpu
 #SBATCH --gres=gpu:1
 
 NPROC=1
@@ -23,7 +23,7 @@ lang=de
 preproc=token  # or lemma
 model=af-ai-center/bert-base-swedish-uncased
 batch=32
-context=256
+context=128
 nsubs_start=300
 nsubs_end=200
 temperature=2.5
