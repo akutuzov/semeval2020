@@ -115,8 +115,10 @@ def main():
         try:
             labels = clustering.fit_predict(m)
         except ValueError as e:
-            logger.warning('Target word: {}'.format(target))
+            logger.warning('Assigning JSD=1 to target word: {}'.format(target))
             logger.warning(e)
+            jsd_scores[target] = 1.
+            continue
 
         logger.warning('Compute JSD.')
         usage_distr_t1 = np.zeros(args.n_clusters)
