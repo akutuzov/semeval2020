@@ -109,6 +109,7 @@ echo "wsi_jsd.py"
 python3 code/wsi_jsd.py \
 	--subs_path_t1 subs_results/${language}/corpus_${preproc}_T1_nsubs${nsubs_start}-${nsubs_end}_ctx${context}_bsz${batch}_temp${temperature}_fr_${freq_type}.post.pkl \
 	--subs_path_t2 subs_results/${language}/corpus_${preproc}_T2_nsubs${nsubs_start}-${nsubs_end}_ctx${context}_bsz${batch}_temp${temperature}_fr_${freq_type}.post.pkl \
+	--targets_path finetuning_corpora/${language}/targets/target_forms.csv \
 	--output_path subs_results/${language}/jsd_${preproc}_nsubs${nsubs_start}-${nsubs_end}_ctx${context}_bsz${batch}_temp${temperature}_fr_${freq_type}.csv \
 	--apply_tfidf \
 	--n_clusters=${nClusters} \

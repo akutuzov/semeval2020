@@ -1,7 +1,6 @@
 import argparse
 import logging
 import pickle
-from collections import defaultdict
 from sklearn.cluster import AgglomerativeClustering
 from sklearn.feature_extraction.text import TfidfTransformer
 import time
@@ -32,6 +31,9 @@ def main():
         '--subs_path_t2', type=str, required=True,
         help='Path to the pickle file containing substitute lists (output by postprocessing.py) for period T2.')
     parser.add_argument(
+        '--targets_path', type=str, required=True,
+        help='Path to the csv file containing target word forms.')
+    parser.add_argument(
         '--output_path', type=str, required=True,
         help='output path for csv file containing JSD scores')
     parser.add_argument(
@@ -53,20 +55,30 @@ def main():
     with open(args.subs_path_t2, 'rb') as f_in:
         substitutes_t2 = pickle.load(f_in)
 
+    # Load target forms
+    targets = []
+    with open(args.targets_path, 'r', encoding='utf-8') as f_in:
+        for line in f_in.readlines():
+            line = line.strip()
+            targets.append(line.split(',')[0])
+    print('=' * 80)
+    print('')
+    print('{} targets: {}'.format(len(targets), targets))
+    print('=' * 80)
+
     start_time = time.time()
 
     # collect vocabulary of substitutes for all lemmas
     logger.warning('Collect vocabularies of substitutes.')
 
-    vocabs = defaultdict(set)
-    n_occurrences = defaultdict(int)
+    vocabs = {target: set() for target in targets}
+    n_occurrences = {target: 0 for target in targets}
 
-    for target in substitutes_t1:
+    for target in targets:
         for occurrence in substitutes_t1[target]:
             vocabs[target] |= set(occurrence['candidates'])
             n_occurrences[target] += 1
 
-    for target in substitutes_t2:
         for occurrence in substitutes_t2[target]:
             vocabs[target] |= set(occurrence['candidates'])
             n_occurrences[target] += 1
@@ -77,8 +89,11 @@ def main():
     logger.warning('Maximum vocabulary size: {}'.format(max([len(v) for v in vocabs.values()])))
 
     jsd_scores = {}
-    for target in vocabs:
+    for target in targets:
         logger.warning('Process "{}"'.format(target))
+
+        if len(vocabs[target]) == 0:
+            logger.warning('Assigning JSD=1 to target word: {}. No substitutes available.'.format(target))
 
         # for each target, construct a one-hot matrix M where
         # cell M[i,j] encodes whether substitute j is in the
