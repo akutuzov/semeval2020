@@ -275,8 +275,9 @@ def main():
                 i2w[len(tokenizer) - 1] = t
                 words_added.append(t)
             else:
-                i2w[t_id[0]] = t
                 logger.error('Word not properly added to tokenizer:', t, tokenizer.tokenize(t))
+        else:
+            i2w[t_id[0]] = t
 
     # check if correctly added
     for t, t_id in zip(target_forms, targets_ids):
