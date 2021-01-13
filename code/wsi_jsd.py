@@ -112,7 +112,11 @@ def main():
             affinity=args.affinity,
             linkage=args.linkage
         )
-        labels = clustering.fit_predict(m)
+        try:
+            labels = clustering.fit_predict(m)
+        except ValueError as e:
+            logger.warning('Target word: {}'.format(target))
+            logger.warning(e)
 
         logger.warning('Compute JSD.')
         usage_distr_t1 = np.zeros(args.n_clusters)
