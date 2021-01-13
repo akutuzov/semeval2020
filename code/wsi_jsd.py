@@ -93,7 +93,9 @@ def main():
         logger.warning('Process "{}"'.format(target))
 
         if len(vocabs[target]) == 0:
+            jsd_scores[target] = 1.
             logger.warning('Assigning JSD=1 to target word: {}. No substitutes available.'.format(target))
+            continue
 
         # for each target, construct a one-hot matrix M where
         # cell M[i,j] encodes whether substitute j is in the
@@ -130,9 +132,9 @@ def main():
         try:
             labels = clustering.fit_predict(m)
         except ValueError as e:
+            jsd_scores[target] = 1.
             logger.warning('Assigning JSD=1 to target word: {}'.format(target))
             logger.warning(e)
-            jsd_scores[target] = 1.
             continue
 
         logger.warning('Compute JSD.')
