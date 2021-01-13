@@ -18,8 +18,8 @@ source ${HOME}/projects/erp/venv/bin/activate
 
 cd ${HOME}/projects/semeval2020 || exit
 
-language=latin
-lang=la
+language=german
+lang=de
 preproc=token  # or lemma
 model=bert-base-german-cased
 batch=32
