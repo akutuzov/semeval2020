@@ -1,0 +1,71 @@
+substitutes.py - output
+{
+	'attack': [], 
+	'bag': [], 
+	…,
+	'edge': [
+		{
+			'candidates': array([ 3341,  5056,  2491,  3747,  2599]), 
+			'logp': array([-3.84484720e-03, -5.60118723e+00, -1.07366638e+01, -1.08923483e+01, -1.12801895e+01], dtype=float32), 
+       			'input_ids': array([ 101, 2010, 3765, 2031, 1996, 3341, 2058, 2010, 9169,  102,    0]), 
+			'attention_mask': array([1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0]), 
+			'position': 5, 
+			'embedding': array([-7.23602712e-01, -3.67172897e-01,  ….,  1.94340512e-01])
+		},
+		{
+			’candidates': array([ 3341, 12742,  3968,  7926, 13011,]), 
+			'logp': array([-8.3944332e-03, -7.2369595e+00, -7.4038649e+00, -7.4974661e+00, -7.5913959e+00], dtype=float32), 
+			'input_ids': array([ 101, 2018, 2016, 2371, 2061, 2006, 3341, 2077, 2019, 4357,  102]), 
+			'attention_mask': array([1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]),
+			'position': 6, 
+			'embedding': array([ 1.60494924e-01, -1.18804955e+00, …, -1.56895936e-01])
+		}
+	],
+	‘face’: [], 
+	…,
+	‘word’:[]
+}
+
+
+inject_lexical_similarity.py - output
+{
+	'attack': [], 
+	'bag': [], 
+	…,
+	'edge': [
+		{
+			'candidates': array([ border, limit,  side,  edgy,  sides]), 
+			'logp': array([-3.84484720e-03, -5.60118723e+00, -1.07366638e+01, -1.08923483e+01, -1.12801895e+01], dtype=float32), 
+       			‘dot_products’: array([0.343, 0.212, 0.453, 0.345, 0.409])
+		},
+		{
+			’candidates': array([ extreme, side,  limit,  edges, ?]), 
+			'logp': array([-8.3944332e-03, -7.2369595e+00, -7.4038649e+00, -7.4974661e+00, -7.5913959e+00], dtype=float32), 
+			‘dot_products’: array([0.523, 0.560, 0.284, 0.398, 0.644])
+		}
+	],
+	‘face’: [], 
+	…,
+	‘word’:[]
+}
+
+
+postprocessing.py - output
+{
+	'attack': [], 
+	'bag': [], 
+	…,
+	'edge': [
+		{
+			'candidates': array([ limit,  border,  side ]), 
+			'logp': array([-3.84484720e-03, -5.60118723e+00, -1.07366638e+01], dtype=float32), 
+		},
+		{
+			’candidates': array([ extreme, limit,  side]), 
+			'logp': array([-8.3944332e-03, -7.2369595e+00, -7.4038649e+00], dtype=float32), 
+		}
+	],
+	‘face’: [], 
+	…,
+	‘word’:[]
+}
