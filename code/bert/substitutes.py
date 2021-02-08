@@ -179,13 +179,13 @@ def main():
         '--output_path', type=str, required=True,
         help='Output path for pickle containing substitutes.')
     parser.add_argument(
-        '--n_subs', type=int, default=150,
+        '--n_subs', type=int, default=50,
         help='The number of lexical substitutes to extract.')
     parser.add_argument(
-        '--seq_len', type=int, default=200,
+        '--seq_len', type=int, default=128,
         help="The length of a token's entire context window.")
     parser.add_argument(
-        '--batch_size', type=int, default=64,
+        '--batch_size', type=int, default=32,
         help='The batch size per device (GPU core / CPU).')
     parser.add_argument(
         '--ignore_decoder_bias', action='store_true',
@@ -237,6 +237,8 @@ def main():
             target_forms.extend(forms)
             for form in forms:
                 form2target[form] = target
+                form2target[form.lower()] = target
+
     print('=' * 80)
     print('targets:', target_forms)
     print(form2target)
@@ -284,16 +286,6 @@ def main():
         if len(t_id) != 1:
             print(t, t_id)
 
-        # assert len(t_id) == 1  # because of never_split list
-        # if t_id[0] == tokenizer.unk_token_id:
-        #     if tokenizer.add_tokens([t]):
-        #         model.resize_token_embeddings(len(tokenizer))
-        #         i2w[len(tokenizer) - 1] = t
-        #         words_added.append(t)
-        #     else:
-        #         logger.error('Word not properly added to tokenizer:', t, tokenizer.tokenize(t))
-        # else:
-        #     i2w[t_id[0]] = t
     logger.warning("\nTarget words added to the vocabulary: {}.\n".format(', '.join(words_added)))
 
     # multi-gpu training (should be after apex fp16 initialization)
