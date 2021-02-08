@@ -102,7 +102,7 @@ def main():
         logger.warning('Lemmatisation postprocessing.')
         try:
             nlp = stanza.Pipeline(lang=lang, processors='tokenize, lemma')
-        except FileNotFoundError:
+        except Exception:
             stanza.download(lang=lang, processors='tokenize, lemma')
             nlp = stanza.Pipeline(lang=lang, processors='tokenize, lemma')
 
