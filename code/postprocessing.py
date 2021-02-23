@@ -94,11 +94,11 @@ def main():
             for occurrence in substitutes_pre[target]:
                 for w, logp in zip(occurrence['candidates'], occurrence['logp']):
                     if args.frequency_list:
-                        logp -= log_relative_freqs[w]
+                        logp -= Decimal(log_relative_freqs[w])
                     elif args.frequency_type == 'zipf':
-                        logp -= zipf_frequency(w, lang, wordlist='best')
+                        logp -= Decimal(zipf_frequency(w, lang, wordlist='best'))
                     else:
-                        logp -= np.log(word_frequency(w, lang, wordlist='best'))
+                        logp -= Decimal(np.log(word_frequency(w, lang, wordlist='best')))
 
     if args.lemmatise:
         logger.warning('Lemmatisation postprocessing.')
@@ -130,7 +130,7 @@ def main():
 
                     if sub_lemma in subs_lemmas:
                         p = np.exp(occurrence['logp'][subs_lemmas[sub_lemma]]) + np.exp(sub_logp)
-                        substitutes_post[target][i]['logp'][subs_lemmas[sub_lemma]] = np.log(p)
+                        substitutes_post[target][i]['logp'][subs_lemmas[sub_lemma]] = p.ln()
                     else:
                         subs_lemmas[sub_lemma] = j
                         substitutes_post[target][i]['candidates'].append(sub_lemma)
@@ -149,7 +149,9 @@ def main():
                 occurrence['candidates'] = occurrence['candidates'][:args.n_subs]
 
             # re-normalise
-            occurrence['logp'] -= np.log(np.sum(np.exp(occurrence['logp'])))
+            log_denominator = np.sum(np.exp(occurrence['logp'])).ln()
+            for logp in occurrence['logp']:
+                logp -= log_denominator
 
     with open(args.output_path, 'wb') as f_out:
         pickle.dump(substitutes_post, f_out)
