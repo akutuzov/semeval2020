@@ -168,7 +168,11 @@ def main():
                 if not any(c.isalpha() for c in candidate_tokens[j]):
                     continue
 
-                dot_product = static_model.similarity(target, candidate_tokens[j])
+                try:
+                    dot_product = static_model.similarity(target, candidate_tokens[j])
+                except KeyError:
+                    # e.g. word '##ing' not in vocabulary
+                    dot_product = 0.
 
                 substitutes_new[target][occurrence_idx]['candidates'].append(candidate_tokens[j])
                 substitutes_new[target][occurrence_idx]['logp'].append(occurrence['logp'][j])
