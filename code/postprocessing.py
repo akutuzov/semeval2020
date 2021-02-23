@@ -98,7 +98,7 @@ def main():
                     elif args.frequency_type == 'zipf':
                         logp -= Decimal(zipf_frequency(w, lang, wordlist='best'))
                     else:
-                        logp -= Decimal(np.log(word_frequency(w, lang, wordlist='best')))
+                        logp -= Decimal(word_frequency(w, lang, wordlist='best')).ln()
 
     if args.lemmatise:
         logger.warning('Lemmatisation postprocessing.')
