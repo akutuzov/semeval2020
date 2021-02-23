@@ -5,6 +5,7 @@ import stanza
 import time
 import numpy as np
 from collections import defaultdict
+from decimal import Decimal
 from wordfreq import word_frequency, zipf_frequency
 
 
@@ -64,6 +65,7 @@ def main():
             # log p(c_j|w,s_i) = log p(c_j|s_i) + log p(c_j|w), with p(c_j|w) = exp(dot(emb_c_j, embed_w))
             for i, dotp in enumerate(occurrence['dot_products']):
                 occurrence['logp'][i] += dotp / args.temperature
+                occurrence['logp'][i] = Decimal(occurrence['logp'][i])
 
             # sort candidates by p(c_j|w,s_i)
             indices = np.argsort(occurrence['logp'])[::-1]
