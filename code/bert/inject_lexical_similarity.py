@@ -247,10 +247,7 @@ def main():
             if args.normalise_embeddings:
                 last_layer = normalize(last_layer, p=2)
 
-            print(tgt_embedding)
-            print(last_layer)
             dot_products = torch.sum(tgt_embedding * last_layer, dim=1)  # (bsz)
-            print(dot_products)
 
             if args.normalise_embeddings:
                 assert all([d <= 1 for d in dot_products]), 'Dot product should not exceed 1 if vectors are normalised.'
