@@ -39,20 +39,24 @@ def main():
         '--lemmatise', action='store_true',
         help="Whether to lemmatise lexical substitutes, filtering out candidates redundant")
     parser.add_argument(
-        '--frequency_type', type=str,
-        help='Whether to correct for word frequency using log frequency ("log") or zipf frequency ("zipf"). '
-             'If blank, no frequency correction is performed.')
+        '--frequency_correction', type=str,
+        help='Whether to correct for word frequency using prior word probability distribution.')
+    parser.add_argument(
+        '--k', type=float, default=4,
+        help='The value of parameter k in the prior word probability distribution.')
+    parser.add_argument(
+        '--s', type = float, default = 1.05,
+        help = 'The value of parameter s in the prior word probability distribution.')
+    parser.add_argument(
+        '--beta', type=float, default=2,
+        help='The value of parameter beta.')
     parser.add_argument(
         '--frequency_list', type=str,
-        help='Path to a frequency list tsv file (word\tfreq[\trank]\n) to use instead of the wordfreq library. '
-             'Only usable with log frequency as frequency_type.')
+        help='Path to a frequency list tsv file (word\tfreq[\trank]\n) to use instead of the wordfreq library.')
     args = parser.parse_args()
 
     lang = args.lang.lower()
     assert lang in ['en', 'de', 'sv', 'la', 'ru', 'it']
-    assert args.frequency_type in [None, 'log', 'zipf']
-    if args.frequency_list and args.frequency_type == 'zipf':
-        raise NotImplementedError('No Zipf frequencies available with custom frequency list.')
 
     with open(args.subs_path, 'rb') as f_in:
         substitutes_pre = pickle.load(f_in)
@@ -65,40 +69,47 @@ def main():
             # log p(c_j|w,s_i) = log p(c_j|s_i) + log p(c_j|w), with p(c_j|w) = exp(dot(emb_c_j, embed_w))
             for i, dotp in enumerate(occurrence['dot_products']):
                 occurrence['logp'][i] += dotp / args.temperature
-                occurrence['logp'][i] = Decimal(occurrence['logp'][i])
+                # occurrence['logp'][i] = Decimal(occurrence['logp'][i])
 
             # sort candidates by p(c_j|w,s_i)
             indices = np.argsort(occurrence['logp'])[::-1]
             occurrence['logp'] = [occurrence['logp'][j] for j in indices]
             occurrence['candidates'] = [occurrence['candidates'][j] for j in indices]
 
-    if args.frequency_type:
+    if args.frequency_correction:
         logger.warning('Correct for word frequency.')
         if args.frequency_list:
             logger.warning('Loading frequency list.')
             freqs_tmp = dict()
+            log_prior_tmp = dict()
             with open(args.frequency_list, 'r') as f_in:
-                for line in f_in:
+                for rnk, line in enumerate(f_in, start=1):
                     line = line.strip('\n').strip()
                     w, fr = line.split('\t')[:2]
                     freqs_tmp[w] = int(fr)
 
-            sum_fr = sum(freqs_tmp.values())
-            for w in freqs_tmp:
-                freqs_tmp[w] = np.log(freqs_tmp[w] / sum_fr)
+                    log_prior_tmp[w] = - np.log(args.k + rnk) * args.s  # [-0.7, -5] approx
 
-            log_relative_freqs = defaultdict(lambda: min(freqs_tmp.values()))
-            log_relative_freqs.update(freqs_tmp)
+            log_prior = defaultdict(lambda: min(log_prior_tmp.values()))
+            log_prior.update(log_prior_tmp)
+
+            # sum_fr = sum(freqs_tmp.values())
+            # for w in freqs_tmp:
+            #     freqs_tmp[w] = np.log(freqs_tmp[w] / sum_fr)
+            #
+            # log_relative_freqs = defaultdict(lambda: min(freqs_tmp.values()))
+            # log_relative_freqs.update(freqs_tmp)
 
         for target in substitutes_pre:
             for occurrence in substitutes_pre[target]:
+                prior_prob = []
                 for w, logp in zip(occurrence['candidates'], occurrence['logp']):
+
                     if args.frequency_list:
-                        logp -= Decimal(log_relative_freqs[w])
-                    elif args.frequency_type == 'zipf':
-                        logp -= Decimal(zipf_frequency(w, lang, wordlist='best'))
+                        logp -= args.beta * log_prior[w]
                     else:
-                        logp -= Decimal(word_frequency(w, lang, wordlist='best')).ln()
+                        logp -= args.beta * np.log(word_frequency(w, lang, wordlist='best') ** args.s)
+
 
     if args.lemmatise:
         logger.warning('Lemmatisation postprocessing.')
