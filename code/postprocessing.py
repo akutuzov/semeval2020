@@ -39,7 +39,7 @@ def main():
         '--lemmatise', action='store_true',
         help="Whether to lemmatise lexical substitutes, filtering out candidates redundant")
     parser.add_argument(
-        '--frequency_correction', type=str,
+        '--frequency_correction', action='store_true',
         help='Whether to correct for word frequency using prior word probability distribution.')
     parser.add_argument(
         '--k', type=float, default=4,
