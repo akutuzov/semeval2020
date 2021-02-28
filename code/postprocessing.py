@@ -141,7 +141,7 @@ def main():
 
                     if sub_lemma in subs_lemmas:
                         p = np.exp(occurrence['logp'][subs_lemmas[sub_lemma]]) + np.exp(sub_logp)
-                        substitutes_post[target][i]['logp'][subs_lemmas[sub_lemma]] = p.ln()
+                        substitutes_post[target][i]['logp'][subs_lemmas[sub_lemma]] = np.log(p)  #.ln()
                     else:
                         subs_lemmas[sub_lemma] = j
                         substitutes_post[target][i]['candidates'].append(sub_lemma)
@@ -160,7 +160,7 @@ def main():
                 occurrence['candidates'] = occurrence['candidates'][:args.n_subs]
 
             # re-normalise
-            log_denominator = np.sum(np.exp(occurrence['logp'])).ln()
+            log_denominator = np.log(np.sum(np.exp(occurrence['logp'])))  #.ln()
             for logp in occurrence['logp']:
                 logp -= log_denominator
 
