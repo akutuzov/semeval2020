@@ -26,7 +26,7 @@ class SubstitutesDataset(torch.utils.data.Dataset):
                 candidate_tokens = tokenizer.convert_ids_to_tokens(occurrence['candidates'])
 
                 if normalise_embeddings:
-                    embedding = normalize(occurrence['embedding'].unsqueeze(0), p=2)[0]
+                    embedding = normalize(np.expand_dims(occurrence['embedding'], axis=0), p=2)[0]
                 else:
                     embedding = occurrence['embedding']
 
