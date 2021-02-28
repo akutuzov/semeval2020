@@ -171,7 +171,7 @@ def main():
 
                 try:
                     dot_product = static_model.similarity(target, candidate_tokens[j])
-                    assert(dot_product <= 1)
+                    assert(dot_product <= 1.01)
                 except KeyError:
                     # e.g. word '##ing' not in vocabulary
                     dot_product = 0.

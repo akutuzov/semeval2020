@@ -250,7 +250,7 @@ def main():
             dot_products = torch.sum(tgt_embedding * last_layer, dim=1)  # (bsz)
 
             if args.normalise_embeddings:
-                assert all([d <= 1 for d in dot_products]), 'Dot product should not exceed 1 if vectors are normalised.'
+                assert all([d <= 1.01 for d in dot_products]), 'Dot product should not exceed 1 if vectors are normalised.'
 
             for b_id in np.arange(bsz):
                 tgt_lemma = tgt[b_id]
