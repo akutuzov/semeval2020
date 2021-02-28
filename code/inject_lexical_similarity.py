@@ -5,6 +5,7 @@ import torch
 import time
 import logging
 import numpy as np
+from torch.nn.functional import normalize
 from torch.utils.data import DataLoader
 from transformers import BertTokenizer
 
@@ -25,7 +26,7 @@ class SubstitutesDataset(torch.utils.data.Dataset):
                 candidate_tokens = tokenizer.convert_ids_to_tokens(occurrence['candidates'])
 
                 if normalise_embeddings:
-                    embedding = occurrence['embedding'] / occurrence['embedding'].sum()
+                    embedding = normalize(occurrence['embedding'].unsqueeze(0), p=2)[0]
                 else:
                     embedding = occurrence['embedding']
 
@@ -170,6 +171,7 @@ def main():
 
                 try:
                     dot_product = static_model.similarity(target, candidate_tokens[j])
+                    assert(dot_product <= 1)
                 except KeyError:
                     # e.g. word '##ing' not in vocabulary
                     dot_product = 0.

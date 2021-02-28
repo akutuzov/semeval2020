@@ -6,6 +6,7 @@ import logging
 import numpy as np
 from tqdm import tqdm
 from torch.utils.data import DataLoader, SequentialSampler
+from torch.nn.functional import normalize
 from transformers import BertTokenizer, BertForMaskedLM
 
 logger = logging.getLogger(__name__)
@@ -25,7 +26,7 @@ class SubstitutesDataset(torch.utils.data.Dataset):
                 candidate_tokens = tokenizer.convert_ids_to_tokens(occurrence['candidates'])
 
                 if normalise_embeddings:
-                    embedding = occurrence['embedding'] / occurrence['embedding'].sum()
+                    embedding = normalize(occurrence['embedding'].unsqueeze(0), p=2)[0]
                 else:
                     embedding = occurrence['embedding']
 
@@ -244,9 +245,12 @@ def main():
             hidden_states = outputs[1]
             last_layer = hidden_states[-1][np.arange(bsz), positions, :]  # (bsz, hdims)
             if args.normalise_embeddings:
-                last_layer /= last_layer.sum(1, keepdim=True)
+                last_layer = normalize(last_layer, p=2)
 
+            print(tgt_embedding)
+            print(last_layer)
             dot_products = torch.sum(tgt_embedding * last_layer, dim=1)  # (bsz)
+            print(dot_products)
 
             if args.normalise_embeddings:
                 assert all([d <= 1 for d in dot_products]), 'Dot product should not exceed 1 if vectors are normalised.'
