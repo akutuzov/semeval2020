@@ -1,15 +1,20 @@
 import argparse
 import gensim.downloader
+import json
 import pickle
 import torch
 import time
 import logging
 import numpy as np
+from smart_open import open
 from torch.nn.functional import normalize
 from torch.utils.data import DataLoader
-from transformers import BertTokenizer
 
 logger = logging.getLogger(__name__)
+
+
+BERT_UNK = '[UNK]'
+ELMO_UNK = '<UNK>'
 
 
 class SubstitutesDataset(torch.utils.data.Dataset):
@@ -95,9 +100,11 @@ def main():
         '--output_path', type=str, required=True,
         help='Output path for pickle containing substitutes with lexical similarity values.')
     parser.add_argument(
-        '--candidates_as_bert_ids', action='store_true',
-        help='Whether the candidates are stored as BertTokenizer ids.'
-    )
+        '--model_type', type=str, required=True, choices=['elmo', 'bert'],
+        help='LSTM or Transformer language model.')
+    parser.add_argument(
+        '--ignore_unk', action='store_true',
+        help='Whether to remove the UNK token from candidate lists.')
     args = parser.parse_args()
 
     logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s')
@@ -115,40 +122,51 @@ def main():
     print('targets:', target_forms)
     print('=' * 80)
 
-    # Load model and tokenizer
-    if args.candidates_as_bert_ids:
-        logger.warning('Loading BERT tokenizer.')
-        tokenizer = BertTokenizer.from_pretrained(args.model_name, never_split=target_forms, use_fast=False)
+    # # Load model and tokenizer
+    # if args.candidates_as_bert_ids:
+    #     logger.warning('Loading BERT tokenizer.')
+    #     tokenizer = BertTokenizer.from_pretrained(args.model_name, never_split=target_forms, use_fast=False)
 
     logger.warning('Loading Gensim model.')
-    static_model = gensim.downloader.load(args.static_model_name)
+    try:
+        static_model = gensim.downloader.load(args.static_model_name)
+    except ValueError:
+        static_model = gensim.models.KeyedVectors.load(args.static_model_name)
 
-    # Store vocabulary indices of target words
-    targets_ids = [tokenizer.encode(t, add_special_tokens=False) for t in target_forms]
-    assert len(target_forms) == len(targets_ids)
-    words_added = []
-    for t, t_id in zip(target_forms, targets_ids):
-        if tokenizer.do_lower_case:
-            t = t.lower()
-        if t in tokenizer.added_tokens_encoder:
-            continue
-        if len(t_id) > 1 or (len(t_id) == 1 and t_id[0] == tokenizer.unk_token_id):
-            if tokenizer.add_tokens([t]):
-                words_added.append(t)
-            else:
-                logger.error('Word not properly added to tokenizer:', t, tokenizer.tokenize(t))
+    # # Store vocabulary indices of target words
+    # targets_ids = [tokenizer.encode(t, add_special_tokens=False) for t in target_forms]
+    # assert len(target_forms) == len(targets_ids)
+    # words_added = []
+    # for t, t_id in zip(target_forms, targets_ids):
+    #     if tokenizer.do_lower_case:
+    #         t = t.lower()
+    #     if t in tokenizer.added_tokens_encoder:
+    #         continue
+    #     if len(t_id) > 1 or (len(t_id) == 1 and t_id[0] == tokenizer.unk_token_id):
+    #         if tokenizer.add_tokens([t]):
+    #             words_added.append(t)
+    #         else:
+    #             logger.error('Word not properly added to tokenizer:', t, tokenizer.tokenize(t))
+    #
+    # # check if correctly added
+    # for t, t_id in zip(target_forms, targets_ids):
+    #     if len(t_id) != 1:
+    #         print(t, t_id)
+    # logger.warning("\nTarget words added to the vocabulary: {}.\n".format(', '.join(words_added)))
 
-    # check if correctly added
-    for t, t_id in zip(target_forms, targets_ids):
-        if len(t_id) != 1:
-            print(t, t_id)
-    logger.warning("\nTarget words added to the vocabulary: {}.\n".format(', '.join(words_added)))
 
-    with open(args.subs_path, 'rb') as f_in:
-        substitutes_raw = pickle.load(f_in)
+
+    if args.subs_path.endswith('.pkl'):
+        with open(args.subs_path, 'rb') as f_in:
+            substitutes_raw = pickle.load(f_in)
+    elif args.subs_path.endswith('.json'):
+        with open(args.subs_path, 'r') as f_in:
+            substitutes_raw = json.load(f_in)
+    else:
+        raise ValueError('Invalid path: {}'.format(args.subs_path))
 
     substitutes_new = {
-        w: [{'candidates': [], 'logp': [], 'dot_products': []} for _ in substitutes_raw[w]]
+        w: [{'candidate_words': [], 'logp': [], 'dot_products': []} for _ in substitutes_raw[w]]
         for w in substitutes_raw
     }
 
@@ -156,36 +174,102 @@ def main():
 
         occurrence_idx = 0
         for occurrence in substitutes_raw[target]:
-            if args.candidates_as_bert_ids:
-                candidate_tokens = tokenizer.convert_ids_to_tokens(occurrence['candidates'])
+            if args.model_type == 'bert':
+                # compute and store in substitutes_new
+                compute_lexical_similarity_bert(occurrence, occurrence_idx, target, static_model, substitutes_new, args)
             else:
-                candidate_tokens = occurrence['candidates']
+                # compute and store in substitutes_new, merging backward and forward
+                compute_lexical_similarity_elmo(occurrence, occurrence_idx, target, static_model, substitutes_new, args)
+            occurrence_idx += 1
 
-            for j in range(len(occurrence['candidates'])):
-                # target is most often among candidates - skip it
-                if candidate_tokens[j] == target:
-                    continue
-                # skip punctuation and similar
-                if not any(c.isalpha() for c in candidate_tokens[j]):
-                    continue
+    if args.output_path.endswith('.pkl'):
+        with open(args.output_path, 'wb') as f_out:
+            pickle.dump(substitutes_new, f_out)
+    elif args.output_path.endswith('.json'):
+        raise NotImplementedError()
+        # with open(args.output_path, 'w', encoding='utf-8') as f_out:
+        #     out = json.dumps(substitutes_new, ensure_ascii=False, sort_keys=True, indent=4)
+        #     f_out.write(out)
+    else:
+        raise ValueError('Invalid output path: {}'.format(args.output_path))
 
+
+    logger.warning("--- %s seconds ---" % (time.time() - start_time))
+
+
+def compute_lexical_similarity_elmo(occurrence, occurrence_idx, target, static_model, substitutes_new, args):
+
+    seen = {}  # maps candidates seen in backward to their index in the merged candidate list
+
+    for dir in ['backward', 'forward']:
+        candidate_tokens = occurrence[dir]['candidate_words']
+
+        for j in range(len(occurrence[dir]['candidate_words'])):
+
+            # target is most often among candidates - skip it
+            if candidate_tokens[j] == target:
+                continue
+
+            # skip punctuation and similar
+            if not any(c.isalpha() for c in candidate_tokens[j]):
+                continue
+
+            if args.ignore_unk and candidate_tokens[j] == ELMO_UNK:
+                continue
+
+            if candidate_tokens[j] not in seen:
                 try:
                     dot_product = static_model.similarity(target, candidate_tokens[j])
-                    assert(dot_product <= 1.01)
+                    assert (dot_product <= 1.01)
                 except KeyError:
                     # e.g. word '##ing' not in vocabulary
                     dot_product = 0.
 
-                substitutes_new[target][occurrence_idx]['candidates'].append(candidate_tokens[j])
-                substitutes_new[target][occurrence_idx]['logp'].append(occurrence['logp'][j])
+                seen[candidate_tokens[j]] = len(substitutes_new[target][occurrence_idx]['candidate_words'])
+
+                substitutes_new[target][occurrence_idx]['candidate_words'].append(candidate_tokens[j])
+                substitutes_new[target][occurrence_idx]['logp'].append(occurrence[dir]['logp'][j])
                 substitutes_new[target][occurrence_idx]['dot_products'].append(dot_product)
 
-            occurrence_idx += 1
+            else:
+                prev_idx = seen[candidate_tokens[j]]
+                logp_backward = substitutes_new[target][occurrence_idx]['logp'][prev_idx]
+                logp_forward = occurrence[dir]['logp'][j]
+                logp_merged = np.log(np.exp(logp_backward) + np.exp(logp_forward))
+                substitutes_new[target][occurrence_idx]['logp'][prev_idx] = logp_merged
 
-    with open(args.output_path, 'wb') as f_out:
-        pickle.dump(substitutes_new, f_out)
+    # re-normalise
+    log_denominator = np.log(np.sum(np.exp(substitutes_new[target][occurrence_idx]['logp'])))  # .ln()
+    for logp in substitutes_new[target][occurrence_idx]['logp']:
+        logp -= log_denominator
 
-    logger.warning("--- %s seconds ---" % (time.time() - start_time))
+
+def compute_lexical_similarity_bert(occurrence, occurrence_idx, target, static_model, substitutes_new, args):
+
+    candidate_tokens = occurrence['candidate_words']
+
+    for j in range(len(occurrence['candidate_words'])):
+
+        # target is most often among candidates - skip it
+        if candidate_tokens[j] == target:
+            continue
+        # skip punctuation and similar
+        if not any(c.isalpha() for c in candidate_tokens[j]):
+            continue
+
+        if args.ignore_unk and candidate_tokens[j] == BERT_UNK:
+            continue
+
+        try:
+            dot_product = static_model.similarity(target, candidate_tokens[j])
+            assert (-1 <= dot_product <= 1, dot_product)
+        except KeyError:
+            # e.g. word '##ing' not in vocabulary
+            dot_product = 0.
+
+        substitutes_new[target][occurrence_idx]['candidate_words'].append(candidate_tokens[j])
+        substitutes_new[target][occurrence_idx]['logp'].append(occurrence['logp'][j])
+        substitutes_new[target][occurrence_idx]['dot_products'].append(dot_product)
 
 
 if __name__ == '__main__':

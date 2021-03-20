@@ -43,10 +43,15 @@ def eval_task2(model_answers, true_answers):
 
     y_hat_ = []
     y_ = []
+    cnt = 0
     for a, b in zip(y_hat, y):
         if a != 1:
             y_hat_.append(a)
             y_.append(b)
+        else:
+            cnt += 1
+
+    print('{} words with JSD = 1.'.format(cnt))
 
     r, p = spearmanr(y_hat_, y_)
     return r, p

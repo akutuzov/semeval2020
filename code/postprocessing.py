@@ -3,10 +3,10 @@ import logging
 import pickle
 import stanza
 import time
+from smart_open import open
 import numpy as np
 from collections import defaultdict
-from decimal import Decimal
-from wordfreq import word_frequency, zipf_frequency
+from wordfreq import word_frequency
 
 
 logger = logging.getLogger(__name__)
@@ -74,7 +74,8 @@ def main():
             # sort candidates by p(c_j|w,s_i)
             indices = np.argsort(occurrence['logp'])[::-1]
             occurrence['logp'] = [occurrence['logp'][j] for j in indices]
-            occurrence['candidates'] = [occurrence['candidates'][j] for j in indices]
+            occurrence['candidate_words'] = [occurrence['candidate_words'][j] for j in indices]
+
 
     if args.frequency_correction:
         logger.warning('Correct for word frequency.')
@@ -103,7 +104,7 @@ def main():
         for target in substitutes_pre:
             for occurrence in substitutes_pre[target]:
                 prior_prob = []
-                for w, logp in zip(occurrence['candidates'], occurrence['logp']):
+                for w, logp in zip(occurrence['candidate_words'], occurrence['logp']):
 
                     if args.frequency_list:
                         logp -= args.beta * log_prior[w]
@@ -120,7 +121,7 @@ def main():
             nlp = stanza.Pipeline(lang=lang, processors='tokenize, lemma')
 
         substitutes_post = {
-            w: [{'candidates': [], 'logp': []} for _ in substitutes_pre[w]]
+            w: [{'candidate_words': [], 'logp': []} for _ in substitutes_pre[w]]
             for w in substitutes_pre
         }
 
@@ -130,7 +131,7 @@ def main():
                 subs_lemmas = {}
 
                 j = 0
-                for sub, sub_logp in zip(occurrence['candidates'], occurrence['logp']):
+                for sub, sub_logp in zip(occurrence['candidate_words'], occurrence['logp']):
                     sub_lemma = nlp(sub).sentences[0].words[0].lemma
 
                     if len(sub_lemma) <= 1:
@@ -144,7 +145,7 @@ def main():
                         substitutes_post[target][i]['logp'][subs_lemmas[sub_lemma]] = np.log(p)  #.ln()
                     else:
                         subs_lemmas[sub_lemma] = j
-                        substitutes_post[target][i]['candidates'].append(sub_lemma)
+                        substitutes_post[target][i]['candidate_words'].append(sub_lemma)
                         substitutes_post[target][i]['logp'].append(sub_logp)
                         j += 1
     else:
@@ -154,10 +155,10 @@ def main():
         for occurrence in substitutes_post[sub_lemma]:
             indices = np.argsort(occurrence['logp'])[::-1]
             occurrence['logp'] = [occurrence['logp'][j] for j in indices]
-            occurrence['candidates'] = [occurrence['candidates'][j] for j in indices]
+            occurrence['candidate_words'] = [occurrence['candidate_words'][j] for j in indices]
             if args.n_subs:
                 occurrence['logp'] = occurrence['logp'][:args.n_subs]
-                occurrence['candidates'] = occurrence['candidates'][:args.n_subs]
+                occurrence['candidate_words'] = occurrence['candidate_words'][:args.n_subs]
 
             # re-normalise
             log_denominator = np.log(np.sum(np.exp(occurrence['logp'])))  #.ln()

@@ -11,6 +11,7 @@ from torch.utils.data import DataLoader, SequentialSampler
 from torch.nn.functional import log_softmax
 from transformers import BertTokenizer, BertForMaskedLM
 from gensim import utils as gensim_utils
+from smart_open import open
 
 logger = logging.getLogger(__name__)
 
@@ -179,7 +180,7 @@ def main():
         '--output_path', type=str, required=True,
         help='Output path for pickle containing substitutes.')
     parser.add_argument(
-        '--n_subs', type=int, default=50,
+        '--n_subs', type=int, default=100,
         help='The number of lexical substitutes to extract.')
     parser.add_argument(
         '--seq_len', type=int, default=128,
@@ -356,21 +357,25 @@ def main():
 
             hidden_states = outputs[1]
 
-            input_ids = to_numpy(inputs['input_ids'])
-            attention_mask = to_numpy(inputs['attention_mask'])
+            # input_ids = to_numpy(inputs['input_ids'])
+            # attention_mask = to_numpy(inputs['attention_mask'])
             values = to_numpy(values)
             indices = to_numpy(indices)
-            last_layer = to_numpy(hidden_states[-1][np.arange(bsz), positions, :])
+            # last_layer = to_numpy(hidden_states[-1][np.arange(bsz), positions, :])
 
             for b_id in np.arange(bsz):
                 lemma = lemmas[b_id]
 
+                substitutes[lemma][curr_idx[lemma]]['candidate_words'] = tokenizer.convert_ids_to_tokens(indices[b_id])
+
+                assert len(substitutes[lemma][curr_idx[lemma]]['candidate_words']) == len(indices[b_id])
+
                 substitutes[lemma][curr_idx[lemma]]['candidates'] = indices[b_id]
                 substitutes[lemma][curr_idx[lemma]]['logp'] = values[b_id]
-                substitutes[lemma][curr_idx[lemma]]['input_ids'] = input_ids[b_id]
-                substitutes[lemma][curr_idx[lemma]]['attention_mask'] = attention_mask[b_id]
-                substitutes[lemma][curr_idx[lemma]]['position'] = positions[b_id]
-                substitutes[lemma][curr_idx[lemma]]['embedding'] = last_layer[b_id, :]  # / last_layer[b_id, :].sum()
+                # substitutes[lemma][curr_idx[lemma]]['input_ids'] = input_ids[b_id]
+                # substitutes[lemma][curr_idx[lemma]]['attention_mask'] = attention_mask[b_id]
+                # substitutes[lemma][curr_idx[lemma]]['position'] = positions[b_id]
+                # substitutes[lemma][curr_idx[lemma]]['embedding'] = last_layer[b_id, :]  # / last_layer[b_id, :].sum()
 
                 curr_idx[lemma] += 1
                 nUsages += 1
