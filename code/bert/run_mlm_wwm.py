@@ -276,12 +276,12 @@ def main():
     if model_args.tokenizer_name:
         tokenizer = AutoTokenizer.from_pretrained(
             model_args.tokenizer_name, cache_dir=model_args.cache_dir, use_fast=model_args.use_fast_tokenizer,
-            never_split=targets
+            never_split=targets, do_lower_case=True
         )
     elif model_args.model_name_or_path:
         tokenizer = AutoTokenizer.from_pretrained(
             model_args.model_name_or_path, cache_dir=model_args.cache_dir, use_fast=model_args.use_fast_tokenizer,
-            never_split=targets
+            never_split=targets, do_lower_case=True
         )
     else:
         raise ValueError(
