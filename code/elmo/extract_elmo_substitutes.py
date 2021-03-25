@@ -28,7 +28,7 @@ if __name__ == '__main__':
     targets = {}
     with open(vocab_path, "r") as f:
         for line in f.readlines():
-            word = line.strip().split(",")[0]
+            word = line.strip()
             targets[word] = 0
 
     WORD_LIMIT = 400
@@ -90,11 +90,14 @@ if __name__ == '__main__':
     logger.info("Saving...")
 
     for word in target_substitutes:
+        if len(target_substitutes[word]) < 1:
+            logger.info(f"No occurrences found for {word}!")
+            continue
         outfile = word + args.name
         with open(outfile, "w") as f:
             for occurrence in target_substitutes[word]:
                 out = json.dumps(occurrence, ensure_ascii=False)
                 f.write(out + "\n")
-        logger.info(f"Substitutes saved to {args.name}")
+        logger.info(f"Substitutes saved to {outfile}")
 
 
