@@ -30,19 +30,6 @@ def get_ys(model_answers, true_answers):
     return np.array(y_hat), np.array(y)
 
 
-def eval_task1(model_answers, true_answers):
-    """
-    Computes the Accuracy against the true binary labels as annotated by humans.
-    :param model_answers: path to tab-separated answer file (lemma + "\t" + score)
-    :param true_answers: path to tab-separated gold answer file (lemma + "\t" + score)
-    :return: binary classification accuracy
-    """
-    y_hat, y = get_ys(model_answers, true_answers)
-    accuracy = np.sum(np.equal(y_hat, y)) / len(y)
-
-    return accuracy
-
-
 def eval_task2(model_answers, true_answers):
     """
     Computes the Spearman's correlation coefficient against the true rank as annotated by humans
@@ -65,33 +52,22 @@ def main():
     args = docopt("""Evaluate lexical semantic change detection results.
 
     Usage:
-        eval.py <modelAnsPath1> <modelAnsPath2> <trueAnsPath1> <trueAnsPath2>
+        eval.py <modelAnsPath> <trueAnsPath>
 
     Arguments:
-        <modelAnsPath1> = path to tab-separated answer file for Task 1 (lemma + "\t" + binary score)
-        <modelAnsPath2> = path to tab-separated answer file for Task 2 (lemma + "\t" + corr. coeff.)
-        <trueAnsPath1> = path to tab-separated gold answer file for Task 1 (lemma + "\t" + binary score)
-        <trueAnsPath2> = path to tab-separated gold answer file for Task 2 (lemma + "\t" + corr. coeff.)
+        <modelAnsPath> = path to tab-separated answer file for Task (lemma + "\t" + change score)
+        <trueAnsPath> = path to tab-separated gold answer file for Task (lemma + "\t" + change score)
 
     """)
 
-    modelAnsPath1 = args['<modelAnsPath1>']
-    modelAnsPath2 = args['<modelAnsPath2>']
-    trueAnsPath1 = args['<trueAnsPath1>']
-    trueAnsPath2 = args['<trueAnsPath2>']
+    modelAnsPath = args['<modelAnsPath>']
+    trueAnsPath = args['<trueAnsPath>']
 
-    if os.path.isfile(modelAnsPath1):
-        acc = eval_task1(modelAnsPath1, trueAnsPath1)
-        print('Task 1 Accuracy: {:.2f}'.format(acc))
+    if os.path.isfile(modelAnsPath):
+        r, p = eval_task2(modelAnsPath, trueAnsPath)
+        print('Spearman rho score: {:.3f}  p: {:.3f}'.format(r, p))
     else:
-        # print('Task 1 predictions not found!')
-        pass
-
-    if os.path.isfile(modelAnsPath2):
-        r, p = eval_task2(modelAnsPath2, trueAnsPath2)
-        print('Task 2 r: {:.3f}  p: {:.3f}'.format(r, p))
-    else:
-        print('Task 2 predictions not found!')
+        print('Task predictions not found!')
 
 
 if __name__ == '__main__':

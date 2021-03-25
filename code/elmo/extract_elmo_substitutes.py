@@ -18,7 +18,7 @@ if __name__ == '__main__':
     arg('--elmo', "-e", help='Location of checkpoint files', required=True)
     arg('--input', "-i", help='Input file', required=True)
     arg("--vocab", "-v", help="Path to vocabulary file", required=True)
-    arg("--name", "-n", help="Path to out file", default="substitutes.json.gz")
+    arg("--name", "-n", help="Out file prefix (added to the word)", default="_substitutes.json.gz")
 
     args = parser.parse_args()
 
@@ -89,9 +89,12 @@ if __name__ == '__main__':
     logger.info(f"ELMo substitutes for your input are ready in {processing_time} seconds")
     logger.info("Saving...")
 
-    with open(args.name, "w") as f:
-        out = json.dumps(target_substitutes, ensure_ascii=False, sort_keys=True, indent=4)
-        f.write(out)
-    logger.info(f"Substitutes saved to {args.name}")
+    for word in target_substitutes:
+        outfile = word + args.name
+        with open(outfile, "w") as f:
+            for occurrence in target_substitutes[word]:
+                out = json.dumps(occurrence, ensure_ascii=False)
+                f.write(out + "\n")
+        logger.info(f"Substitutes saved to {args.name}")
 
 
