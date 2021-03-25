@@ -194,6 +194,9 @@ def main():
     parser.add_argument(
         '--local_rank', type=int, default=-1,
         help='For distributed training.')
+    parser.add_argument(
+        '--do_lower_case', action='store_true',
+        help="Setting BERT Tokenizer to uncased mode.")
     args = parser.parse_args()
 
     logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s')
@@ -250,7 +253,8 @@ def main():
         torch.distributed.barrier()  # Make sure only the first process in distributed training will download model & vocab
 
     # Load model and tokenizer
-    tokenizer = BertTokenizer.from_pretrained(args.model_name, never_split=target_forms, use_fast=False)
+    tokenizer = BertTokenizer.from_pretrained(
+        args.model_name, never_split=target_forms, use_fast=False, do_lower_case=args.do_lower_case)
     model = BertForMaskedLM.from_pretrained(args.model_name, output_hidden_states=True)
 
     if args.ignore_decoder_bias:
