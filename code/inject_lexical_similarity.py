@@ -1,6 +1,7 @@
 import argparse
 import gensim.downloader
 import json
+import os
 import pickle
 import torch
 import time
@@ -100,6 +101,9 @@ def main():
         '--output_path', type=str, required=True,
         help='Output path for pickle containing substitutes with lexical similarity values.')
     parser.add_argument(
+        "--output_postfix", default="_substitutes_sim.json.gz",
+        help="Out file postfix (added to the word)")
+    parser.add_argument(
         '--model_type', type=str, required=True, choices=['elmo', 'bert'],
         help='LSTM or Transformer language model.')
     parser.add_argument(
@@ -110,6 +114,11 @@ def main():
     logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s')
     logging.info(__file__.upper())
     start_time = time.time()
+
+    if os.path.exists(args.output_path):
+        assert os.path.isdir(args.output_path), 'Output path must be a directory.'
+    else:
+        os.makedirs(args.output_path)
 
     # Load target forms
     target_forms = []
@@ -122,39 +131,11 @@ def main():
     print('targets:', target_forms)
     print('=' * 80)
 
-    # # Load model and tokenizer
-    # if args.candidates_as_bert_ids:
-    #     logger.warning('Loading BERT tokenizer.')
-    #     tokenizer = BertTokenizer.from_pretrained(args.model_name, never_split=target_forms, use_fast=False)
-
     logger.warning('Loading Gensim model.')
     try:
         static_model = gensim.downloader.load(args.static_model_name)
     except ValueError:
         static_model = gensim.models.KeyedVectors.load(args.static_model_name)
-
-    # # Store vocabulary indices of target words
-    # targets_ids = [tokenizer.encode(t, add_special_tokens=False) for t in target_forms]
-    # assert len(target_forms) == len(targets_ids)
-    # words_added = []
-    # for t, t_id in zip(target_forms, targets_ids):
-    #     if tokenizer.do_lower_case:
-    #         t = t.lower()
-    #     if t in tokenizer.added_tokens_encoder:
-    #         continue
-    #     if len(t_id) > 1 or (len(t_id) == 1 and t_id[0] == tokenizer.unk_token_id):
-    #         if tokenizer.add_tokens([t]):
-    #             words_added.append(t)
-    #         else:
-    #             logger.error('Word not properly added to tokenizer:', t, tokenizer.tokenize(t))
-    #
-    # # check if correctly added
-    # for t, t_id in zip(target_forms, targets_ids):
-    #     if len(t_id) != 1:
-    #         print(t, t_id)
-    # logger.warning("\nTarget words added to the vocabulary: {}.\n".format(', '.join(words_added)))
-
-
 
     if args.subs_path.endswith('.pkl'):
         with open(args.subs_path, 'rb') as f_in:
@@ -162,6 +143,12 @@ def main():
     elif args.subs_path.endswith('.json'):
         with open(args.subs_path, 'r') as f_in:
             substitutes_raw = json.load(f_in)
+    elif os.path.isdir(args.subs_path):
+        substitutes_raw = {}
+        for fname in os.listdir(args.subs_path):
+            word = fname.split('_')[0]
+            with open(os.path.join(args.subs_path, fname), 'rb') as f:
+                substitutes_raw[word] = [json.loads(jline) for jline in f.read().splitlines()]
     else:
         raise ValueError('Invalid path: {}'.format(args.subs_path))
 
@@ -171,7 +158,6 @@ def main():
     }
 
     for target in substitutes_raw:
-
         occurrence_idx = 0
         for occurrence in substitutes_raw[target]:
             if args.model_type == 'bert':
@@ -182,17 +168,16 @@ def main():
                 compute_lexical_similarity_elmo(occurrence, occurrence_idx, target, static_model, substitutes_new, args)
             occurrence_idx += 1
 
-    if args.output_path.endswith('.pkl'):
-        with open(args.output_path, 'wb') as f_out:
-            pickle.dump(substitutes_new, f_out)
-    elif args.output_path.endswith('.json'):
-        raise NotImplementedError()
-        # with open(args.output_path, 'w', encoding='utf-8') as f_out:
-        #     out = json.dumps(substitutes_new, ensure_ascii=False, sort_keys=True, indent=4)
-        #     f_out.write(out)
-    else:
-        raise ValueError('Invalid output path: {}'.format(args.output_path))
-
+    for word in substitutes_new:
+        if len(substitutes_new[word]) < 1:
+            logger.warning(f"No occurrences found for {word}!")
+            continue
+        outfile = os.path.join(args.output_path, word + args.output_postfix)
+        with open(outfile, "w") as f:
+            for occurrence in substitutes_new[word]:
+                out = json.dumps(occurrence, ensure_ascii=False)
+                f.write(out + "\n")
+        logger.info(f"Substitutes saved to {outfile}")
 
     logger.warning("--- %s seconds ---" % (time.time() - start_time))
 
@@ -269,7 +254,7 @@ def compute_lexical_similarity_bert(occurrence, occurrence_idx, target, static_m
 
         substitutes_new[target][occurrence_idx]['candidate_words'].append(candidate_tokens[j])
         substitutes_new[target][occurrence_idx]['logp'].append(occurrence['logp'][j])
-        substitutes_new[target][occurrence_idx]['dot_products'].append(dot_product)
+        substitutes_new[target][occurrence_idx]['dot_products'].append(dot_product.item())
 
 
 if __name__ == '__main__':

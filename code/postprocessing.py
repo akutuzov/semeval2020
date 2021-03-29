@@ -1,5 +1,7 @@
 import argparse
+import json
 import logging
+import os
 import pickle
 import stanza
 import time
@@ -38,6 +40,9 @@ def main():
         '--output_path', type=str, required=True,
         help='Output path for pickle containing substitutes with updated log probabilities.')
     parser.add_argument(
+        "--output_postfix", default="_substitutes_post.json.gz",
+        help="Out file postfix (added to the word)")
+    parser.add_argument(
         '--lang', type=str, required=True,
         help='The language code for word frequencies and lemmatisation (e.g., "en", "sv", "ru")')
     parser.add_argument(
@@ -75,8 +80,26 @@ def main():
     lang = args.lang.lower()
     assert lang in ['en', 'de', 'sv', 'la', 'ru', 'it']
 
-    with open(args.subs_path, 'rb') as f_in:
-        substitutes_pre = pickle.load(f_in)
+    if os.path.exists(args.output_path):
+        assert os.path.isdir(args.output_path), 'Output path must be a directory.'
+    else:
+        os.makedirs(args.output_path)
+
+    if args.subs_path.endswith('.pkl'):
+        with open(args.subs_path, 'rb') as f_in:
+            substitutes_pre = pickle.load(f_in)
+    elif args.subs_path.endswith('.json'):
+        with open(args.subs_path, 'r') as f_in:
+            substitutes_pre = json.load(f_in)
+    elif os.path.isdir(args.subs_path):
+        substitutes_pre = {}
+        for fname in os.listdir(args.subs_path):
+            word = fname.split('_')[0]
+            with open(os.path.join(args.subs_path, fname), 'rb') as f:
+                substitutes_pre[word] = [json.loads(jline) for jline in f.read().splitlines()]
+    else:
+        raise ValueError('Invalid path: {}'.format(args.subs_path))
+
 
     start_time = time.time()
 
@@ -121,7 +144,6 @@ def main():
 
         for target in substitutes_pre:
             for occurrence in substitutes_pre[target]:
-                prior_prob = []  # TODO: what is this for?
                 for w, logp in zip(occurrence['candidate_words'], occurrence['logp']):
 
                     if args.frequency_list:
@@ -194,8 +216,18 @@ def main():
             for logp in occurrence['logp']:
                 logp -= log_denominator
 
-    with open(args.output_path, 'wb') as f_out:
-        pickle.dump(substitutes_post, f_out)
+    # with open(args.output_path, 'wb') as f_out:
+    #     pickle.dump(substitutes_post, f_out)
+    for word in substitutes_post:
+        if len(substitutes_post[word]) < 1:
+            logger.warning(f"No occurrences found for {word}!")
+            continue
+        outfile = os.path.join(args.output_path, word + args.output_postfix)
+        with open(outfile, "w") as f:
+            for occurrence in substitutes_post[word]:
+                out = json.dumps(occurrence, ensure_ascii=False)
+                f.write(out + "\n")
+        logger.info(f"Substitutes saved to {outfile}")
 
     logger.warning("--- %s seconds ---" % (time.time() - start_time))
 

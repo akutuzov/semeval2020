@@ -1,6 +1,7 @@
 import argparse
 import os
 import pickle
+import json
 import torch
 import time
 import logging
@@ -161,6 +162,13 @@ def to_numpy(tensor):
         return tensor.clone().numpy()
 
 
+def to_list(tensor):
+    if torch.cuda.is_available():
+        return tensor.detach().cpu().clone().tolist()
+    else:
+        return tensor.clone().tolist()
+
+
 def main():
     """
     Collect lexical substitutes and their probabilities.
@@ -179,6 +187,9 @@ def main():
     parser.add_argument(
         '--output_path', type=str, required=True,
         help='Output path for pickle containing substitutes.')
+    parser.add_argument(
+        "--output_postfix", default="_substitutes.json.gz",
+        help="Out file postfix (added to the word)")
     parser.add_argument(
         '--n_subs', type=int, default=100,
         help='The number of lexical substitutes to extract.')
@@ -202,6 +213,11 @@ def main():
     logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s')
     logging.info(__file__.upper())
     start_time = time.time()
+
+    if os.path.exists(args.output_path):
+        assert os.path.isdir(args.output_path), 'Output path must be a directory.'
+    else:
+        os.makedirs(args.output_path)
 
     # Setup CUDA, GPU & distributed training
     if args.local_rank == -1:
@@ -363,8 +379,8 @@ def main():
 
             # input_ids = to_numpy(inputs['input_ids'])
             # attention_mask = to_numpy(inputs['attention_mask'])
-            values = to_numpy(values)
-            indices = to_numpy(indices)
+            values = to_list(values)
+            indices = to_list(indices)
             # last_layer = to_numpy(hidden_states[-1][np.arange(bsz), positions, :])
 
             for b_id in np.arange(bsz):
@@ -385,8 +401,20 @@ def main():
                 nUsages += 1
 
     iterator.close()
-    with open(args.output_path, 'wb') as f_out:
-        pickle.dump(substitutes, f_out)
+
+    # with open(args.output_path, 'wb') as f_out:
+    #     pickle.dump(substitutes, f_out)
+
+    for word in substitutes:
+        if len(substitutes[word]) < 1:
+            logger.warning(f"No occurrences found for {word}!")
+            continue
+        outfile = os.path.join(args.output_path, word + args.output_postfix)
+        with open(outfile, "w") as f:
+            for occurrence in substitutes[word]:
+                out = json.dumps(occurrence, ensure_ascii=False)
+                f.write(out + "\n")
+        logger.info(f"Substitutes saved to {outfile}")
 
     logger.warning('usages: %d' % (nUsages))
     logger.warning("--- %s seconds ---" % (time.time() - start_time))
