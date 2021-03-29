@@ -1,11 +1,14 @@
 import argparse
+import json
 import logging
+import os
 import pickle
 from sklearn.cluster import AgglomerativeClustering
 from sklearn.feature_extraction.text import TfidfTransformer
 import time
 import numpy as np
 from scipy.stats import entropy
+from smart_open import open
 
 
 logger = logging.getLogger(__name__)
@@ -50,10 +53,36 @@ def main():
         help='linkage criterion to use.')
     args = parser.parse_args()
 
-    with open(args.subs_path_t1, 'rb') as f_in:
-        substitutes_t1 = pickle.load(f_in)
-    with open(args.subs_path_t2, 'rb') as f_in:
-        substitutes_t2 = pickle.load(f_in)
+    if args.subs_path_t1.endswith('.pkl') and args.subs_path_t1.endswith('.pkl'):
+        with open(args.subs_path_t1, 'rb') as f_in:
+            substitutes_t1 = pickle.load(f_in)
+        with open(args.subs_path_t2, 'rb') as f_in:
+            substitutes_t2 = pickle.load(f_in)
+    elif args.subs_path_t1.endswith('.json') and args.subs_path_t1.endswith('.json'):
+        with open(args.subs_path_t1, 'r') as f_in:
+            substitutes_t1 = json.load(f_in)
+        with open(args.subs_path_t2, 'r') as f_in:
+            substitutes_t2 = json.load(f_in)
+    elif os.path.isdir(args.subs_path_t1) and os.path.isdir(args.subs_path_t2):
+        substitutes_t1 = {}
+        for fname in os.listdir(args.subs_path_t1):
+            word = fname.split('_')[0]
+            with open(os.path.join(args.subs_path_t1, fname), 'rb') as f_in:
+                substitutes_t1[word] = [json.loads(jline) for jline in f_in.read().splitlines()]
+        substitutes_t2 = {}
+        for fname in os.listdir(args.subs_path_t2):
+            word = fname.split('_')[0]
+            with open(os.path.join(args.subs_path_t2, fname), 'rb') as f_in:
+                substitutes_t2[word] = [json.loads(jline) for jline in f_in.read().splitlines()]
+
+        if not substitutes_t1:
+            logger.warning('No files in {} ?'.format(args.subs_path_t1))
+        if not substitutes_t2:
+            logger.warning('No files in {} ?'.format(args.subs_path_t2))
+
+    else:
+        raise ValueError('Invalid path: {}'.format(args.subs_path))
+
 
     # Load target forms
     targets = []
@@ -74,19 +103,26 @@ def main():
     vocabs = {target: set() for target in targets}
     n_occurrences = {target: 0 for target in targets}
 
+    print(substitutes_t1['pin'])
     for target in targets:
-        for occurrence in substitutes_t1[target]:
-            vocabs[target] |= set(occurrence['candidates'])
-            n_occurrences[target] += 1
+        try:
+            for occurrence in substitutes_t1[target]:
+                vocabs[target] |= set(occurrence['candidate_words'])
+                n_occurrences[target] += 1
+        except KeyError:
+            logger.warning('No occurrences of {} in T1.'.format(target))
 
-        for occurrence in substitutes_t2[target]:
-            vocabs[target] |= set(occurrence['candidates'])
-            n_occurrences[target] += 1
+        try:
+            for occurrence in substitutes_t2[target]:
+                vocabs[target] |= set(occurrence['candidate_words'])
+                n_occurrences[target] += 1
+        except KeyError:
+            logger.warning('No occurrences of {} in T2.'.format(target))
 
-    logger.warning('Collected vocabularies for {} targets.'.format(len(vocabs)))
+    logger.warning('\nCollected vocabularies for {} targets.'.format(len([n for n in n_occurrences.values() if n > 0])))
     logger.warning('Total occurrences: {}'.format(sum(n_occurrences.values())))
     logger.warning('Minimum vocabulary size: {}'.format(min([len(v) for v in vocabs.values()])))
-    logger.warning('Maximum vocabulary size: {}'.format(max([len(v) for v in vocabs.values()])))
+    logger.warning('Maximum vocabulary size: {}\n'.format(max([len(v) for v in vocabs.values()])))
 
     jsd_scores = {}
     for target in targets:
@@ -106,13 +142,13 @@ def main():
 
         occ_idx = 0
         for occurrence in substitutes_t1[target]:
-            for sub in occurrence['candidates']:
+            for sub in occurrence['candidate_words']:
                 m[occ_idx, w2i[sub]] = 1
             occ_idx += 1
         n_occ_t1 = occ_idx
 
         for occurrence in substitutes_t2[target]:
-            for sub in occurrence['candidates']:
+            for sub in occurrence['candidate_words']:
                 m[occ_idx, w2i[sub]] = 1
             occ_idx += 1
 

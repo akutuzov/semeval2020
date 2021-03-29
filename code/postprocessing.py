@@ -216,6 +216,11 @@ def main():
             for logp in occurrence['logp']:
                 logp -= log_denominator
 
+    for target in substitutes_post:
+        for occurrence in substitutes_post[target]:
+            for logp in occurrence['logp']:
+                logp = float(logp)
+
     # with open(args.output_path, 'wb') as f_out:
     #     pickle.dump(substitutes_post, f_out)
     for word in substitutes_post:
