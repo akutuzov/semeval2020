@@ -202,7 +202,7 @@ def compute_lexical_similarity_elmo(occurrence, occurrence_idx, target, static_m
             if candidate_tokens[j] not in seen:
                 try:
                     dot_product = static_model.similarity(target, candidate_tokens[j])
-                    assert (dot_product <= 1.01)
+                    assert (-1 <= dot_product <= 1, dot_product)
                 except KeyError:
                     # e.g. word '##ing' not in vocabulary
                     dot_product = 0.
