@@ -86,8 +86,8 @@ def main():
     parser = argparse.ArgumentParser(
         description='Modify substitute probabilities based on lexical similarity with target.')
     parser.add_argument(
-        '--model_name', type=str, required=True,
-        help='HuggingFace model name or path')
+        '--model_type', type=str, required=True, choices=['elmo', 'bert'],
+        help='LSTM or Transformer language model.')
     parser.add_argument(
         '--static_model_name', type=str, required=True,
         help='Gensim model name or path')
@@ -103,9 +103,6 @@ def main():
     parser.add_argument(
         "--output_postfix", default="_substitutes_sim.json.gz",
         help="Out file postfix (added to the word)")
-    parser.add_argument(
-        '--model_type', type=str, required=True, choices=['elmo', 'bert'],
-        help='LSTM or Transformer language model.')
     parser.add_argument(
         '--ignore_unk', action='store_true',
         help='Whether to remove the UNK token from candidate lists.')
