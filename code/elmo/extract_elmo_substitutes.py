@@ -26,15 +26,17 @@ if __name__ == '__main__':
     data_path = args.input
     vocab_path = args.vocab
 
-    targets = {}
+    lemma_targets = {}
     with open(vocab_path, "r") as f:
         for line in f.readlines():
-            word = line.strip()
-            targets[word] = 0
+            wordforms = line.strip().split(",")
+            lemma = wordforms[0]
+            for word in wordforms:
+                lemma_targets[word] = lemma
 
     WORD_LIMIT = 400
 
-    logger.info(f"Words to test: {len(targets)}")
+    logger.info(f"Word forms to test: {len(lemma_targets)}")
     logger.info("Counting occurrences...")
 
     wordcount = 0
@@ -42,13 +44,13 @@ if __name__ == '__main__':
         for line in corpus:
             res = line.strip().split()[:WORD_LIMIT]
             for word in res:
-                if word in targets:
-                    targets[word] += 1
+                if word in lemma_targets:
+                    # targets[word] += 1
                     wordcount += 1
     logger.info(f"Total occurrences of target words: {wordcount}")
-    logger.info(targets)
+    logger.info(lemma_targets)
 
-    targets = set(targets)
+    targets = set(lemma_targets)
 
     model = ElmoModel()
 
@@ -92,15 +94,20 @@ if __name__ == '__main__':
     logger.info(f"ELMo substitutes for your input are ready in {processing_time} seconds")
     logger.info("Saving...")
 
+    lemma_substitutes = {}
     for word in target_substitutes:
-        if len(target_substitutes[word]) < 1:
+        lemma = lemma_targets[word]
+        if lemma not in lemma_substitutes:
+            lemma_substitutes[lemma] = []
+        lemma_substitutes[lemma] += target_substitutes[word]
+
+    for word in lemma_substitutes:
+        if len(lemma_substitutes[word]) < 1:
             logger.info(f"No occurrences found for {word}!")
             continue
         outfile = word + args.name
         with open(outfile, "w") as f:
-            for occurrence in target_substitutes[word]:
+            for occurrence in lemma_substitutes[word]:
                 out = json.dumps(occurrence, ensure_ascii=False)
                 f.write(out + "\n")
         logger.info(f"Substitutes saved to {outfile}")
-
-
