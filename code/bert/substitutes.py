@@ -298,7 +298,7 @@ def main():
                 i2w[len(tokenizer) - 1] = t
                 words_added.append(t)
             else:
-                logger.error('Word not properly added to tokenizer:', t, tokenizer.tokenize(t))
+                logger.error('Word not properly added to tokenizer: {}  {}'.format(t, tokenizer.tokenize(t)))
         else:
             i2w[t_id[0]] = t
 
