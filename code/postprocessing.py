@@ -70,11 +70,12 @@ def main():
         '--frequency_list', type=str,
         help='Path to a frequency list tsv file (word\tfreq[\trank]\n) '
              'to use instead of the wordfreq library.')
-    parser.add_argument('--lemmatizer', choices=["stanza", "udpipe"], default="stanza",
-                        help='The lemmatizer to use.')
-    parser.add_argument('--udfile', default="english-lines-ud-2.5-191206.udpipe",
-                        help='UDPipe model to use. '
-                             'https://lindat.mff.cuni.cz/repository/xmlui/handle/11234/1-3131')
+    parser.add_argument(
+        '--lemmatizer', choices=["stanza", "udpipe"], default="stanza",
+        help='The lemmatizer to use.')
+    parser.add_argument(
+        '--udfile', default="english-lines-ud-2.5-191206.udpipe",
+        help='UDPipe model to use: https://lindat.mff.cuni.cz/repository/xmlui/handle/11234/1-3131')
     args = parser.parse_args()
 
     lang = args.lang.lower()

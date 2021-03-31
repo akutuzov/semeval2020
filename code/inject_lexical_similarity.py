@@ -235,6 +235,7 @@ def compute_lexical_similarity_bert(occurrence, occurrence_idx, target, static_m
         # target is most often among candidates - skip it
         if candidate_tokens[j] == target:
             continue
+
         # skip punctuation and similar
         if not any(c.isalpha() for c in candidate_tokens[j]):
             continue
@@ -250,7 +251,7 @@ def compute_lexical_similarity_bert(occurrence, occurrence_idx, target, static_m
             dot_product = 0.
 
         substitutes_new[target][occurrence_idx]['candidate_words'].append(candidate_tokens[j])
-        substitutes_new[target][occurrence_idx]['logp'].append(occurrence['logp'][j])
+        substitutes_new[target][occurrence_idx]['logp'].append(occurrence['logp'][j].item())
         substitutes_new[target][occurrence_idx]['dot_products'].append(dot_product.item())
 
 
