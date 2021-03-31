@@ -19,6 +19,7 @@ if __name__ == '__main__':
     arg('--input', "-i", help='Input file', required=True)
     arg("--vocab", "-v", help="Path to vocabulary file", required=True)
     arg("--name", "-n", help="Out file prefix (added to the word)", default="_substitutes.json.gz")
+    arg("--batch", "-b", help="Batch size", type=int, default=2)
 
     args = parser.parse_args()
 
@@ -51,7 +52,7 @@ if __name__ == '__main__':
 
     model = ElmoModel()
 
-    model.load(args.elmo, full=True)
+    model.load(args.elmo, full=True, max_batch_size=args.batch)
 
     target_substitutes = {w: [] for w in targets}
 
@@ -77,7 +78,9 @@ if __name__ == '__main__':
                 if lines_processed % 256 == 0:
                     logger.info(f"{data_path}; Lines processed: {lines_processed}")
         if lines_cache:
+            logger.debug(f"We fed {len(lines_cache)} sentences")
             lex_substitutes = model.get_elmo_substitutes(lines_cache)
+            logger.debug(f"We have {len(lex_substitutes)} sentences")
             for sent in lex_substitutes:
                 for word in sent:
                     if word["word"] in targets:
