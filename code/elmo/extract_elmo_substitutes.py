@@ -68,7 +68,7 @@ if __name__ == '__main__':
             res = line.strip().split()[:WORD_LIMIT]
             if targets & set(res):
                 lines_cache.append(" ".join(res))
-                lines_processed += 1
+            lines_processed += 1
             if len(lines_cache) == CACHE:
                 lex_substitutes = model.get_elmo_substitutes(lines_cache)
                 for sent in lex_substitutes:
@@ -77,8 +77,8 @@ if __name__ == '__main__':
                             data2add = {el: word[el] for el in word if el != "word"}
                             target_substitutes[word["word"]].append(data2add)
                 lines_cache = []
-                if lines_processed % 256 == 0:
-                    logger.info(f"{data_path}; Lines processed: {lines_processed}")
+            if lines_processed % 5120 == 0:
+                logger.info(f"{data_path}; Lines processed: {lines_processed}")
         if lines_cache:
             logger.debug(f"We fed {len(lines_cache)} sentences")
             lex_substitutes = model.get_elmo_substitutes(lines_cache)
@@ -103,7 +103,7 @@ if __name__ == '__main__':
 
     for word in lemma_substitutes:
         if len(lemma_substitutes[word]) < 1:
-            logger.info(f"No occurrences found for {word}!")
+            logger.debug(f"No occurrences found for {word}!")
             continue
         outfile = word + args.name
         with open(outfile, "w") as f:
@@ -111,3 +111,4 @@ if __name__ == '__main__':
                 out = json.dumps(occurrence, ensure_ascii=False)
                 f.write(out + "\n")
         logger.info(f"Substitutes saved to {outfile}")
+
