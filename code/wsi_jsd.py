@@ -103,7 +103,6 @@ def main():
     vocabs = {target: set() for target in targets}
     n_occurrences = {target: 0 for target in targets}
 
-    print(substitutes_t1['pin'])
     for target in targets:
         try:
             for occurrence in substitutes_t1[target]:
