@@ -11,6 +11,9 @@ from smart_open import open
 from torch.nn.functional import normalize
 from torch.utils.data import DataLoader
 
+logging.basicConfig(
+        format="%(asctime)s : %(levelname)s : %(message)s", level=logging.INFO
+    )
 logger = logging.getLogger(__name__)
 
 
@@ -130,9 +133,9 @@ def main():
 
     logger.warning('Loading Gensim model.')
     try:
-        static_model = gensim.downloader.load(args.static_model_name)
-    except ValueError:
         static_model = gensim.models.KeyedVectors.load(args.static_model_name)
+    except ValueError:
+        static_model = gensim.downloader.load(args.static_model_name)
 
     if args.subs_path.endswith('.pkl'):
         with open(args.subs_path, 'rb') as f_in:
@@ -159,10 +162,12 @@ def main():
         for occurrence in substitutes_raw[target]:
             if args.model_type == 'bert':
                 # compute and store in substitutes_new
-                compute_lexical_similarity_bert(occurrence, occurrence_idx, target, static_model, substitutes_new, args)
+                compute_lexical_similarity_bert(occurrence, occurrence_idx, target,
+                                                static_model, substitutes_new, args)
             else:
                 # compute and store in substitutes_new, merging backward and forward
-                compute_lexical_similarity_elmo(occurrence, occurrence_idx, target, static_model, substitutes_new, args)
+                compute_lexical_similarity_elmo(occurrence, occurrence_idx, target,
+                                                static_model, substitutes_new, args)
             occurrence_idx += 1
 
     for word in substitutes_new:
@@ -179,14 +184,15 @@ def main():
     logger.warning("--- %s seconds ---" % (time.time() - start_time))
 
 
-def compute_lexical_similarity_elmo(occurrence, occurrence_idx, target, static_model, substitutes_new, args):
+def compute_lexical_similarity_elmo(occurrence, occurrence_idx, target, static_model,
+                                    substitutes_new, args):
 
     seen = {}  # maps candidates seen in backward to their index in the merged candidate list
 
-    for dir in ['backward', 'forward']:
-        candidate_tokens = occurrence[dir]['candidate_words']
+    for direction in ['backward', 'forward']:
+        candidate_tokens = occurrence[direction]['candidate_words']
 
-        for j in range(len(occurrence[dir]['candidate_words'])):
+        for j in range(len(occurrence[direction]['candidate_words'])):
 
             # target is most often among candidates - skip it
             if candidate_tokens[j] == target:
@@ -201,8 +207,8 @@ def compute_lexical_similarity_elmo(occurrence, occurrence_idx, target, static_m
 
             if candidate_tokens[j] not in seen:
                 try:
-                    dot_product = static_model.similarity(target, candidate_tokens[j])
-                    assert (-1 <= dot_product <= 1, dot_product)
+                    dot_product = float(static_model.similarity(target, candidate_tokens[j]))
+                    assert -1 <= dot_product <= 1, dot_product
                 except KeyError:
                     # e.g. word '##ing' not in vocabulary
                     dot_product = 0.
@@ -210,13 +216,13 @@ def compute_lexical_similarity_elmo(occurrence, occurrence_idx, target, static_m
                 seen[candidate_tokens[j]] = len(substitutes_new[target][occurrence_idx]['candidate_words'])
 
                 substitutes_new[target][occurrence_idx]['candidate_words'].append(candidate_tokens[j])
-                substitutes_new[target][occurrence_idx]['logp'].append(occurrence[dir]['logp'][j])
+                substitutes_new[target][occurrence_idx]['logp'].append(occurrence[direction]['logp'][j])
                 substitutes_new[target][occurrence_idx]['dot_products'].append(dot_product)
 
             else:
                 prev_idx = seen[candidate_tokens[j]]
                 logp_backward = substitutes_new[target][occurrence_idx]['logp'][prev_idx]
-                logp_forward = occurrence[dir]['logp'][j]
+                logp_forward = occurrence[direction]['logp'][j]
                 logp_merged = np.log(np.exp(logp_backward) + np.exp(logp_forward))
                 substitutes_new[target][occurrence_idx]['logp'][prev_idx] = logp_merged
 
@@ -226,7 +232,8 @@ def compute_lexical_similarity_elmo(occurrence, occurrence_idx, target, static_m
         logp -= log_denominator
 
 
-def compute_lexical_similarity_bert(occurrence, occurrence_idx, target, static_model, substitutes_new, args):
+def compute_lexical_similarity_bert(occurrence, occurrence_idx, target, static_model,
+                                    substitutes_new, args):
 
     candidate_tokens = occurrence['candidate_words']
 
@@ -245,7 +252,7 @@ def compute_lexical_similarity_bert(occurrence, occurrence_idx, target, static_m
 
         try:
             dot_product = static_model.similarity(target, candidate_tokens[j])
-            assert (-1 <= dot_product <= 1, dot_product)
+            assert -1 <= dot_product <= 1, dot_product
         except KeyError:
             # e.g. word '##ing' not in vocabulary
             dot_product = 0.
