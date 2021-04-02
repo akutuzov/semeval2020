@@ -131,7 +131,7 @@ class ContextsDataset(torch.utils.data.Dataset):
         self.context_size = context_size
 
         for sentence in tqdm(sentences, total=n_sentences):
-            token_ids = tokenizer.encode(' '.join(sentence), add_special_tokens=False)
+            token_ids = tokenizer.encode(sentence, add_special_tokens=False)
             for spos, tok_id in enumerate(token_ids):
                 if tok_id in target_forms_i2w:
                     form = target_forms_i2w[tok_id]
@@ -321,7 +321,7 @@ def main():
     target_counter = {target: 0 for target in form2target.values()}
     for sentence in sentences:
         nSentences += 1
-        for tok_id in tokenizer.encode(' '.join(sentence), add_special_tokens=False):
+        for tok_id in tokenizer.encode(sentence, add_special_tokens=False):
             if tok_id in i2w:
                 form = i2w[tok_id]
                 target_counter[form2target[form]] += 1
