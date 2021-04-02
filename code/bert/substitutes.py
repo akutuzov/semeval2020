@@ -208,6 +208,10 @@ def main():
     parser.add_argument(
         '--do_lower_case', action='store_true',
         help="Setting BERT Tokenizer to uncased mode.")
+    parser.add_argument(
+        '--all_target_forms', action='store_true',
+        help="Whether to consider all forms of a target word -- should match the tokenizer."
+    )
     args = parser.parse_args()
 
     logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s')
@@ -248,21 +252,24 @@ def main():
 
     # Load targets
     form2target = {}
-    target_forms = []
     with open(args.targets_path, 'r', encoding='utf-8') as f_in:
         for line in f_in.readlines():
             line = line.strip()
             entries = line.split(',')
             target, forms = entries[0], entries[1:]
-            target_forms.extend(forms)
             for form in forms:
+                if args.do_lower_case:
+                    form = form.lower()
                 form2target[form] = target
-                form2target[form.lower()] = target
 
     print('=' * 80)
-    print('targets:', target_forms)
     print(form2target)
     print('=' * 80)
+
+    if args.all_target_forms:
+        targets = list(form2target.keys())
+    else:
+        targets = list(form2target.values())
 
     # Load pretrained model and tokenizer
     if args.local_rank not in [-1, 0]:
@@ -270,8 +277,8 @@ def main():
 
     # Load model and tokenizer
     tokenizer = BertTokenizer.from_pretrained(
-        args.model_name, never_split=target_forms, use_fast=False, do_lower_case=args.do_lower_case)
-    model = BertForMaskedLM.from_pretrained(args.model_name, output_hidden_states=True)
+        args.model_name, never_split=targets, use_fast=False, do_lower_case=args.do_lower_case)
+    model = BertForMaskedLM.from_pretrained(args.model_name, output_hidden_states=False)
 
     if args.ignore_decoder_bias:
         logger.warning('Ignoring bias vector for masked word prediction.')
@@ -281,28 +288,6 @@ def main():
         torch.distributed.barrier()  # Make sure only the first process in distributed training will download model & vocab
 
     model.to(device)
-
-    # Store vocabulary indices of target word forms
-    targets_ids = [tokenizer.encode(t, add_special_tokens=False) for t in target_forms]
-    assert len(target_forms) == len(targets_ids)
-    i2w = {}
-    words_added = []
-    for t, t_id in zip(target_forms, targets_ids):
-        if tokenizer.do_lower_case:
-            t = t.lower()
-        if t in tokenizer.added_tokens_encoder:
-            continue
-        if len(t_id) > 1 or (len(t_id) == 1 and t_id[0] == tokenizer.unk_token_id):
-            if tokenizer.add_tokens([t]):
-                model.resize_token_embeddings(len(tokenizer))
-                i2w[len(tokenizer) - 1] = t
-                words_added.append(t)
-            else:
-                logger.error('Word not properly added to tokenizer: {}  {}'.format(t, tokenizer.tokenize(t)))
-        else:
-            i2w[t_id[0]] = t
-
-    logger.warning("\nTarget words added to the vocabulary: {}.\n".format(', '.join(words_added)))
 
     # multi-gpu training (should be after apex fp16 initialization)
     if n_gpu > 1:
@@ -316,6 +301,13 @@ def main():
 
     # Get sentence iterator
     sentences = PathLineSentences(args.corpus_path)
+
+    i2w = {}
+    for w in targets:
+        w_id = tokenizer.encode(w, add_special_tokens=False)
+        assert len(w_id) == 1
+        assert w_id != tokenizer.unk_token_id
+        i2w[w_id] = w
 
     nSentences = 0
     target_counter = {target: 0 for target in form2target.values()}
@@ -367,13 +359,8 @@ def main():
             values, indices = torch.sort(logp, dim=-1, descending=True)
             values, indices = values[:, :args.n_subs], indices[:, :args.n_subs]  # n_sentences, n_substitutes
 
-            # hidden_states = outputs[1]
-
-            # input_ids = to_numpy(inputs['input_ids'])
-            # attention_mask = to_numpy(inputs['attention_mask'])
             values = to_list(values)
             indices = to_list(indices)
-            # last_layer = to_numpy(hidden_states[-1][np.arange(bsz), positions, :])
 
             for b_id in np.arange(bsz):
                 lemma = lemmas[b_id]
@@ -384,18 +371,11 @@ def main():
 
                 substitutes[lemma][curr_idx[lemma]]['candidates'] = indices[b_id]
                 substitutes[lemma][curr_idx[lemma]]['logp'] = values[b_id]
-                # substitutes[lemma][curr_idx[lemma]]['input_ids'] = input_ids[b_id]
-                # substitutes[lemma][curr_idx[lemma]]['attention_mask'] = attention_mask[b_id]
-                # substitutes[lemma][curr_idx[lemma]]['position'] = positions[b_id]
-                # substitutes[lemma][curr_idx[lemma]]['embedding'] = last_layer[b_id, :]  # / last_layer[b_id, :].sum()
 
                 curr_idx[lemma] += 1
                 nUsages += 1
 
     iterator.close()
-
-    # with open(args.output_path, 'wb') as f_out:
-    #     pickle.dump(substitutes, f_out)
 
     for word in substitutes:
         if len(substitutes[word]) < 1:
