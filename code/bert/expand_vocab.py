@@ -1,32 +1,34 @@
+import argparse
 import os
-
 from transformers import BertTokenizer, BertForMaskedLM
- # AutoConfig
 
 
 if __name__ == '__main__':
 
-    lang = 'swedish'
-    model_name_or_path = 'af-ai-center/bert-base-swedish-uncased'
-    use_fast = False
-    lower = False
-    all_forms = False
-    out_path = '/Users/mario/code/semeval2020/code/bert/expanded/{}'.format(lang)
-    targets_path = '/Volumes/Disk1/SemEval/finetuning_corpora/{}/targets/target_forms.csv'.format(lang)
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--model_name', type=str, required=True)
+    parser.add_argument('--targets_path', type=str, required=True)
+    parser.add_argument('--output_path', type=str, required=True)
+    parser.add_argument("--lang",  type=str, required=True)
+    parser.add_argument('--use_fast_tokenizer', action='store_true')
+    parser.add_argument('--do_lower_case', action='store_true')
+    parser.add_argument('--all_target_forms', action='store_true')
+
+    args = parser.parse_args()
 
     # Load targets
     form2target = {}
-    with open(targets_path, 'r', encoding='utf-8') as f_in:
+    with open(args.targets_path, 'r', encoding='utf-8') as f_in:
         for line in f_in.readlines():
             line = line.strip()
             entries = line.split(',')
             target, forms = entries[0], entries[1:]
             for form in forms:
-                if lower:
+                if args.do_lower_case:
                     form = form.lower()
                 form2target[form] = target
 
-    if all_forms:
+    if args.all_target_forms:
         targets = list(set(form2target.keys()) | set(form2target.values()))
     else:
         targets = list(form2target.values())
@@ -37,25 +39,25 @@ if __name__ == '__main__':
     print('=' * 80)
 
     tokenizer = BertTokenizer.from_pretrained(
-        model_name_or_path,
+        args.model_name,
         # cache_dir=model_args.cache_dir,
-        use_fast=use_fast,
+        use_fast=args.use_fast_tokenizer,
         never_split=targets,
-        do_lower_case=lower
+        do_lower_case=args.do_lower_case
     )
     print('Tokenizer loaded.')
 
-    model = BertForMaskedLM.from_pretrained(model_name_or_path)
+    model = BertForMaskedLM.from_pretrained(args.model_name)
     print('Model loaded.')
 
-    tokenizer.save_pretrained(out_path)
+    tokenizer.save_pretrained(args.output_path)
 
 
     targets_ids = [tokenizer.encode(t, add_special_tokens=False) for t in targets]
     print(targets_ids)
     assert len(targets) == len(targets_ids)
 
-    with open(os.path.join(out_path, 'vocab.txt'), 'a') as f:
+    with open(os.path.join(args.output_path, 'vocab.txt'), 'a') as f:
         words_added = []
         for t, t_id in zip(targets, targets_ids):
             print(t, t_id)
@@ -82,4 +84,4 @@ if __name__ == '__main__':
 
     print("\nTarget words added to the vocabulary: {}.\n".format(', '.join(words_added)))
 
-    model.save_pretrained(out_path)
+    model.save_pretrained(args.output_path)
