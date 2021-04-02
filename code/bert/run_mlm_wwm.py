@@ -83,7 +83,12 @@ class ModelArguments:
         default=False,
         metadata={"help": "Whether to use one of the fast tokenizer (backed by the tokenizers library) or not."},
     )
-
+    all_target_forms: bool = field(
+        default=False, metadata={"help": "Whether to consider all forms of a target word -- should match the tokenizer."}
+    )
+    do_lower_case: bool = field(
+        default=False, metadata={"help": "Whether to take the text as uncased."}
+    )
 
 @dataclass
 class DataTrainingArguments:
@@ -267,8 +272,12 @@ def main():
         with open(data_args.targets_file, 'r', encoding='utf-8') as f_in:
             for line in f_in.readlines():
                 line = line.strip()
-                forms = line.split(',')[1:]
-                targets.extend(forms)
+                if model_args.all_target_forms:
+                    forms = line.split(',')[1:]
+                    targets.extend(forms)
+                else:
+                    target = line.split(',')[0]
+                    targets.append(target)
 
         logger.info("\nTarget words:")
         logger.info("{}.\n".format(", ".join(targets)))
@@ -276,12 +285,12 @@ def main():
     if model_args.tokenizer_name:
         tokenizer = AutoTokenizer.from_pretrained(
             model_args.tokenizer_name, cache_dir=model_args.cache_dir, use_fast=model_args.use_fast_tokenizer,
-            never_split=targets, do_lower_case=True
+            never_split=targets, do_lower_case=model_args.do_lower_case
         )
     elif model_args.model_name_or_path:
         tokenizer = AutoTokenizer.from_pretrained(
             model_args.model_name_or_path, cache_dir=model_args.cache_dir, use_fast=model_args.use_fast_tokenizer,
-            never_split=targets, do_lower_case=True
+            never_split=targets, do_lower_case=model_args.do_lower_case
         )
     else:
         raise ValueError(
@@ -302,27 +311,6 @@ def main():
 
     model.resize_token_embeddings(len(tokenizer))
 
-    # Add unknown target words to the vocabulary
-    if data_args.targets_file:
-        logger.info("\nUpdate vocabulary.")
-        targets_ids = [tokenizer.encode(t, add_special_tokens=False) for t in targets]
-        assert len(targets) == len(targets_ids)
-        words_added = []
-        for t, t_id in zip(targets, targets_ids):
-            if tokenizer.do_lower_case:
-                t = t.lower()
-            if t in tokenizer.added_tokens_encoder:
-                continue
-            # assert len(t_id) == 1  # because of never_split list
-            if len(t_id) > 1 or (len(t_id) == 1 and t_id[0] == tokenizer.unk_token_id):
-                if tokenizer.add_tokens([t]):
-                    model.resize_token_embeddings(len(tokenizer))
-                    words_added.append(t)
-                else:
-                    logger.error('Word not properly added to tokenizer:', t, tokenizer.tokenize(t))
-
-        logger.warning("\nTarget words added to the vocabulary: {}.\n".format(', '.join(words_added)))
-
     # Preprocessing the datasets.
     # First we tokenize all the texts.
     if training_args.do_train:
@@ -335,7 +323,7 @@ def main():
 
     def tokenize_function(examples):
         # Remove empty lines
-        examples["text"] = [line.split() for line in examples["text"] if len(line) > 0 and not line.isspace()]
+        examples["text"] = [line for line in examples["text"] if len(line) > 0 and not line.isspace()]
         return tokenizer(examples["text"], padding=padding, truncation=True, max_length=data_args.max_seq_length)
 
     tokenized_datasets = datasets.map(

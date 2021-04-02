@@ -29,7 +29,7 @@ if __name__ == '__main__':
                 form2target[form] = target
 
     if args.all_target_forms:
-        targets = list(set(form2target.keys()) | set(form2target.values()))
+        targets = list(form2target.keys())  # list of word forms contains the target lemma
     else:
         targets = list(form2target.values())
 
