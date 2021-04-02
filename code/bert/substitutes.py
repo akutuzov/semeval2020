@@ -302,11 +302,6 @@ def main():
         else:
             i2w[t_id[0]] = t
 
-    # check if correctly added
-    for t, t_id in zip(target_forms, targets_ids):
-        if len(t_id) != 1:
-            print(t, t_id)
-
     logger.warning("\nTarget words added to the vocabulary: {}.\n".format(', '.join(words_added)))
 
     # multi-gpu training (should be after apex fp16 initialization)
@@ -322,9 +317,6 @@ def main():
     # Get sentence iterator
     sentences = PathLineSentences(args.corpus_path)
 
-    # with warnings.catch_warnings():
-    #     warnings.resetwarnings()
-    #     warnings.simplefilter("always")
     nSentences = 0
     target_counter = {target: 0 for target in form2target.values()}
     for sentence in sentences:
@@ -375,7 +367,7 @@ def main():
             values, indices = torch.sort(logp, dim=-1, descending=True)
             values, indices = values[:, :args.n_subs], indices[:, :args.n_subs]  # n_sentences, n_substitutes
 
-            hidden_states = outputs[1]
+            # hidden_states = outputs[1]
 
             # input_ids = to_numpy(inputs['input_ids'])
             # attention_mask = to_numpy(inputs['attention_mask'])
