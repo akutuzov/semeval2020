@@ -1,13 +1,14 @@
 import argparse
 import json
 import logging
+import numpy as np
 import os
 import pickle
 import stanza
 import time
-from smart_open import open
-import numpy as np
 from collections import defaultdict
+from smart_open import open
+from tqdm import tqdm
 from wordfreq import word_frequency
 from ufal.udpipe import Model, Pipeline
 
@@ -34,52 +35,61 @@ def main():
                     'lemmatise, and filter out redundant candidates.')
     parser.add_argument(
         '--subs_path', type=str, required=True,
-        help='Path to the pickle file containing substitute lists '
-             '(output by inject_word_similarity.py).')
+        help='Path to the pickle file containing substitute lists (output by inject_word_similarity.py).'
+    )
     parser.add_argument(
         '--output_path', type=str, required=True,
-        help='Output path for pickle containing substitutes with updated log probabilities.')
+        help='Output path for pickle containing substitutes with updated log probabilities.'
+    )
     parser.add_argument(
         "--output_postfix", default="_substitutes_post.json.gz",
-        help="Out file postfix (added to the word)")
+        help="Out file postfix (added to the word)"
+    )
     parser.add_argument(
-        '--lang', type=str, required=True,
-        help='The language code for word frequencies and lemmatisation (e.g., "en", "sv", "ru")')
+        '--lang', type=str, required=True, choices=['en', 'sv', 'la', 'de', 'ru'],
+        help='The language code for word frequencies and lemmatisation.'
+    )
     parser.add_argument(
         '--n_subs', type=int, default=100,
-        help='The number of lexical substitutes to keep.')
+        help='The number of lexical substitutes to keep.'
+    )
     parser.add_argument(
         '--temperature', type=float, default=1,
-        help='The temperature value for the lexical similarity calculation.')
+        help='The temperature value for the lexical similarity calculation.'
+    )
     parser.add_argument(
         '--lemmatise', action='store_true',
-        help="Whether to lemmatise lexical substitutes, filtering out candidates redundant")
+        help="Whether to lemmatise lexical substitutes, filtering out candidates redundant"
+    )
     parser.add_argument(
         '--frequency_correction', action='store_true',
-        help='Whether to correct for word frequency using prior word probability distribution.')
+        help='Whether to correct for word frequency using prior word probability distribution.'
+    )
     parser.add_argument(
         '--k', type=float, default=4,
-        help='The value of parameter k in the prior word probability distribution.')
+        help='The value of parameter k in the prior word probability distribution.'
+    )
     parser.add_argument(
         '--s', type=float, default=1.05,
-        help='The value of parameter s in the prior word probability distribution.')
+        help='The value of parameter s in the prior word probability distribution.'
+    )
     parser.add_argument(
         '--beta', type=float, default=2,
-        help='The value of parameter beta.')
+        help='The value of parameter beta.'
+    )
     parser.add_argument(
         '--frequency_list', type=str,
-        help='Path to a frequency list tsv file (word\tfreq[\trank]\n) '
-             'to use instead of the wordfreq library.')
+        help='Path to a frequency-rank tsv file (word\tfreq[\trank]\n).'
+    )
     parser.add_argument(
-        '--lemmatizer', choices=["stanza", "udpipe"], default="stanza",
-        help='The lemmatizer to use.')
+        '--lemmatizer', default="udpipe", choices=["stanza", "udpipe"],
+        help='The lemmatizer to use.'
+    )
     parser.add_argument(
         '--udfile', default="english-lines-ud-2.5-191206.udpipe",
-        help='UDPipe model to use: https://lindat.mff.cuni.cz/repository/xmlui/handle/11234/1-3131')
+        help='UDPipe model to use: https://lindat.mff.cuni.cz/repository/xmlui/handle/11234/1-3131'
+    )
     args = parser.parse_args()
-
-    lang = args.lang.lower()
-    assert lang in ['en', 'de', 'sv', 'la', 'ru', 'it']
 
     if os.path.exists(args.output_path):
         assert os.path.isdir(args.output_path), 'Output path must be a directory.'
@@ -123,25 +133,15 @@ def main():
         log_prior = None
         if args.frequency_list:
             logger.warning('Loading frequency list.')
-            freqs_tmp = dict()
             log_prior_tmp = dict()
             with open(args.frequency_list, 'r') as f_in:
-                for rnk, line in enumerate(f_in, start=1):
+                for line in f_in:
                     line = line.strip('\n').strip()
-                    w, fr = line.split('\t')[:2]
-                    freqs_tmp[w] = int(fr)
-
-                    log_prior_tmp[w] = - np.log(args.k + rnk) * args.s  # [-0.7, -5] approx
+                    w, fr, rnk = line.split('\t')
+                    log_prior_tmp[w] = - np.log(args.k + int(rnk)) * args.s  # [-0.7, -5] approx
 
             log_prior = defaultdict(lambda: min(log_prior_tmp.values()))
             log_prior.update(log_prior_tmp)
-
-            # sum_fr = sum(freqs_tmp.values())
-            # for w in freqs_tmp:
-            #     freqs_tmp[w] = np.log(freqs_tmp[w] / sum_fr)
-            #
-            # log_relative_freqs = defaultdict(lambda: min(freqs_tmp.values()))
-            # log_relative_freqs.update(freqs_tmp)
 
         for target in substitutes_pre:
             for occurrence in substitutes_pre[target]:
@@ -151,7 +151,7 @@ def main():
                         logp -= args.beta * log_prior[w]
                     else:
                         logp -= args.beta * np.log(
-                            word_frequency(w, lang, wordlist='best') ** args.s)
+                            word_frequency(w, args.lang, wordlist='best') ** args.s)
 
     if args.lemmatise:
         logger.warning('Lemmatisation postprocessing.')
@@ -160,17 +160,17 @@ def main():
             nlp = Pipeline(lemm_model, "tokenize", Pipeline.DEFAULT, Pipeline.DEFAULT, "conllu")
         else:
             try:
-                nlp = stanza.Pipeline(lang=lang, processors='tokenize, lemma')
+                nlp = stanza.Pipeline(lang=args.lang, processors='tokenize, lemma')
             except Exception:
-                stanza.download(lang=lang, processors='tokenize, lemma')
-                nlp = stanza.Pipeline(lang=lang, processors='tokenize, lemma')
+                stanza.download(lang=args.lang, processors='tokenize, lemma')
+                nlp = stanza.Pipeline(lang=args.lang, processors='tokenize, lemma')
 
         substitutes_post = {
             w: [{'candidate_words': [], 'logp': []} for _ in substitutes_pre[w]]
             for w in substitutes_pre
         }
 
-        for target in substitutes_pre:
+        for target in tqdm(substitutes_pre):
             if args.lemmatizer == "udpipe":
                 tgt_lemma = lemm_udpipe(nlp, target)
             else:
@@ -193,8 +193,7 @@ def main():
 
                     if sub_lemma in subs_lemmas:
                         p = np.exp(occurrence['logp'][subs_lemmas[sub_lemma]]) + np.exp(sub_logp)
-                        substitutes_post[target][i]['logp'][subs_lemmas[sub_lemma]] = np.log(
-                            p)  # .ln()
+                        substitutes_post[target][i]['logp'][subs_lemmas[sub_lemma]] = np.log(p)
                     else:
                         subs_lemmas[sub_lemma] = j
                         substitutes_post[target][i]['candidate_words'].append(sub_lemma)
@@ -222,8 +221,6 @@ def main():
             for logp in occurrence['logp']:
                 logp = float(logp)
 
-    # with open(args.output_path, 'wb') as f_out:
-    #     pickle.dump(substitutes_post, f_out)
     for word in substitutes_post:
         if len(substitutes_post[word]) < 1:
             logger.warning(f"No occurrences found for {word}!")
