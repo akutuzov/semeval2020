@@ -90,25 +90,28 @@ def main():
         description='Modify substitute probabilities based on lexical similarity with target.')
     parser.add_argument(
         '--model_type', type=str, required=True, choices=['elmo', 'bert'],
-        help='LSTM or Transformer language model.')
+        help='LSTM or Transformer language model.'
+    )
     parser.add_argument(
         '--static_model_name', type=str, required=True,
-        help='Gensim model name or path')
+        help='Gensim model name or path'
+    )
     parser.add_argument(
         '--subs_path', type=str, required=True,
-        help='Path to the pickle file containing substitute lists (output by substitutes.py).')
-    parser.add_argument(
-        '--targets_path', type=str, required=True,
-        help='Path to the csv file containing target word forms.')
+        help='Path to the pickle file containing substitute lists (output by substitutes.py).'
+    )
     parser.add_argument(
         '--output_path', type=str, required=True,
-        help='Output path for pickle containing substitutes with lexical similarity values.')
+        help='Output path for pickle containing substitutes with lexical similarity values.'
+    )
     parser.add_argument(
         "--output_postfix", default="_substitutes_sim.json.gz",
-        help="Out file postfix (added to the word)")
+        help="Out file postfix (added to the word)"
+    )
     parser.add_argument(
         '--ignore_unk', action='store_true',
-        help='Whether to remove the UNK token from candidate lists.')
+        help='Whether to remove the UNK token from candidate lists.'
+    )
     args = parser.parse_args()
 
     logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s')
@@ -119,17 +122,6 @@ def main():
         assert os.path.isdir(args.output_path), 'Output path must be a directory.'
     else:
         os.makedirs(args.output_path)
-
-    # Load target forms
-    target_forms = []
-    with open(args.targets_path, 'r', encoding='utf-8') as f_in:
-        for line in f_in.readlines():
-            line = line.strip()
-            forms = line.split(',')[1:]
-            target_forms.extend(forms)
-    print('=' * 80)
-    print('targets:', target_forms)
-    print('=' * 80)
 
     logger.warning('Loading Gensim model.')
     try:
