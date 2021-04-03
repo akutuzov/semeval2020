@@ -306,6 +306,7 @@ def main():
     for w in targets:
         w_id = tokenizer.encode(w, add_special_tokens=False)
         assert len(w_id) == 1
+        w_id = w_id[0]
         assert w_id != tokenizer.unk_token_id
         i2w[w_id] = w
 
