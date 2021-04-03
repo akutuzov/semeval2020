@@ -68,9 +68,13 @@ if __name__ == '__main__':
     #              targets_path='/Volumes/Disk1/SemEval/finetuning_corpora/{}/targets/target_forms.csv'.format(lang))
     #
 
-    main(data_path='/Volumes/Disk1/SemEval/finetuning_corpora/swedish/token/all.txt.gz',
-         output_path='/Volumes/Disk1/SemEval/finetuning_corpora/swedish/token/all.lemma.txt.gz',
-         targets_path='/Volumes/Disk1/SemEval/finetuning_corpora/swedish/targets/target_forms.csv')
+    main(data_path='finetuning_corpora/russian/token/all.txt.gz',
+         output_path='finetuning_corpora/russian/token/all.lemma.txt.gz',
+         targets_path='finetuning_corpora/russian/targets/target_forms.csv')
+
+    # main(data_path='/Volumes/Disk1/SemEval/finetuning_corpora/swedish/token/all.txt.gz',
+    #      output_path='/Volumes/Disk1/SemEval/finetuning_corpora/swedish/token/all.lemma.txt.gz',
+    #      targets_path='/Volumes/Disk1/SemEval/finetuning_corpora/swedish/targets/target_forms.csv')
 
     # main(data_path='/Volumes/Disk1/SemEval/finetuning_corpora/russian/token/corpus1.txt.gz',
     #      output_path='/Volumes/Disk1/SemEval/finetuning_corpora/russian/token/corpus1.lemma.txt.gz',
