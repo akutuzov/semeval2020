@@ -217,11 +217,14 @@ def main():
     logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s')
     logging.info(__file__.upper())
     start_time = time.time()
-
-    if os.path.exists(args.output_path):
-        assert os.path.isdir(args.output_path), 'Output path must be a directory.'
-    else:
-        os.makedirs(args.output_path)
+    
+    if args.local_rank in [-1, 0]:
+        if os.path.exists(args.output_path):
+            logger.warning('Output path exists: {}'.format(args.output_path))
+            assert os.path.isdir(args.output_path), 'Output path must be a directory.'
+        else:
+            logger.warning('Create output directory: {}'.format(args.output_path))
+            os.makedirs(args.output_path)
 
     # Setup CUDA, GPU & distributed training
     if args.local_rank == -1:
