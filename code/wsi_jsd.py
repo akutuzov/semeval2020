@@ -48,6 +48,9 @@ def main():
         '--apply_tfidf', action='store_true',
         help="Whether to use tf-idf before clustering.")
     parser.add_argument(
+        '--standardize', action='store_true',
+        help="Whether to standardize the usage matrix.")
+    parser.add_argument(
         '--affinity', type=str, default='cosine',
         help='Metric used to compute the linkage.')
     parser.add_argument(
@@ -190,7 +193,9 @@ def main():
             m_t2 = m[:n_occ_t2]
 
         m = np.concatenate((m_t1, m_t2), axis=0)
-        m = StandardScaler().fit_transform(m)
+
+        if args.standardize:
+            m = StandardScaler().fit_transform(m)
 
         logger.warning('Clustering into {} clusters...'.format(args.n_clusters))
         clustering = AgglomerativeClustering(
