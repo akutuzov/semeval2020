@@ -5,6 +5,7 @@ import os
 import pickle
 from sklearn.cluster import AgglomerativeClustering
 from sklearn.feature_extraction.text import TfidfTransformer
+from sklearn.preprocessing import StandardScaler
 import time
 import numpy as np
 from scipy.stats import entropy
@@ -50,8 +51,13 @@ def main():
         help='Metric used to compute the linkage.')
     parser.add_argument(
         '--linkage', type=str, default='average',
-        help='linkage criterion to use.')
+        help='Linkage criterion to use.')
+    parser.add_argument(
+        '--max_examples_per_time_period', type=int, default=5000,
+        help='Maximum number of usages to cluster per time period (if higher, will be downsampled)')
     args = parser.parse_args()
+
+    max_examples = args.max_examples_per_time_period
 
     if args.subs_path_t1.endswith('.pkl') and args.subs_path_t1.endswith('.pkl'):
         with open(args.subs_path_t1, 'rb') as f_in:
@@ -124,8 +130,8 @@ def main():
     logger.warning('Maximum vocabulary size: {}\n'.format(max([len(v) for v in vocabs.values()])))
 
     jsd_scores = {}
-    for target in targets:
-        logger.warning('Process "{}"'.format(target))
+    for idx, target in enumerate(targets, start=1):
+        logger.warning('{}/{} Process "{}"'.format(idx, len(targets), target))
 
         if len(vocabs[target]) == 0:
             jsd_scores[target] = 1.
@@ -138,6 +144,7 @@ def main():
         logger.warning('Construct matrix.')
         w2i = {w: i for i, w in enumerate(vocabs[target])}
         m = np.zeros((n_occurrences[target], len(vocabs[target])))
+        time_labels = np.zeros(n_occurrences[target])
 
         occ_idx = 0
         for occurrence in substitutes_t1[target]:
@@ -149,14 +156,37 @@ def main():
         for occurrence in substitutes_t2[target]:
             for sub in occurrence['candidate_words']:
                 m[occ_idx, w2i[sub]] = 1
+                time_labels[occ_idx] = 1
             occ_idx += 1
+        n_occ_t2 = occ_idx - n_occ_t1
 
         assert occ_idx == n_occurrences[target]
 
+        # Apply tf-idf to the entire matrix
         if args.apply_tfidf:
             logger.warning('Apply tf-idf.')
             tfidf = TfidfTransformer()
             m = tfidf.fit_transform(m).toarray()
+
+        # Subsample occurrences if necessary (see args.max_examples_per_time_period)
+        if n_occ_t1 > max_examples:
+            rand_indices_t1 = np.random.choice(n_occ_t1, max_examples, replace=False)
+            m_t1 = m[rand_indices_t1]
+            logger.info('Choosing {} random occurrences from {}'.format(max_examples, n_occ_t1))
+            n_occ_t1 = max_examples
+        else:
+            m_t1 = m[:n_occ_t1]
+
+        if n_occ_t2 > max_examples:
+            rand_indices_t2 = np.random.choice(n_occ_t1, max_examples, replace=False)
+            m_t2 = m[rand_indices_t2]
+            logger.info('Choosing {} random occurrences from {}'.format(max_examples, n_occ_t2))
+            n_occ_t2 = max_examples
+        else:
+            m_t2 = m[:n_occ_t2]
+
+        m = np.concatenate((m_t1, m_t2), axis=0)
+        m = StandardScaler().fit_transform(m)
 
         logger.warning('Cluster into {} cluster.'.format(args.n_clusters))
         clustering = AgglomerativeClustering(
