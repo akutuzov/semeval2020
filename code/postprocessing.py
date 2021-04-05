@@ -35,7 +35,8 @@ def main():
                     'lemmatise, and filter out redundant candidates.')
     parser.add_argument(
         '--subs_path', type=str, required=True,
-        help='Path to the pickle file containing substitute lists (output by inject_word_similarity.py).'
+        help='Path to the pickle file containing substitute lists '
+             '(output by inject_word_similarity.py).'
     )
     parser.add_argument(
         '--output_path', type=str, required=True,
@@ -111,7 +112,6 @@ def main():
     else:
         raise ValueError('Invalid path: {}'.format(args.subs_path))
 
-
     start_time = time.time()
 
     for lemma in substitutes_pre:
@@ -145,12 +145,12 @@ def main():
 
         for target in substitutes_pre:
             for occurrence in substitutes_pre[target]:
-                for w, logp in zip(occurrence['candidate_words'], occurrence['logp']):
-
+                for nr, (w, logp) in enumerate(zip(occurrence['candidate_words'],
+                                                   occurrence['logp'])):
                     if args.frequency_list:
-                        logp -= args.beta * log_prior[w]
+                        occurrence['logp'][nr] -= args.beta * log_prior[w]
                     else:
-                        logp -= args.beta * np.log(
+                        occurrence['logp'][nr] -= args.beta * np.log(
                             word_frequency(w, args.lang, wordlist='best') ** args.s)
 
     if args.lemmatise:
@@ -213,13 +213,13 @@ def main():
 
             # re-normalise
             log_denominator = np.log(np.sum(np.exp(occurrence['logp'])))  # .ln()
-            for logp in occurrence['logp']:
-                logp -= log_denominator
+            for nr, logp in enumerate(occurrence['logp']):
+                occurrence['logp'][nr] -= log_denominator
 
     for target in substitutes_post:
         for occurrence in substitutes_post[target]:
-            for logp in occurrence['logp']:
-                logp = float(logp)
+            for nr, logp in enumerate(occurrence['logp']):
+                occurrence['logp'][nr] = float(logp)
 
     for word in substitutes_post:
         if len(substitutes_post[word]) < 1:
