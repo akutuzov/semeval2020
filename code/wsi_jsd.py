@@ -185,10 +185,10 @@ def main():
             m_t1 = m[:n_occ_t1]
 
         if n_occ_t2 > max_examples:
-            rand_indices_t2 = np.random.choice(n_occ_t1, max_examples, replace=False)
+            rand_indices_t2 = np.random.choice(n_occ_t2, max_examples, replace=False)
             m_t2 = m[rand_indices_t2]
             logger.info('Choosing {} random occurrences from {}'.format(max_examples, n_occ_t2))
-            n_occ_t2 = max_examples
+            # n_occ_t2 = max_examples
         else:
             m_t2 = m[:n_occ_t2]
 
