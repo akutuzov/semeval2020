@@ -63,12 +63,12 @@ def main():
 
     max_examples = args.max_examples_per_time_period
 
-    if args.subs_path_t1.endswith('.pkl') and args.subs_path_t1.endswith('.pkl'):
+    if args.subs_path_t1.endswith('.pkl') and args.subs_path_t2.endswith('.pkl'):
         with open(args.subs_path_t1, 'rb') as f_in:
             substitutes_t1 = pickle.load(f_in)
         with open(args.subs_path_t2, 'rb') as f_in:
             substitutes_t2 = pickle.load(f_in)
-    elif args.subs_path_t1.endswith('.json') and args.subs_path_t1.endswith('.json'):
+    elif args.subs_path_t1.endswith('.json') and args.subs_path_t2.endswith('.json'):
         with open(args.subs_path_t1, 'r') as f_in:
             substitutes_t1 = json.load(f_in)
         with open(args.subs_path_t2, 'r') as f_in:
@@ -91,7 +91,7 @@ def main():
             logger.warning('No files in {} ?'.format(args.subs_path_t2))
 
     else:
-        raise ValueError('Invalid path: {}'.format(args.subs_path))
+        raise ValueError('Path(s) not valid: --subs_path_t1, --subs_path_t2.')
 
     # Load target forms
     targets = []
