@@ -11,7 +11,6 @@ import numpy as np
 from scipy.stats import entropy
 from smart_open import open
 
-
 logger = logging.getLogger(__name__)
 
 
@@ -30,10 +29,12 @@ def main():
         description='Word sense induction via agglomerative clustering of lexical substitutes.')
     parser.add_argument(
         '--subs_path_t1', type=str, required=True,
-        help='Path to the pickle file containing substitute lists (output by postprocessing.py) for period T1.')
+        help='Path to the pickle file containing substitute lists '
+             '(output by postprocessing.py) for period T1.')
     parser.add_argument(
         '--subs_path_t2', type=str, required=True,
-        help='Path to the pickle file containing substitute lists (output by postprocessing.py) for period T2.')
+        help='Path to the pickle file containing substitute lists '
+             '(output by postprocessing.py) for period T2.')
     parser.add_argument(
         '--targets_path', type=str, required=True,
         help='Path to the csv file containing target word forms.')
@@ -89,7 +90,6 @@ def main():
     else:
         raise ValueError('Invalid path: {}'.format(args.subs_path))
 
-
     # Load target forms
     targets = []
     with open(args.targets_path, 'r', encoding='utf-8') as f_in:
@@ -104,7 +104,7 @@ def main():
     start_time = time.time()
 
     # collect vocabulary of substitutes for all lemmas
-    logger.warning('Collect vocabularies of substitutes.')
+    logger.warning('Collecting vocabularies of substitutes.')
 
     vocabs = {target: set() for target in targets}
     n_occurrences = {target: 0 for target in targets}
@@ -124,7 +124,8 @@ def main():
         except KeyError:
             logger.warning('No occurrences of {} in T2.'.format(target))
 
-    logger.warning('\nCollected vocabularies for {} targets.'.format(len([n for n in n_occurrences.values() if n > 0])))
+    logger.warning(f"Collected vocabularies for "
+                   f"{len([n for n in n_occurrences.values() if n > 0])} targets.")
     logger.warning('Total occurrences: {}'.format(sum(n_occurrences.values())))
     logger.warning('Minimum vocabulary size: {}'.format(min([len(v) for v in vocabs.values()])))
     logger.warning('Maximum vocabulary size: {}\n'.format(max([len(v) for v in vocabs.values()])))
@@ -135,16 +136,20 @@ def main():
 
         if len(vocabs[target]) == 0:
             jsd_scores[target] = 1.
-            logger.warning('Assigning JSD=1 to target word: {}. No substitutes available.'.format(target))
+            logger.warning(f"Assigning JSD=1 to target word: {target}. No substitutes available.")
+            continue
+        if target not in substitutes_t1 or target not in substitutes_t2:
+            jsd_scores[target] = 1.
+            logger.warning(f"Assigning JSD=1 to target word: {target}. "
+                           f"No occurrences in at least one corpus")
             continue
 
         # for each target, construct a one-hot matrix M where
         # cell M[i,j] encodes whether substitute j is in the
         # list of substitutes generated for sentence i
-        logger.warning('Construct matrix.')
+        logger.warning('Constructing the matrix...')
         w2i = {w: i for i, w in enumerate(vocabs[target])}
         m = np.zeros((n_occurrences[target], len(vocabs[target])))
-        time_labels = np.zeros(n_occurrences[target])
 
         occ_idx = 0
         for occurrence in substitutes_t1[target]:
@@ -156,7 +161,6 @@ def main():
         for occurrence in substitutes_t2[target]:
             for sub in occurrence['candidate_words']:
                 m[occ_idx, w2i[sub]] = 1
-                time_labels[occ_idx] = 1
             occ_idx += 1
         n_occ_t2 = occ_idx - n_occ_t1
 
@@ -164,7 +168,7 @@ def main():
 
         # Apply tf-idf to the entire matrix
         if args.apply_tfidf:
-            logger.warning('Apply tf-idf.')
+            logger.warning('Applying tf-idf...')
             tfidf = TfidfTransformer()
             m = tfidf.fit_transform(m).toarray()
 
@@ -188,7 +192,7 @@ def main():
         m = np.concatenate((m_t1, m_t2), axis=0)
         m = StandardScaler().fit_transform(m)
 
-        logger.warning('Cluster into {} cluster.'.format(args.n_clusters))
+        logger.warning('Clustering into {} clusters...'.format(args.n_clusters))
         clustering = AgglomerativeClustering(
             n_clusters=args.n_clusters,
             affinity=args.affinity,
