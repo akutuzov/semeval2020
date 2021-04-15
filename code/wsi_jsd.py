@@ -4,7 +4,7 @@ import logging
 import os
 import pickle
 from sklearn.cluster import AgglomerativeClustering
-from sklearn.feature_extraction.text import TfidfTransformer
+from sklearn.feature_extraction.text import TfidfTransformer, CountVectorizer
 from sklearn.preprocessing import StandardScaler
 import time
 import numpy as np
@@ -44,6 +44,10 @@ def main():
     parser.add_argument(
         '--n_clusters', type=int, default=7,
         help='The number of clusters to find, fixed for all target words.')
+    parser.add_argument(
+        '--min_df', type=float, default=0.,
+        help='When building the vocabulary ignore terms that have a document frequency strictly '
+             'lower than the given threshold, defined as the proportion of documents.')
     parser.add_argument(
         '--apply_tfidf', action='store_true',
         help="Whether to use tf-idf before clustering.")
@@ -99,10 +103,10 @@ def main():
         for line in f_in.readlines():
             line = line.strip()
             targets.append(line.split(',')[0])
-    print('=' * 80)
-    print('')
-    print('{} targets: {}'.format(len(targets), targets))
-    print('=' * 80)
+    logger.warning('=' * 80)
+    logger.warning('')
+    logger.warning('{} targets: {}'.format(len(targets), targets))
+    logger.warning('=' * 80)
 
     start_time = time.time()
 
@@ -151,23 +155,27 @@ def main():
         # cell M[i,j] encodes whether substitute j is in the
         # list of substitutes generated for sentence i
         logger.warning('Constructing the matrix...')
-        w2i = {w: i for i, w in enumerate(vocabs[target])}
-        m = np.zeros((n_occurrences[target], len(vocabs[target])))
 
+        subs_corpus = []
         occ_idx = 0
         for occurrence in substitutes_t1[target]:
-            for sub in occurrence['candidate_words']:
-                m[occ_idx, w2i[sub]] = 1
+            subs_corpus.append(' '.join(occurrence['candidate_words']))
             occ_idx += 1
         n_occ_t1 = occ_idx
 
         for occurrence in substitutes_t2[target]:
-            for sub in occurrence['candidate_words']:
-                m[occ_idx, w2i[sub]] = 1
+            subs_corpus.append(' '.join(occurrence['candidate_words']))
             occ_idx += 1
         n_occ_t2 = occ_idx - n_occ_t1
 
         assert occ_idx == n_occurrences[target]
+
+        vectorizer = CountVectorizer(lowercase=False, min_df=args.min_df)
+        m = vectorizer.fit_transform(subs_corpus)
+
+        if args.min_df > 0:
+            logger.warning('Vocab: {} / {}  -  min_df = {}'.format(
+                len(vectorizer.get_feature_names()), len(vocabs[target]), args.min_df))
 
         # Apply tf-idf to the entire matrix
         if args.apply_tfidf:
