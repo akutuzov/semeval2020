@@ -4,6 +4,7 @@ import logging
 import os
 import pickle
 from sklearn.metrics.pairwise import cosine_similarity
+from scipy.spatial.distance import euclidean as euclidean_distance
 from sklearn.feature_extraction.text import TfidfTransformer, CountVectorizer
 import time
 import numpy as np
@@ -52,11 +53,9 @@ def main():
         help='Maximum number of vocabulary features is vocab_percent * vocab_len'
     )
     parser.add_argument(
-        '--max_examples_per_time_period', type=int, default=5000,
-        help='Maximum number of usages to cluster per time period (if higher, will be downsampled)')
-    args = parser.parse_args()
+        '--distance', type=str, default='cosine', choices=['cosine', 'euclidean'])
 
-    max_examples = args.max_examples_per_time_period
+    args = parser.parse_args()
 
     if args.subs_path_t1.endswith('.pkl') and args.subs_path_t2.endswith('.pkl'):
         with open(args.subs_path_t1, 'rb') as f_in:
@@ -152,13 +151,11 @@ def main():
         for occurrence in substitutes_t1[target]:
             subs_corpus1.extend(occurrence['candidate_words'])
             occ_idx += 1
-        n_occ_t1 = occ_idx
 
         subs_corpus2 = []
         for occurrence in substitutes_t2[target]:
             subs_corpus2.extend(occurrence['candidate_words'])
             occ_idx += 1
-        n_occ_t2 = occ_idx - n_occ_t1
 
         assert occ_idx == n_occurrences[target]
 
@@ -166,8 +163,6 @@ def main():
 
         vectorizer = CountVectorizer(lowercase=False, max_features=int(args.vocab_percent * len(vocabs[target])))
         m = vectorizer.fit_transform(subs_corpus)
-
-        print(m.shape)
 
         logger.warning('Vocab: {} / {}'.format(len(vectorizer.get_feature_names()), len(vocabs[target])))
 
@@ -177,7 +172,10 @@ def main():
             tfidf = TfidfTransformer(sublinear_tf=args.sublinear_tf, use_idf=args.use_idf)
             m = tfidf.fit_transform(m).toarray()
 
-        cos_scores[target] = 1 - cosine_similarity(m)[0, 1]
+        if args.distance == 'cosine':
+            cos_scores[target] = 1 - cosine_similarity(m)[0, 1]
+        else:
+            cos_scores[target] = euclidean_distance(m[0, :], m[1, :])
 
     logger.warning("--- %s seconds ---" % (time.time() - start_time))
 
