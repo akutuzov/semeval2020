@@ -3,8 +3,7 @@ import json
 import logging
 import os
 import pickle
-from sklearn.metrics.pairwise import cosine_similarity
-from scipy.spatial.distance import euclidean as euclidean_distance
+from scipy.spatial.distance import euclidean, cosine
 from sklearn.feature_extraction.text import TfidfTransformer, CountVectorizer
 import time
 import numpy as np
@@ -173,9 +172,9 @@ def main():
             m = tfidf.fit_transform(m).toarray()
 
         if args.distance == 'cosine':
-            cos_scores[target] = 1 - cosine_similarity(m)[0, 1]
+            cos_scores[target] = cosine(m[0, :], m[1, :])
         else:
-            cos_scores[target] = euclidean_distance(m[0, :], m[1, :])
+            cos_scores[target] = euclidean(m[0, :], m[1, :])
 
     logger.warning("--- %s seconds ---" % (time.time() - start_time))
 
