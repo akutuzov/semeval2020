@@ -82,7 +82,7 @@ def main():
 
     if os.path.isfile(modelAnsPath1):
         acc = eval_task1(modelAnsPath1, trueAnsPath1)
-        print('Task 1 Accuracy: {:.2f}'.format(acc))
+        print('Task 1 Accuracy: {:.3f}'.format(acc))
     else:
         # print('Task 1 predictions not found!')
         pass
