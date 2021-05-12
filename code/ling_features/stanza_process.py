@@ -5,10 +5,7 @@ import sys
 import stanza
 from stanza.utils.conll import CoNLL
 
-# stanza.download("no")
-# stanza.download("nn")
-
-lang = sys.argv[1]  # State the segmenter model (no or nn)
+lang = sys.argv[1]  # State the segmenter model (en, de, ru, etc)
 
 nlp = stanza.Pipeline(lang, processors="tokenize,mwt,pos,lemma,depparse")
 
