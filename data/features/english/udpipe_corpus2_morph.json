@@ -1,0 +1,170 @@
+{
+    "attack": {
+        "Number=Sing": 502,
+        "Number=Plur": 229
+    },
+    "bag": {
+        "Number=Sing": 629,
+        "Number=Plur": 191
+    },
+    "ball": {
+        "Number=Sing": 678,
+        "Number=Plur": 173
+    },
+    "bit": {
+        "Number=Sing": 1002,
+        "Number=Plur": 154
+    },
+    "chairman": {
+        "Number=Sing": 492,
+        "Number=Plur": 23
+    },
+    "circle": {
+        "VerbForm=Inf": 22,
+        "Mood=Ind|Number=Sing|Person=3|Tense=Pres|VerbForm=Fin": 3,
+        "Mood=Ind|Tense=Past|VerbForm=Fin": 79,
+        "Tense=Pres|VerbForm=Part": 86,
+        "Tense=Past|VerbForm=Part": 4,
+        "Tense=Past|VerbForm=Part|Voice=Pass": 13,
+        "Mood=Ind|Tense=Pres|VerbForm=Fin": 5
+    },
+    "contemplation": {
+        "Number=Sing": 105,
+        "Number=Plur": 3
+    },
+    "donkey": {
+        "Number=Sing": 105,
+        "Number=Plur": 33
+    },
+    "edge": {
+        "Number=Sing": 843,
+        "Number=Plur": 191
+    },
+    "face": {
+        "Number=Sing": 3633,
+        "Case=Nom": 555,
+        "Number=Plur": 12
+    },
+    "fiction": {
+        "Number=Sing": 269,
+        "Number=Plur": 11
+    },
+    "gas": {
+        "Number=Plur": 21
+    },
+    "graft": {
+        "Number=Sing": 69,
+        "Number=Plur": 28
+    },
+    "head": {
+        "Number=Sing": 3610,
+        "Number=Plur": 455
+    },
+    "land": {
+        "Number=Sing": 1204,
+        "Number=Plur": 184,
+        "Case=Nom": 1
+    },
+    "lane": {
+        "Number=Plur": 83,
+        "Number=Sing": 116
+    },
+    "lass": {
+        "Number=Sing": 69,
+        "Number=Plur": 8
+    },
+    "multitude": {
+        "Number=Sing": 102,
+        "Number=Plur": 25
+    },
+    "ounce": {
+        "Number=Plur": 107,
+        "Number=Sing": 73,
+        "Case=Nom": 1
+    },
+    "part": {
+        "Number=Sing": 2881,
+        "Number=Plur": 475
+    },
+    "pin": {
+        "Tense=Past|VerbForm=Part|Voice=Pass": 69,
+        "Tense=Pres|VerbForm=Part": 40,
+        "Mood=Ind|Tense=Past|VerbForm=Fin": 57,
+        "VerbForm=Inf": 40,
+        "Tense=Past|VerbForm=Part": 6,
+        "Mood=Ind|Number=Sing|Person=3|Tense=Pres|VerbForm=Fin": 6
+    },
+    "plane": {
+        "Number=Sing": 553,
+        "Number=Plur": 210
+    },
+    "player": {
+        "Number=Sing": 365,
+        "Number=Plur": 487
+    },
+    "prop": {
+        "Number=Sing": 40,
+        "Number=Plur": 2
+    },
+    "quilt": {
+        "Number=Sing": 112,
+        "Number=Plur": 32
+    },
+    "rag": {
+        "Number=Sing": 101,
+        "Number=Plur": 64
+    },
+    "record": {
+        "Number=Plur": 387,
+        "Number=Sing": 793
+    },
+    "relationship": {
+        "Number=Sing": 579,
+        "Number=Plur": 240
+    },
+    "risk": {
+        "Number=Sing": 488,
+        "Number=Plur": 127
+    },
+    "savage": {
+        "Number=Sing": 128,
+        "Number=Plur": 25
+    },
+    "stab": {
+        "Number=Sing": 83,
+        "Number=Plur": 14
+    },
+    "stroke": {
+        "Mood=Ind|Tense=Past|VerbForm=Fin": 109,
+        "Tense=Past|VerbForm=Part|Voice=Pass": 8,
+        "Tense=Past|VerbForm=Part": 1,
+        "Tense=Pres|VerbForm=Part": 52,
+        "VerbForm=Inf": 15,
+        "Mood=Ind|Number=Sing|Person=3|Tense=Pres|VerbForm=Fin": 14
+    },
+    "thump": {
+        "Number=Plur": 14,
+        "Number=Sing": 95
+    },
+    "tip": {
+        "VerbForm=Inf": 40,
+        "Mood=Ind|Tense=Past|VerbForm=Fin": 63,
+        "Tense=Past|VerbForm=Part|Voice=Pass": 27,
+        "Tense=Past|VerbForm=Part": 3,
+        "Mood=Ind|Tense=Pres|VerbForm=Fin": 6,
+        "Mood=Ind|Number=Sing|Person=3|Tense=Pres|VerbForm=Fin": 4,
+        "Case=Nom": 2
+    },
+    "tree": {
+        "Number=Sing": 673,
+        "Number=Plur": 868
+    },
+    "twist": {
+        "Number=Sing": 153,
+        "Number=Plur": 14
+    },
+    "word": {
+        "Number=Plur": 1761,
+        "Number=Sing": 1272
+    }
+}

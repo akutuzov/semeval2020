@@ -5,16 +5,16 @@ import argparse
 import logging
 import numpy as np
 
-if __name__ == '__main__':
-    logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO)
+if __name__ == "__main__":
+    logging.basicConfig(
+        format="%(asctime)s : %(levelname)s : %(message)s", level=logging.INFO
+    )
     logger = logging.getLogger(__name__)
 
     parser = argparse.ArgumentParser()
     arg = parser.add_argument
-    arg('--input1', '-i1', help='Path to a tsv file 1', required=True)
-    arg('--input2', '-i2', help='Path to a tsv file 2', required=True)
-    arg('--output', '-o', help='Output path (tsv)', required=False)
-
+    arg("--input1", "-i1", help="Path to a tsv file 1", required=True)
+    arg("--input2", "-i2", help="Path to a tsv file 2", required=True)
     args = parser.parse_args()
 
     words1 = {}

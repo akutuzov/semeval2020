@@ -8,15 +8,17 @@ import json
 import numpy as np
 from scipy.spatial.distance import cosine
 
-if __name__ == '__main__':
-    logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO)
+if __name__ == "__main__":
+    logging.basicConfig(
+        format="%(asctime)s : %(levelname)s : %(message)s", level=logging.INFO
+    )
     logger = logging.getLogger(__name__)
 
     parser = argparse.ArgumentParser()
     arg = parser.add_argument
-    arg('--input1', '-i1', help='Path to a JSON file 1', required=True)
-    arg('--input2', '-i2', help='Path to a JSON file 2', required=True)
-    arg('--output', '-o', help='Output path (tsv)', required=False)
+    arg("--input1", "-i1", help="Path to a JSON file 1", required=True)
+    arg("--input2", "-i2", help="Path to a JSON file 2", required=True)
+    arg("--output", "-o", help="Output path (tsv)", required=False)
 
     args = parser.parse_args()
 
@@ -53,8 +55,8 @@ if __name__ == '__main__':
 
     with open(f"{args.output}_binary.tsv", "w") as f:
         values = sorted(words, key=words.get, reverse=True)
-        # threshold = int(len(values) / 2)
-        threshold = 17
+        threshold = int(len(values) / 2)
+        # threshold = 17  # This is for English
         for val in values[:threshold]:
             f.write(f"{val}\t1\n")
         for val in values[threshold:]:
