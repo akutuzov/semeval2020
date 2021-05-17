@@ -6,3 +6,21 @@
 - `merge.py` reads two JSON files (e.g. with morphological and syntax properties) and produces averaged predictions.
 
 Use `../eval.py` to evaluate the resulting TSVs with regards to gold scores (in the `test_data_truth` subdirectory).
+
+# Results
+
+## Subtask 1
+These are with positive class coefficient 0.43 (top 43% of most changed words are assigned the 1 label):
+
+|            | English | German | Latin | Swedish | Mean  |
+|------------|---------|--------|-------|---------|-------|
+| Morphology | 0.541   | 0.479  | 0.525 | 0.581   | 0.532 |
+| Syntax     | 0.541   | 0.604  | 0.575 | 0.645   | 0.591 |
+| Average    | 0.568   | 0.542  | 0.475 | 0.710   | 0.574 |
+
+## Subtask 2
+|            | English | German | Latin | Swedish | Mean  |
+|------------|---------|--------|-------|---------|-------|
+| Morphology | 0.239   |-0.062  |0.241  | 0.207   |0.156  |
+| Syntax     | 0.196   | 0.058  |0.328  |-0.017   |0.141  |
+| Average    | 0.245   | 0.042  |0.304  | 0.088   |0.170  |
