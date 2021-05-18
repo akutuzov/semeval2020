@@ -48,7 +48,7 @@ if __name__ == "__main__":
                 pass
         distance = cosine(vector_1, vector_2)
         if np.isnan(distance):
-            distance = 1.0  # A word was not present in one of the time periods
+            distance = 0.0  # A word was not present in one of the time periods
         words[word] = distance
 
     with open(f"{args.output}_graded.tsv", "w") as f:
