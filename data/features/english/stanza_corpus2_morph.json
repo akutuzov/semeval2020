@@ -1,0 +1,180 @@
+{
+    "attack": {
+        "Number=Sing": 609,
+        "Number=Plur": 238
+    },
+    "bag": {
+        "Number=Sing": 659,
+        "Number=Plur": 255
+    },
+    "ball": {
+        "Number=Sing": 682,
+        "Number=Plur": 178
+    },
+    "bit": {
+        "Number=Sing": 1001,
+        "Number=Plur": 154
+    },
+    "chairman": {
+        "Number=Sing": 565
+    },
+    "circle": {
+        "VerbForm=Inf": 30,
+        "Mood=Ind|Number=Sing|Person=3|Tense=Pres|VerbForm=Fin": 5,
+        "Mood=Ind|Tense=Past|VerbForm=Fin": 80,
+        "VerbForm=Ger": 82,
+        "Tense=Past|VerbForm=Part": 22,
+        "Tense=Pres|VerbForm=Part": 15,
+        "Mood=Ind|Tense=Pres|VerbForm=Fin": 10,
+        "Tense=Past|VerbForm=Part|Voice=Pass": 3,
+        "Mood=Imp|VerbForm=Fin": 2
+    },
+    "contemplation": {
+        "Number=Sing": 108,
+        "Number=Plur": 3
+    },
+    "donkey": {
+        "Number=Sing": 109,
+        "Number=Plur": 37
+    },
+    "edge": {
+        "Number=Sing": 864,
+        "Number=Plur": 191
+    },
+    "face": {
+        "Number=Sing": 3551,
+        "Number=Plur": 523
+    },
+    "fiction": {
+        "Number=Sing": 308,
+        "Number=Plur": 11
+    },
+    "gas": {
+        "Number=Sing": 632,
+        "Number=Plur": 54
+    },
+    "graft": {
+        "Number=Sing": 85,
+        "Number=Plur": 29
+    },
+    "head": {
+        "Number=Sing": 3732,
+        "Number=Plur": 468
+    },
+    "land": {
+        "Number=Sing": 1297,
+        "Number=Plur": 190
+    },
+    "lane": {
+        "Number=Plur": 87,
+        "Number=Sing": 147
+    },
+    "lass": {
+        "Number=Sing": 82,
+        "Number=Plur": 9
+    },
+    "multitude": {
+        "Number=Sing": 103,
+        "Number=Plur": 29
+    },
+    "ounce": {
+        "Number=Plur": 109,
+        "Number=Sing": 123
+    },
+    "part": {
+        "Number=Sing": 3037,
+        "Number=Plur": 609
+    },
+    "pin": {
+        "Tense=Past|VerbForm=Part|Voice=Pass": 29,
+        "Tense=Past|VerbForm=Part": 59,
+        "VerbForm=Ger": 23,
+        "Mood=Ind|Tense=Past|VerbForm=Fin": 48,
+        "VerbForm=Inf": 44,
+        "Mood=Ind|Tense=Pres|VerbForm=Fin": 6,
+        "VerbForm=Fin": 1,
+        "Mood=Ind|Number=Sing|Person=3|Tense=Pres|VerbForm=Fin": 7,
+        "Tense=Pres|VerbForm=Part": 5,
+        "Mood=Imp|VerbForm=Fin": 3
+    },
+    "plane": {
+        "Number=Sing": 584,
+        "Number=Plur": 213
+    },
+    "player": {
+        "Number=Sing": 408,
+        "Number=Plur": 515
+    },
+    "prop": {
+        "Number=Sing": 45,
+        "Number=Plur": 90
+    },
+    "quilt": {
+        "Number=Sing": 136,
+        "Number=Plur": 34
+    },
+    "rag": {
+        "Number=Plur": 96,
+        "Number=Sing": 105
+    },
+    "record": {
+        "Number=Plur": 393,
+        "Number=Sing": 799
+    },
+    "relationship": {
+        "Number=Sing": 600,
+        "Number=Plur": 243
+    },
+    "risk": {
+        "Number=Sing": 569,
+        "Number=Plur": 134
+    },
+    "savage": {
+        "Number=Sing": 83,
+        "Number=Plur": 58
+    },
+    "stab": {
+        "Number=Sing": 88,
+        "Number=Plur": 1
+    },
+    "stroke": {
+        "Mood=Ind|Tense=Past|VerbForm=Fin": 95,
+        "Mood=Ind|Tense=Pres|VerbForm=Fin": 7,
+        "VerbForm=Ger": 50,
+        "VerbForm=Inf": 28,
+        "Mood=Ind|Number=Sing|Person=3|Tense=Pres|VerbForm=Fin": 14,
+        "Mood=Imp|VerbForm=Fin": 1,
+        "VerbForm=Fin": 1,
+        "Mood=Imp|VerbForm=Inf": 1,
+        "Tense=Past|VerbForm=Part|Voice=Pass": 3,
+        "Tense=Pres|VerbForm=Part": 3,
+        "Tense=Past|VerbForm=Part": 2
+    },
+    "thump": {
+        "Number=Plur": 16,
+        "Number=Sing": 97
+    },
+    "tip": {
+        "VerbForm=Inf": 42,
+        "Tense=Past|VerbForm=Part": 34,
+        "Mood=Ind|Tense=Past|VerbForm=Fin": 65,
+        "Tense=Past|VerbForm=Part|Voice=Pass": 11,
+        "VerbForm=Ger": 20,
+        "Mood=Ind|Tense=Pres|VerbForm=Fin": 7,
+        "Tense=Pres|VerbForm=Part": 3,
+        "Mood=Imp|VerbForm=Fin": 4,
+        "Mood=Ind|Number=Sing|Person=3|Tense=Pres|VerbForm=Fin": 15
+    },
+    "tree": {
+        "Number=Sing": 728,
+        "Number=Plur": 875
+    },
+    "twist": {
+        "Number=Sing": 149,
+        "Number=Plur": 39
+    },
+    "word": {
+        "Number=Plur": 1783,
+        "Number=Sing": 1370
+    }
+}
