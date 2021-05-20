@@ -32,9 +32,12 @@ if __name__ == "__main__":
 
     words = {w: 0 for w in properties_1.keys()}
 
+    all_features = set()
+
     for word in words:
         logger.info(word)
         features = list(properties_1[word].keys() | properties_2[word].keys())
+        all_features.update(features)
         vector_1 = np.zeros(len(features))
         vector_2 = np.zeros(len(features))
         for nr, feature in enumerate(features):
@@ -51,16 +54,19 @@ if __name__ == "__main__":
             distance = 0.0  # A word was not present in one of the time periods
         words[word] = distance
 
-    with open(f"{args.output}_graded.tsv", "w") as f:
-        for w in words:
-            f.write(f"{w}\t{words[w]}\n")
+    print(all_features)
 
-    with open(f"{args.output}_binary.tsv", "w") as f:
-        values = sorted(words, key=words.get, reverse=True)
-        # threshold = int(len(values) / 2)
-        threshold = int(len(values) * 0.43)
-        #threshold = 17  # This is for English
-        for val in values[:threshold]:
-            f.write(f"{val}\t1\n")
-        for val in values[threshold:]:
-            f.write(f"{val}\t0\n")
+    if args.output:
+        with open(f"{args.output}_graded.tsv", "w") as f:
+            for w in words:
+                f.write(f"{w}\t{words[w]}\n")
+
+        with open(f"{args.output}_binary.tsv", "w") as f:
+            values = sorted(words, key=words.get, reverse=True)
+            # threshold = int(len(values) / 2)
+            threshold = int(len(values) * 0.43)
+            # threshold = 17  # This is for English
+            for val in values[:threshold]:
+                f.write(f"{val}\t1\n")
+            for val in values[threshold:]:
+                f.write(f"{val}\t0\n")

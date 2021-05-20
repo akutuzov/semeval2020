@@ -1,0 +1,9 @@
+dataset	features	correlation
+english_morph	10	0.239
+english_synt	23	0.196
+german_morph	38	0.043
+german_synt	24	0.163
+latin_morph	298	0.241
+latin_synt	32	0.328
+swedish_morph	61	0.207
+swedish_synt	36	-0.017
