@@ -19,12 +19,15 @@ if __name__ == "__main__":
     arg("--input1", "-i1", help="Path to a JSON file 1", required=True)
     arg("--input2", "-i2", help="Path to a JSON file 2", required=True)
     arg("--output", "-o", help="Output path (tsv)", required=False)
-
+    arg("--threshold", "-t", nargs='?', const=0, help="Minimal percentage to keep a feature", default=0, type=int, required=False)
+    
     args = parser.parse_args()
 
+    print("ARGS: %s" %args)
+    
     with open(args.input1, "r") as f:
         properties_1 = json.loads(f.read())
-
+            
     with open(args.input2, "r") as f:
         properties_2 = json.loads(f.read())
 
@@ -35,26 +38,41 @@ if __name__ == "__main__":
     all_features = set()
 
     for word in words:
-        logger.info(word)
-        features = list(properties_1[word].keys() | properties_2[word].keys())
+
+        p1 = properties_1[word]
+        p2 = properties_2[word]
+        features = list(p1.keys() | p2.keys())
+        
+        prop_count = {k:p1.get(k,0)+p2.get(k,0) for k in features}
+        total = sum(prop_count.values())
+        features = [f for f in features if prop_count[f]/total*100 > args.threshold]
+
         all_features.update(features)
+                
+        #logger.info(word)
+        #logger.info(features)
+
         vector_1 = np.zeros(len(features))
         vector_2 = np.zeros(len(features))
         for nr, feature in enumerate(features):
             try:
-                vector_1[nr] = properties_1[word][feature]
+                vector_1[nr] = p1[feature]
             except KeyError:
                 pass
             try:
-                vector_2[nr] = properties_2[word][feature]
+                vector_2[nr] = p2[feature]
             except KeyError:
                 pass
+
+        
+            
         distance = cosine(vector_1, vector_2)
         if np.isnan(distance):
             distance = 0.0  # A word was not present in one of the time periods
         words[word] = distance
 
-    print(all_features)
+        
+    #print(all_features)
 
     if args.output:
         with open(f"{args.output}_graded.tsv", "w") as f:
