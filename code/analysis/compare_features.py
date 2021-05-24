@@ -55,7 +55,7 @@ if __name__ == "__main__":
         for nr, feature in enumerate(features):
             changes[feature] = abs(vector_2[nr] - vector_1[nr])
 
-        ordered_features = [k for k, v in sorted(changes.items(), key=lambda item: item[1])]
+        ordered_features = [k for k, v in sorted(changes.items(), key=lambda item: item[1], reverse=True)]
 
         for feature in ordered_features:
             # logger.info('{}: {:.2f} -> {:.2f}'.format(
