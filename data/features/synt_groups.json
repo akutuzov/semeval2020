@@ -1,0 +1,67 @@
+{
+    "other": [
+        "punct",
+        "root",
+        "dep"
+    ],
+    "nominal_function": [
+        "det",
+        "clf",
+        "case"
+    ],
+    "function": [
+        "aux",
+        "cop",
+        "mark"
+    ],
+    "special": [
+        "orphan",
+        "goeswith",
+        "reparandum"
+    ],
+    "modifier": [
+        "advmod",
+        "discourse"
+    ],
+    "nominal_modifier": [
+        "amod"
+    ],
+    "loose": [
+        "list",
+        "parataxis"
+    ],
+    "non-core_clauses": [
+        "advcl",
+        "acl"
+    ],
+    "core_clauses": [
+        "csubj",
+        "ccomp",
+        "xcomp"
+    ],
+    "mwe": [
+        "fixed",
+        "flat",
+        "compound"
+    ],
+    "coordination": [
+        "conj",
+        "cc"
+    ],
+    "nominal_dependents": [
+        "nmod",
+        "appos",
+        "nummod"
+    ],
+    "non-core_nominals": [
+        "obl",
+        "vocative",
+        "expl",
+        "dislocated"
+    ],
+    "core_nominals": [
+        "nsubj",
+        "obj",
+        "iobj"
+    ]
+}
