@@ -18,7 +18,7 @@ if __name__ == "__main__":
     arg("--product", "-p", help="If 'True' product is used instead of mean", required=False, type=bool, default=False, const=True, nargs="?")
     args = parser.parse_args()
 
-    logger.info("MERGE ARGS: %s" %args)
+    #logger.info("MERGE ARGS: %s" %args)
     
     words1 = {}
     words2 = {}

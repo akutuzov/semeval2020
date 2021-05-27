@@ -6,7 +6,7 @@ import logging
 from smart_open import open
 import json
 import numpy as np
-from scipy.spatial.distance import cosine
+from scipy.spatial.distance import cosine, jensenshannon
 from collections import defaultdict
 
 informative = ["nominal_function",
@@ -59,6 +59,7 @@ if __name__ == "__main__":
     arg("--output", "-o", help="Output path (tsv)", required=False)
     arg("--threshold", "-t", nargs='?', const=0, help="Minimal percentage to keep a feature", default=0, type=int, required=False)
     arg("--filtering", "-f", help="Organizing syntactic features according to UD classification: 'group' - grouping all, 'delete' - deleting non-informative, 'partial' - grouping non-informative", choices=["group", "partial", "delete", "none"], default="none")
+    arg("--distance", "-d", help="Choose between cosine and jsd", choices=["cos", "jsd"], default="cos")
     
     args = parser.parse_args()
 
@@ -107,8 +108,15 @@ if __name__ == "__main__":
                 vector_2[nr] = p2[feature]
             except KeyError:
                 pass
-            
-        distance = cosine(vector_1, vector_2)
+
+        if args.distance == "cos":
+            distance = cosine(vector_1, vector_2)
+        elif args.distance == "jsd":
+            distance = jensenshannon(vector_1, vector_2)
+        else:
+            raise NotImplementedError("Unknown distance: %s" %args.distance)
+
+
         if np.isnan(distance):
             distance = 0.0  # A word was not present in one of the time periods
         words[word] = distance
