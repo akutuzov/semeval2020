@@ -14,7 +14,7 @@ These are with positive class coefficient 0.43 (top 43% of most changed words ar
 
 |              | English | German | Latin | Swedish |  Mean |
 |--------------|---------|--------|-------|---------|-------|
-| Morphology   |   0.595 |  0.521 | 0.525 |   0.581 | 0.542 |
+| Morphology   |   0.595 |  0.521 | 0.525 |   0.581 | 0.555 |
 | Syntax       |   0.541 |  0.646 | 0.575 |   0.645 | 0.602 |
 | Average      |   0.568 |  0.583 | 0.475 |   0.710 | 0.584 |
 |--------------|---------|--------|-------|---------|-------|
@@ -32,9 +32,9 @@ These are with positive class coefficient 0.43 (top 43% of most changed words ar
 ## Subtask 2
 |              | English | German | Latin | Swedish |  Mean |
 |--------------|---------|--------|-------|---------|-------|
-| Morphology   |   0.234 |  0.043 | 0.241 |   0.207 | 0.183 |
-| Syntax       |   0.319 |  0.163 | 0.328 |  -0.017 | 0.168 |
-| Average      |   0.293 |  0.147 | 0.304 |   0.088 | 0.196 |
+| Morphology   |   0.234 |  0.043 | 0.241 |   0.207 | 0.181 |
+| Syntax       |   0.319 |  0.163 | 0.328 |  -0.017 | 0.198 |
+| Average      |   0.293 |  0.147 | 0.304 |   0.088 | 0.208 |
 |--------------|---------|--------|-------|---------|-------|
 | FILTERING: 5% threshold                                   |
 | Morphology   |   0.211 |  0.080 | 0.285 |   0.191 | 0.192 |
