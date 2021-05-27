@@ -7,6 +7,44 @@ from smart_open import open
 import json
 import numpy as np
 from scipy.spatial.distance import cosine
+from collections import defaultdict
+
+informative = ["nominal_function",
+               "function",
+               "modifier",
+               "nominal_modifier",
+               "core_nominals",
+               "nominal_dependents"]
+
+
+groups = json.load(open("../../data/features/synt_groups.json", "r"))
+feature_to_group = {}
+for k,v in groups.items():
+    for f in v:
+        feature_to_group[f] = k
+
+
+
+def update(properties, filtering):
+    new_properties = defaultdict(int)
+    for feature,count in properties.items():
+        group = feature_to_group[feature.split(":")[0]]
+        if filtering == "group":
+            new_properties[group] += count
+        elif filtering == "partial":
+            group = feature_to_group[feature.split(":")[0]]
+            if group in informative:
+                new_properties[feature] = count
+            else:
+                new_properties[group] += count
+        elif filtering == "delete":
+            if group in informative:
+                new_properties[feature] = count
+        else:
+            raise NotImplementedError
+    return new_properties
+        
+    
 
 if __name__ == "__main__":
     logging.basicConfig(
@@ -20,11 +58,12 @@ if __name__ == "__main__":
     arg("--input2", "-i2", help="Path to a JSON file 2", required=True)
     arg("--output", "-o", help="Output path (tsv)", required=False)
     arg("--threshold", "-t", nargs='?', const=0, help="Minimal percentage to keep a feature", default=0, type=int, required=False)
+    arg("--filtering", "-f", help="Organizing syntactic features according to UD classification: 'group' - grouping all, 'delete' - deleting non-informative, 'partial' - grouping non-informative", choices=["group", "partial", "delete", "none"], default="none")
     
     args = parser.parse_args()
 
-    print("ARGS: %s" %args)
-    
+    #print("ARGS: %s" %args)
+        
     with open(args.input1, "r") as f:
         properties_1 = json.loads(f.read())
             
@@ -32,28 +71,33 @@ if __name__ == "__main__":
         properties_2 = json.loads(f.read())
 
     assert properties_1.keys() == properties_2.keys()
-
     words = {w: 0 for w in properties_1.keys()}
 
+
+    
     all_features = set()
 
     for word in words:
 
         p1 = properties_1[word]
         p2 = properties_2[word]
+
+        if args.filtering != "none":
+            p1 = update(p1, args.filtering)
+            p2 = update(p2, args.filtering)
+                   
         features = list(p1.keys() | p2.keys())
         
         prop_count = {k:p1.get(k,0)+p2.get(k,0) for k in features}
         total = sum(prop_count.values())
         features = [f for f in features if prop_count[f]/total*100 > args.threshold]
-
-        all_features.update(features)
+            
+        all_features.update(features)            
+        
                 
-        #logger.info(word)
-        #logger.info(features)
-
         vector_1 = np.zeros(len(features))
         vector_2 = np.zeros(len(features))
+
         for nr, feature in enumerate(features):
             try:
                 vector_1[nr] = p1[feature]
@@ -63,8 +107,6 @@ if __name__ == "__main__":
                 vector_2[nr] = p2[feature]
             except KeyError:
                 pass
-
-        
             
         distance = cosine(vector_1, vector_2)
         if np.isnan(distance):
