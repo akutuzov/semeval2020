@@ -1,0 +1,135 @@
+{
+    "egemonizzare": {
+        "VerbForm=Inf": 11,
+        "Gender=Fem|Number=Plur": 2,
+        "Gender=Masc|Number=Sing|Tense=Past|VerbForm=Part": 7,
+        "Gender=Fem|Number=Sing|Tense=Past|VerbForm=Part": 2,
+        "_": 1,
+        "Gender=Masc|Number=Sing": 1,
+        "Mood=Ind|Number=Plur|Person=3|Tense=Pres|VerbForm=Fin": 1,
+        "Gender=Masc|Number=Plur|Tense=Past|VerbForm=Part": 1
+    },
+    "lucciola": {
+        "Gender=Fem|Number=Plur": 2,
+        "Gender=Fem|Number=Sing": 4
+    },
+    "campanello": {
+        "Gender=Masc|Number=Sing": 109,
+        "Gender=Masc|Number=Plur": 23,
+        "_": 3,
+        "Gender=Masc": 4
+    },
+    "trasferibile": {
+        "Number=Plur": 11,
+        "Number=Sing": 7
+    },
+    "brama": {
+        "Gender=Fem|Number=Plur": 16,
+        "Gender=Fem|Number=Sing": 14,
+        "Gender=Masc|Number=Sing": 1
+    },
+    "polisportiva": {
+        "Gender=Fem|Number=Sing": 10,
+        "_": 43,
+        "Mood=Ind|Number=Sing|Person=3|Tense=Imp|VerbForm=Fin": 2
+    },
+    "palmare": {
+        "Number=Sing": 6,
+        "VerbForm=Inf": 7,
+        "Mood=Ind|Number=Sing|Person=3|Tense=Pres|VerbForm=Fin": 5,
+        "Number=Plur": 2,
+        "Gender=Masc|Number=Sing|Tense=Past|VerbForm=Part": 1
+    },
+    "processare": {
+        "Gender=Masc|Number=Plur|Tense=Past|VerbForm=Part": 204,
+        "Gender=Masc|Number=Sing|Tense=Past|VerbForm=Part": 218,
+        "Gender=Masc|Number=Sing": 7,
+        "Mood=Ind|Number=Sing|Person=3|Tense=Past|VerbForm=Fin": 4,
+        "VerbForm=Inf": 49,
+        "Gender=Fem|Number=Plur|Tense=Past|VerbForm=Part": 20,
+        "Mood=Ind|Number=Sing|Person=3|Tense=Pres|VerbForm=Fin": 6,
+        "Gender=Fem|Number=Sing|Tense=Past|VerbForm=Part": 16,
+        "VerbForm=Ger": 9,
+        "Mood=Ind|Number=Plur|Person=3|Tense=Pres|VerbForm=Fin": 7,
+        "Mood=Ind|Number=Sing|Person=3|Tense=Fut|VerbForm=Fin": 1,
+        "_": 6,
+        "Gender=Masc|Number=Sing|PronType=Dem": 1,
+        "Mood=Ind|Number=Plur|Person=1|Tense=Pres|VerbForm=Fin": 1,
+        "Mood=Ind|Number=Plur|Person=3|Tense=Past|VerbForm=Fin": 1,
+        "Gender=Fem|Number=Sing": 1,
+        "Gender=Masc|Number=Plur": 2,
+        "Mood=Ind|Number=Plur|Person=3|Tense=Fut|VerbForm=Fin": 1,
+        "Mood=Ind|Number=Plur|Person=2|Tense=Pres|VerbForm=Fin": 1,
+        "Mood=Ind|Number=Sing|Person=3|Tense=Imp|VerbForm=Fin": 1
+    },
+    "pilotato": {
+        "Gender=Masc|Number=Sing|Tense=Past|VerbForm=Part": 1,
+        "Gender=Masc|Number=Plur": 3,
+        "Gender=Fem|Number=Sing": 1,
+        "Gender=Masc|Number=Sing": 1,
+        "Gender=Fem|Number=Plur": 5,
+        "Gender=Fem|Number=Plur|Tense=Past|VerbForm=Part": 2,
+        "Gender=Masc|Number=Plur|Tense=Past|VerbForm=Part": 1
+    },
+    "cappuccio": {
+        "Gender=Masc|Number=Sing": 60,
+        "Gender=Masc|Number=Plur": 7
+    },
+    "pacchetto": {
+        "Gender=Masc|Number=Plur": 93,
+        "Gender=Masc|Number=Sing": 279,
+        "Gender=Masc|Number=Plur|Tense=Past|VerbForm=Part": 1,
+        "Mood=Ind|Number=Sing|Person=2|Tense=Pres|VerbForm=Fin": 1
+    },
+    "ape": {
+        "Gender=Fem|Number=Plur": 101,
+        "Gender=Fem|Number=Sing": 28,
+        "Gender=Masc|Number=Plur": 10,
+        "Gender=Fem|Number=Plur|PronType=Ind": 16,
+        "_": 48,
+        "Gender=Masc|Number=Sing": 2
+    },
+    "unico": {
+        "Gender=Fem|Number=Sing": 2823,
+        "Gender=Fem|Number=Plur": 252,
+        "Gender=Masc|Number=Sing": 4515,
+        "_": 932,
+        "Gender=Masc|Number=Plur": 634,
+        "Mood=Ind|Number=Sing|Person=1|Tense=Pres|VerbForm=Fin": 2,
+        "Number=Plur": 3,
+        "NumType=Card": 15,
+        "Mood=Ind|Number=Sing|Person=3|Tense=Pres|VerbForm=Fin": 2,
+        "Mood=Imp|Number=Sing|Person=2|Tense=Pres|VerbForm=Fin": 2
+    },
+    "discriminatorio": {
+        "Gender=Fem|Number=Sing": 100,
+        "Gender=Fem|Number=Plur": 53,
+        "Gender=Masc|Number=Sing": 109,
+        "_": 3
+    },
+    "rampante": {
+        "_": 3,
+        "Number=Sing": 23,
+        "Number=Plur": 1
+    },
+    "campionato": {
+        "_": 275,
+        "Gender=Masc|Number=Sing": 3309,
+        "Gender=Masc|Number=Plur": 1300,
+        "Number=Plur": 3,
+        "Gender=Masc|Number=Sing|Tense=Past|VerbForm=Part": 7,
+        "Gender=Masc|Number=Plur|Tense=Past|VerbForm=Part": 4
+    },
+    "tac": {
+        "Gender=Masc": 9,
+        "_": 20,
+        "Gender=Masc|Number=Sing": 5,
+        "Foreign=Yes": 12,
+        "Gender=Masc|Number=Plur": 4
+    },
+    "piovra": {
+        "Gender=Fem|Number=Sing": 27,
+        "Gender=Fem|Number=Plur": 5,
+        "Gender=Masc": 1
+    }
+}
