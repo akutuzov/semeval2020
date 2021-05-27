@@ -23,7 +23,7 @@ for k, v in groups.items():
         feature_to_group[f] = k
 
 
-def update(properties, filtering):
+def synt_group(properties, filtering):
     new_properties = defaultdict(int)
     for current_feature, count in properties.items():
         group = feature_to_group[current_feature.split(":")[0]]
@@ -62,6 +62,8 @@ if __name__ == "__main__":
         choices=["group", "partial", "delete", "none"], default="none")
     arg("--distance", "-d", help="Choose between cosine and jsd", choices=["cos", "jsd"],
         default="cos")
+    arg("--separation", "-s", help="Morphological feature separation by |", choices=["yes", "no"],
+        default="no")
 
     args = parser.parse_args()
 
@@ -77,13 +79,30 @@ if __name__ == "__main__":
     all_features = set()
 
     for word in words:
-
-        p1 = properties_1[word]
-        p2 = properties_2[word]
+        if args.separation == "yes":
+            p1 = {}
+            p2 = {}
+            for el in properties_1[word]:
+                if "|" in el:
+                    separate_features = el.split("|")
+                    for feat in separate_features:
+                        p1[feat] = properties_1[word][el]
+                else:
+                    p1[el] = properties_1[word][el]
+            for el in properties_2[word]:
+                if "|" in el:
+                    separate_features = el.split("|")
+                    for feat in separate_features:
+                        p2[feat] = properties_2[word][el]
+                else:
+                    p2[el] = properties_2[word][el]
+        else:
+            p1 = properties_1[word]
+            p2 = properties_2[word]
 
         if args.filtering != "none":
-            p1 = update(p1, args.filtering)
-            p2 = update(p2, args.filtering)
+            p1 = synt_group(p1, args.filtering)
+            p2 = synt_group(p2, args.filtering)
 
         features = list(p1.keys() | p2.keys())
 
@@ -131,3 +150,5 @@ if __name__ == "__main__":
                 f.write(f"{val}\t1\n")
             for val in values[threshold:]:
                 f.write(f"{val}\t0\n")
+    else:
+        logger.info(words)
