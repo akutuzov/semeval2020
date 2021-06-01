@@ -80,22 +80,28 @@ if __name__ == "__main__":
 
     for word in words:
         if args.separation == "yes":
-            p1 = {}
-            p2 = {}
+            p1 = defaultdict(int)
+            p2 = defaultdict(int)
             for el in properties_1[word]:
                 if "|" in el:
                     separate_features = el.split("|")
                     for feat in separate_features:
-                        p1[feat] = properties_1[word][el]
+                        p1[feat] += properties_1[word][el]
                 else:
-                    p1[el] = properties_1[word][el]
+                    p1[el] += properties_1[word][el]
             for el in properties_2[word]:
                 if "|" in el:
                     separate_features = el.split("|")
                     for feat in separate_features:
-                        p2[feat] = properties_2[word][el]
+                        p2[feat] += properties_2[word][el]
                 else:
-                    p2[el] = properties_2[word][el]
+                    p2[el] += properties_2[word][el]
+
+
+            print(word)
+            print("p1", p1)
+            print("p2", p2)
+            
         else:
             p1 = properties_1[word]
             p2 = properties_2[word]
