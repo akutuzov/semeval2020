@@ -9,12 +9,14 @@ import numpy as np
 from scipy.spatial.distance import cosine, jensenshannon
 from collections import defaultdict
 
-informative = ["nominal_function",
-               "function",
-               "modifier",
-               "nominal_modifier",
-               "core_nominals",
-               "nominal_dependents"]
+informative = [
+    "nominal_function",
+    "function",
+    "modifier",
+    "nominal_modifier",
+    "core_nominals",
+    "nominal_dependents",
+]
 
 groups = json.load(open("../../data/features/synt_groups.json", "r"))
 feature_to_group = {}
@@ -54,16 +56,39 @@ if __name__ == "__main__":
     arg("--input1", "-i1", help="Path to a JSON file 1", required=True)
     arg("--input2", "-i2", help="Path to a JSON file 2", required=True)
     arg("--output", "-o", help="Output path (tsv)", required=False)
-    arg("--threshold", "-t", nargs='?', const=0, help="Minimal percentage to keep a feature",
-        default=0, type=int, required=False)
-    arg("--filtering", "-f", help="Organizing syntactic features according to UD classification: "
-                                  "'group' - grouping all, 'delete' - deleting non-informative, "
-                                  "'partial' - grouping non-informative",
-        choices=["group", "partial", "delete", "none"], default="none")
-    arg("--distance", "-d", help="Choose between cosine and jsd", choices=["cos", "jsd"],
-        default="cos")
-    arg("--separation", "-s", help="Morphological feature separation by |", choices=["yes", "no"],
-        default="no")
+    arg(
+        "--threshold",
+        "-t",
+        nargs="?",
+        const=0,
+        help="Minimal percentage to keep a feature",
+        default=0,
+        type=int,
+        required=False,
+    )
+    arg(
+        "--filtering",
+        "-f",
+        help="Organizing syntactic features according to UD classification: "
+        "'group' - grouping all, 'delete' - deleting non-informative, "
+        "'partial' - grouping non-informative",
+        choices=["group", "partial", "delete", "none"],
+        default="none",
+    )
+    arg(
+        "--distance",
+        "-d",
+        help="Choose between cosine and jsd",
+        choices=["cos", "jsd"],
+        default="cos",
+    )
+    arg(
+        "--separation",
+        "-s",
+        help="Morphological feature separation by |",
+        choices=["yes", "no"],
+        default="no",
+    )
 
     args = parser.parse_args()
 
@@ -97,11 +122,6 @@ if __name__ == "__main__":
                 else:
                     p2[el] += properties_2[word][el]
 
-
-            print(word)
-            print("p1", p1)
-            print("p2", p2)
-            
         else:
             p1 = properties_1[word]
             p2 = properties_2[word]
