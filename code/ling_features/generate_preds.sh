@@ -5,7 +5,7 @@ THR=${2}
 
 for feat in morph synt
 do
-    python3 compare_ling.py --input1 ../../data/features/${LANG}/corpus1_${feat}.json --input2 ../../data/features/${LANG}/corpus2_${feat}.json --output results/${LANG}_${feat}_${THR} --threshold ${THR}
+    python3 compare_ling.py --input1 ../../data/features/${LANG}/corpus1_${feat}.json --input2 ../../data/features/${LANG}/corpus2_${feat}.json --output results/${LANG}_${feat}_${THR} --threshold ${THR} --separation no
 done
 
 for task in binary graded
