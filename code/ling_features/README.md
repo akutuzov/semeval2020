@@ -48,8 +48,20 @@ These are with positive class coefficient 0.43 (top 43% of most changed words ar
 | Morphology   |   0.595 |  0.521 | 0.625 |   0.645 |0.597| 0.722   |
 | Average      |   0.568 |  0.583 | 0.550 |   0.774 |0.619| 0.722   |
 |--------------|---------|--------|-------|---------|-----|---------|
+| Morphological feature separate distance                          |
+| cos max      |   0.595 |  0.479 | 0.575 |   0.581 |0.557    
+| cos max + 5% |   0.595 |  0.479 | 0.575 |   0.581 |0.557
+| cos avg      |   0.649 |  0.562 | 0.525 |   0.645 |0.595
+| cos avg + 5% |   0.649 |  0.562 | 0.525 |   0.645 |0.595
+| jsd max      |   0.486 |  0.521 | 0.625 |   0.581 |0.553
+| jsd max + 5% |   0.486 |  0.521 | 0.575 |   0.581 |0.541
+| jsd avg      |   0.595 |  0.562 | 0.575 |   0.645 |0.594
+| jsd avg + 5% |   0.595 |  0.521 | 0.575 |   0.581 |0.568	
+|--------------|---------|--------|-------|---------|-------|---------|----------|----------|
 | SE Count Bas |   0.595 |  0.688 | 0.525 |   0.645 |0.613| 0.611*  |
 | SE 1st       |   0.622 |  0.750 | 0.700 |   0.677 |0.687| 0.944   |
+|--------------|---------|--------|-------|---------|-------|---------|----------|----------|
+|              | English | German | Latin | Swedish |Mean | Italian |
 
 > \* The Italian baseline relies on collocations (Basile et al., 2019): for each target word, two vector representations are built, consisting of the Bag-of-Collocations related to the two different time periods (T0 and T1). Then, the cosine similarity between the two BoCs is computed.
 
