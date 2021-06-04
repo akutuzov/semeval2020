@@ -8,41 +8,13 @@ import json
 import numpy as np
 from scipy.spatial.distance import cosine, jensenshannon
 from collections import defaultdict
-
-informative = [
-    "nominal_function",
-    "function",
-    "modifier",
-    "nominal_modifier",
-    "core_nominals",
-    "nominal_dependents",
-]
+from helpers import detect_change_point, synt_group
 
 groups = json.load(open("../../data/features/synt_groups.json", "r"))
 feature_to_group = {}
 for k, v in groups.items():
     for f in v:
         feature_to_group[f] = k
-
-
-def synt_group(properties, filtering):
-    new_properties = defaultdict(int)
-    for current_feature, count in properties.items():
-        group = feature_to_group[current_feature.split(":")[0]]
-        if filtering == "group":
-            new_properties[group] += count
-        elif filtering == "partial":
-            group = feature_to_group[current_feature.split(":")[0]]
-            if group in informative:
-                new_properties[current_feature] = count
-            else:
-                new_properties[group] += count
-        elif filtering == "delete":
-            if group in informative:
-                new_properties[current_feature] = count
-        else:
-            raise NotImplementedError
-    return new_properties
 
 
 if __name__ == "__main__":
@@ -89,6 +61,13 @@ if __name__ == "__main__":
         choices=["yes", "no"],
         default="no",
     )
+    arg(
+        "--changepoint",
+        "-cp",
+        help="How to detect the change point in cosine distance sequences?",
+        choices=["semeval", "half", "automatic"],
+        default="automatic",
+    )
 
     args = parser.parse_args()
 
@@ -127,8 +106,8 @@ if __name__ == "__main__":
             p2 = properties_2[word]
 
         if args.filtering != "none":
-            p1 = synt_group(p1, args.filtering)
-            p2 = synt_group(p2, args.filtering)
+            p1 = synt_group(p1, args.filtering, feature_to_group)
+            p2 = synt_group(p2, args.filtering, feature_to_group)
 
         features = list(p1.keys() | p2.keys())
 
@@ -169,9 +148,13 @@ if __name__ == "__main__":
 
         with open(f"{args.output}_binary.tsv", "w") as f:
             values = sorted(words, key=words.get, reverse=True)
-            # threshold = int(len(values) / 2)
-            threshold = int(len(values) * 0.43)
-            # threshold = 17  # This is for English
+            if args.changepoint == "automatic":
+                threshold = detect_change_point([words[el] for el in values]) + 1
+                logger.info(f"Change point found at {threshold}")
+            elif args.changepoint == "half":
+                threshold = int(len(values) / 2)
+            elif args.changepoint == "semeval":
+                threshold = int(len(values) * 0.43)
             for val in values[:threshold]:
                 f.write(f"{val}\t1\n")
             for val in values[threshold:]:
