@@ -73,6 +73,9 @@ These are with positive class coefficient 0.43 (top 43% of most changed words ar
 | jsd avg      |   0.622 |  0.583 | 0.625 |   0.581 |0.603| 0.444   |
 | jsd avg + 5% |   0.595 |  0.583 | 0.550 |   0.613 |0.585| 0.500   |
 |--------------|---------|--------|-------|---------|-----|---------|
+| SE Count Bas |   0.595 |  0.688 | 0.525 |   0.645 |0.613| 0.611*  |
+| SE 1st       |   0.622 |  0.750 | 0.700 |   0.677 |0.687| 0.944   |
+|--------------|---------|--------|-------|---------|-----|---------|
 |              | English | German | Latin | Swedish |Mean | Italian |
 
 > \* The Italian baseline relies on collocations (Basile et al., 2019): for each target word, two vector representations are built, consisting of the Bag-of-Collocations related to the two different time periods (T0 and T1). Then, the cosine similarity between the two BoCs is computed.
@@ -106,14 +109,13 @@ These are with positive class coefficient 0.43 (top 43% of most changed words ar
 | partial      |   0.343 |  0.118 | 0.321 |   0.149 | 0.233 |
 | delete       |   0.157 |  0.026 | 0.104 |  -0.026 | 0.065 |
 |--------------|---------|--------|-------|---------|-------|---------|----------|----------|
-| reverse syntax feature filtering  |
+| reverse syntax feature filtering   
 | none         | -0.063  |  0.233 | 0.163 |  -0.089 | 0.061 |
 | group        | -0.033  |  0.221 | 0.174 |  -0.236 | 0.032 |
 | partial      | -0.086  |  0.218 | 0.195 |  -0.116 | 0.053 |
 | delete       | -0.113  |  0.202 | 0.090 |  -0.055 | 0.031 |
 |--------------|---------|--------|-------|---------|-------|---------|----------|----------|
-| reverse syntax feature filtering  + 5% thr                                                |
-
+| reverse syntax feature filtering  + 5% thr                                                
 | group        | -0.112  |  0.211 | 0.170 |  -0.156 | 0.028 |
 | partial      | -0.099  |  0.238 | 0.179 |  -0.074 | 0.061 |
 | delete       | -0.131  |  0.177 | 0.051 |  -0.051 | 0.011 |
