@@ -103,6 +103,34 @@ def find_features(p1, p2, threshold):
     prop_count = {k: p1.get(k, 0) + p2.get(k, 0) for k in features}
     total = sum(prop_count.values())
     return [f for f in features if prop_count[f] / total * 100 > threshold]
+
+
+def compute_distance(vector_1, vector_2, distance_type):
+    if distance_type == "cos":
+        return cosine(vector_1, vector_2)
+    elif distance_type == "jsd":
+        return jensenshannon(vector_1, vector_2)
+    else:
+        raise NotImplementedError("Unknown distance: %s" % args.distance)
+
+    
+def make_vectors(features, p1, p2):
+        
+    vector_1 = np.zeros(len(features))
+    vector_2 = np.zeros(len(features))
+    
+    for nr, feature in enumerate(features):
+        vector_1[nr] = p1.get(feature,0)
+        vector_2[nr] = p2.get(feature,0)
+
+    return vector_1, vector_2
+
+
+def compute_distance_from_common_features(p1, p2, threshold, distance_type):
+    features = find_features(p1, p2, threshold)
+    vector_1, vector_2 = make_vectors(features, p1, p2)
+    return compute_distance(vector_1, vector_2, distance_type)
+
     
 if __name__ == "__main__":
     logging.basicConfig(
@@ -156,6 +184,17 @@ if __name__ == "__main__":
         default="max",
     )
     arg(
+        "--added_features1",
+        "-af1",
+        help="Path to JSON file to add syntax features when separation is 2step",
+    )
+    arg(
+        "--added_features2",
+        "-af2",
+        help="Path to JSON file to add syntax features when separation is 2step",
+    )
+    
+    arg(
         "--changepoint",
         "-cp",
         help="How to detect the change point in distance sequences?",
@@ -166,16 +205,15 @@ if __name__ == "__main__":
     
     args = parser.parse_args()
 
-    with open(args.input1, "r") as f:
-        properties_1 = json.loads(f.read())
+    properties_1 = json.load(open(args.input1, "r"))
+    properties_2 = json.load(open(args.input2, "r"))
 
-    with open(args.input2, "r") as f:
-        properties_2 = json.loads(f.read())
-
+    if args.added_features1:
+        added_features1 = json.load(open(args.added_features1))
+        added_features2 = json.load(open(args.added_features2))
+        
     assert properties_1.keys() == properties_2.keys()
     words = {w: 0 for w in properties_1.keys()}
-
-    all_features = set()
 
     for word in words:
         if args.separation == "2step":
@@ -188,21 +226,21 @@ if __name__ == "__main__":
                 feature_classes = list(p1.keys() | p2.keys())
                 
                 for f_class in feature_classes:
-                    features = find_features(p1[f_class], p2[f_class], args.threshold)
-                    vector_1 = np.zeros(len(features))
-                    vector_2 = np.zeros(len(features))
-
-                    for nr, feature in enumerate(features):
-                        vector_1[nr] = p1[f_class][feature]
-                        vector_2[nr] = p2[f_class][feature]
-        
-                    if args.distance == "cos":
-                        distance[f_class] = cosine(vector_1, vector_2)
-                    elif args.distance == "jsd":
-                        distance[f_class] = jensenshannon(vector_1, vector_2)
-                    else:
-                        raise NotImplementedError("Unknown distance: %s" % args.distance)
-        
+                    distance[f_class] =\
+                                    compute_distance_from_common_features(p1[f_class],
+                                                                          p2[f_class],
+                                                                          args.threshold,
+                                                                          args.distance)
+                    
+                if args.added_features1:
+                    a1 = added_features1[word]
+                    a2 = added_features2[word]
+                    distance["added"] =\
+                                   compute_distance_from_common_features(a1,
+                                                                         a2,
+                                                                         args.threshold,
+                                                                         args.distance)
+                        
                 distance = [d for d in distance.values() if not np.isnan(d)]
         
                 if distance:
@@ -211,7 +249,7 @@ if __name__ == "__main__":
                     elif args.agregate == "avg":
                         words[word] = np.mean(distance)
                 else:
-                    # empty, e.g. german cos, max
+                    # empty, e.g. german
                     words[word] = np.nan
 
         else:
@@ -226,25 +264,11 @@ if __name__ == "__main__":
                 if args.filtering != "none":
                     p1 = synt_group(p1, args.filtering)
                     p2 = synt_group(p2, args.filtering)
-        
-                features = find_features(p1, p2, args.threshold)
-        
-                all_features.update(features)
-        
-                vector_1 = np.zeros(len(features))
-                vector_2 = np.zeros(len(features))
-        
-                for nr, feature in enumerate(features):
-                    vector_1[nr] = p1.get(feature,0)
-                    vector_2[nr] = p2.get(feature,1)
-        
-                if args.distance == "cos":
-                    distance = cosine(vector_1, vector_2)
-                elif args.distance == "jsd":
-                    distance = jensenshannon(vector_1, vector_2)
-                else:
-                    raise NotImplementedError("Unknown distance: %s" % args.distance)
-        
+
+                distance = compute_distance_from_common_features(p1,
+                                                                 p2,
+                                                                 args.threshold,
+                                                                 args.distance)     
                 if np.isnan(distance):
                     distance = 0.0  # A word was not present in one of the time periods
                 words[word] = distance
