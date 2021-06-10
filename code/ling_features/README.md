@@ -90,7 +90,7 @@ These are with positive class coefficient 0.43 (top 43% of most changed words ar
 ## Subtask 2
 |              | English | German | Latin | Swedish |  Mean |Russian1 | Russian2 | Russian3 |
 |--------------|---------|--------|-------|---------|-------|---------|----------|----------|
-| (Ryzhova 2021): 6cases*2numbers=12dim vectors ==> cos     | 0.157   | 0.199    | 0.343    |
+| (Ryzhova 2021): 6cases*2numbers=12dim vectors ==> cos|||||| 0.157   | 0.199    | 0.343    |
 |--------------|---------|--------|-------|---------|-------|---------|----------|----------|
 | Morphology   |   0.234 |  0.043 | 0.241 |   0.207 | 0.181 | 0.137   | 0.210    | 0.327    |
 | Syntax       |   0.319 |  0.163 | 0.328 |  -0.017 | 0.198 | 0.060   | 0.101    | 0.269    |
