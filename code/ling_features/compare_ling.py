@@ -6,7 +6,7 @@ import logging
 from smart_open import open
 import json
 from helpers import *
-
+import csv
 
 if __name__ == "__main__":
     logging.basicConfig(
@@ -78,6 +78,13 @@ if __name__ == "__main__":
         choices=["semeval", "half", "automatic"],
         default="automatic",
     )
+    arg(
+        "--store_distances",
+        "-sd",
+        help="Save categories and distances to file",
+        required=False,
+        default="distances.json"
+    )
 
     args = parser.parse_args()
 
@@ -97,6 +104,8 @@ if __name__ == "__main__":
 
     assert properties_1.keys() == properties_2.keys()
     words = {w: 0 for w in properties_1.keys()}
+
+    word_distances = {}
 
     for word in words:
         if args.separation == "2step":
@@ -118,12 +127,13 @@ if __name__ == "__main__":
             if args.added_features1:
                 a1 = added_features1[word]
                 a2 = added_features2[word]
-                distance["added"] = \
+                distance["syntax"] = \
                     compute_distance_from_common_features(a1,
                                                           a2,
                                                           args.filtering,
                                                           args.distance)
-
+            if args.store_distances:
+                word_distances[word] = distance
             distance = [d for d in distance.values() if not np.isnan(d)]
 
             if distance:
@@ -143,8 +153,6 @@ if __name__ == "__main__":
             else:
                 p1 = properties_1[word]
                 p2 = properties_2[word]
-                print(word, p1)
-                print(word, p2)
 
             if args.syntax_filtering != "none":
                 p1 = synt_group(p1, args.syntax_filtering, feature_to_group)
@@ -157,6 +165,24 @@ if __name__ == "__main__":
             if np.isnan(distance):
                 distance = 0.0  # A word was not present in one of the time periods
             words[word] = distance
+
+    if args.store_distances:
+        categories = set()
+        for word in word_distances:
+            categories.update(word_distances[word].keys())
+        categories = list(categories)
+        with open(args.store_distances, 'w') as tsvfile:
+            catwriter = csv.writer(tsvfile, delimiter='\t', dialect="unix",
+                                   quoting=csv.QUOTE_MINIMAL)
+            catwriter.writerow(["Word"] + [c for c in categories])
+            for word in word_distances:
+                output = [word]
+                for cat in categories:
+                    if cat in word_distances[word]:
+                        output.append(word_distances[word][cat])
+                    else:
+                        output.append(0.0)
+                catwriter.writerow(output)
 
     if args.output:
         print_results(words, args.output, args.changepoint)

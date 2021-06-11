@@ -82,7 +82,7 @@ def collect_word_properties(properties):
         for feat in separate_features:
             try:
                 k, v = feat.split("=")
-            except AttributeError:
+            except ValueError:
                 continue
             else:
                 props[k][v] += count
@@ -98,7 +98,11 @@ def find_features(p1, p2, threshold):
 
 def compute_distance(vector_1, vector_2, distance_type):
     if distance_type == "cos":
-        return cosine(vector_1, vector_2)
+        dist = cosine(vector_1, vector_2)
+        if np.isnan(dist):
+            return 0.0
+        else:
+            return dist
     elif distance_type == "jsd":
         return jensenshannon(vector_1, vector_2)
     else:
