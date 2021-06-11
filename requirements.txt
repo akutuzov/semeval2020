@@ -1,3 +1,4 @@
+pandas
 ruptures
 matplotlib>=3.2.1
 tensorboardX>=2.0

@@ -1,0 +1,4 @@
+circle	1
+pin	0
+stroke	0
+tip	1
