@@ -6,6 +6,7 @@ import logging
 import pandas as pd
 from sklearn.linear_model import LogisticRegression
 from sklearn import preprocessing
+from sklearn.metrics import f1_score
 
 if __name__ == "__main__":
     logging.basicConfig(
@@ -41,9 +42,12 @@ if __name__ == "__main__":
     ).fit(X, y)
     logger.info("Evaluating...")
     logger.info("Predictions on the train data:")
-    logger.info(clf.predict(X))
+    predictions = clf.predict(X)
+    logger.info(predictions)
     accuracy = clf.score(X, y)
     logger.info(f"Accuracy on the train data: {accuracy:.3f}")
+    f1 = f1_score(y, predictions, average="macro")
+    logger.info(f"Macro F1 on the train data: {f1:.3f}")
 
     logger.info("Feature importance:")
     importance = sorted(
