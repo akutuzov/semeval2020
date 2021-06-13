@@ -2,11 +2,14 @@
 # coding: utf-8
 
 import argparse
+import os
 import logging
 import pandas as pd
 from sklearn.linear_model import LogisticRegression
 from sklearn import preprocessing
 from sklearn.metrics import f1_score
+from scipy.stats import spearmanr
+from helpers import cat_plot
 
 if __name__ == "__main__":
     logging.basicConfig(
@@ -16,25 +19,45 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
     arg = parser.add_argument
-    arg("--input", "-i", help="Path to a category distances file (tsv)", required=True)
-    arg("--gold", "-g", help="Path to gold binary values", required=True)
+    arg("--lang", "-l", help="Language to test", required=True)
 
     args = parser.parse_args()
 
-    features = pd.read_csv(args.input, delimiter="\t")
-    gold = pd.read_csv(args.gold, delimiter="\t", names=["Word", "Class"])
+    inputfile = f"distances/{args.lang}.tsv"
+    gold1_file = f"gold/task1/{args.lang}.txt"
+    gold2_file = f"gold/task2/{args.lang}.txt"
+
+    features = pd.read_csv(inputfile, delimiter="\t")
+    feature_names = features.columns[1:-1].values
+
+    if os.path.exists(gold2_file):
+        gold2 = pd.read_csv(gold2_file, delimiter="\t", names=["Word", "Distance"])
+        logger.info("Categories with significant correlations (task 2)")
+        features["Distance"] = gold2["Distance"]
+        corrs = []
+        for category in feature_names:
+            corr = spearmanr(features[category].values, features["Distance"].values)
+            corrs.append(corr)
+        top_corr = sorted(
+            zip(corrs, feature_names), key=lambda i: i[0], reverse=True
+        )
+        for corr, category in top_corr:
+            if corr[1] <= 0.06:
+                logger.info(f"{category}: {corr[0]:.3f}")
+
+    if not os.path.exists(gold1_file):
+        raise SystemExit("No gold file for subtask 1 found!")
+    gold = pd.read_csv(gold1_file, delimiter="\t", names=["Word", "Class"])
 
     features["Class"] = gold["Class"]
 
-    print(features.head())
+    logger.info(features.head())
 
-    X = features[features.columns[1:-1]].values
+    X = features[feature_names].values
     y = features.Class.values
 
     scaler = preprocessing.StandardScaler().fit(X)
     X = scaler.transform(X)
-
-    feature_names = features.columns[1:-1].values
 
     logger.info("Fitting logistic regression to the data...")
     clf = LogisticRegression(
@@ -49,9 +72,13 @@ if __name__ == "__main__":
     f1 = f1_score(y, predictions, average="macro")
     logger.info(f"Macro F1 on the train data: {f1:.3f}")
 
-    logger.info("Feature importance:")
+    logger.info("Feature importance (task 1):")
     importance = sorted(
         zip(clf.coef_[0], feature_names), key=lambda i: i[0], reverse=True
     )
     for coeff, category in importance:
         logger.info(f"{category}: {coeff:.3f}")
+
+    # _ = cat_plot([el[0] for el in importance if el[0] != 0],
+    #             [el[1] for el in importance if el[0] != 0])
+
