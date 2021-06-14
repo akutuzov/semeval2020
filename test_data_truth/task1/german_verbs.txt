@@ -1,0 +1,14 @@
+abbauen	1
+abdecken	1
+artikulieren	1
+aufrechterhalten	0
+ausspannen	1
+beimischen	0
+packen	1
+überspannen	1
+verbauen	1
+vergönnen	0
+voranstellen	0
+vorliegen	0
+vorweisen	0
+zersetzen	0
