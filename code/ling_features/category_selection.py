@@ -43,7 +43,7 @@ if __name__ == "__main__":
         )
         for corr, category in top_corr:
             if corr[1] <= 0.06:
-                logger.info(f"{category}: {corr[0]:.3f}")
+                logger.info(f"{category}: {corr[0]:.3f} ({corr[1]:.3f})")
 
     if not os.path.exists(gold1_file):
         raise SystemExit("No gold file for subtask 1 found!")
