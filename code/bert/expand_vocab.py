@@ -1,4 +1,5 @@
 import argparse
+import json
 import os
 from transformers import BertTokenizer, BertForMaskedLM
 
@@ -18,15 +19,22 @@ if __name__ == '__main__':
 
     # Load targets
     form2target = {}
-    with open(args.targets_path, 'r', encoding='utf-8') as f_in:
-        for line in f_in.readlines():
-            line = line.strip()
-            entries = line.split(',')
-            target, forms = entries[0], entries[1:]
-            for form in forms:
-                if args.do_lower_case:
-                    form = form.lower()
-                form2target[form] = target
+    if args.targets_path.endswith('.json'):
+        with open(args.targets_path, 'r', encoding='utf-8') as f_in:
+            for line in f_in.readlines():
+                line = line.strip()
+                entries = line.split(',')
+                target, forms = entries[0], entries[1:]
+                for form in forms:
+                    if args.do_lower_case:
+                        form = form.lower()
+                    form2target[form] = target
+    else:
+        if args.all_target_forms:
+            raise NotImplementedError()
+        with open(args.targets_path, 'r', encoding='utf-8') as f_in:
+            form2target = {w: w for w in json.load(f_in) if type(w) == str}
+
 
     if args.all_target_forms:
         targets = list(form2target.keys())  # list of word forms contains the target lemma

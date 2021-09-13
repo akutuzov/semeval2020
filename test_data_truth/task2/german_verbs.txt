@@ -1,0 +1,14 @@
+abbauen	0.7401151347
+abdecken	0.6068844591
+artikulieren	0.6157433577
+aufrechterhalten	0.0361091146
+ausspannen	0.7066899149
+beimischen	0.3073585686
+packen	0.4622525393
+überspannen	0.2520655248
+verbauen	0.5781250765
+vergönnen	0.0711968986
+voranstellen	0.1241915484
+vorliegen	0.1902660258
+vorweisen	0.1268370977
+zersetzen	0.5058797106
