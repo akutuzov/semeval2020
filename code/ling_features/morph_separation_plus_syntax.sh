@@ -6,7 +6,8 @@ echo
 echo ${LANG}
 
 distance=cos
-aggregate=avg
+aggregate=max
+
 
 echo averaging
 
