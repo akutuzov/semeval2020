@@ -378,8 +378,13 @@ def main():
     with open(data_args.targets_file, 'r', encoding='utf-8') as f_in:
         for line in f_in.readlines():
             line = line.strip()
-            line = line.split('\t')
-            targets.append(line[0])
+            forms = line.split(',')
+            if len(forms) > 1:
+                for form in forms:
+                    targets.append(form)
+            else:
+                line = line.split('\t')
+                targets.append(line[0])
     logger.warning(f"Target words: {len(targets)}.")
 
     n_added_tokens = 0
