@@ -103,8 +103,6 @@ class ContextsDataset(torch.utils.data.Dataset):
         self.data = []
         self.tokenizer = tokenizer
         self.context_size = context_size
-        self.CLS_id = tokenizer.encode('[CLS]', add_special_tokens=False)[0]
-        self.SEP_id = tokenizer.encode('[SEP]', add_special_tokens=False)[0]
 
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
@@ -113,7 +111,7 @@ class ContextsDataset(torch.utils.data.Dataset):
                 for spos, tok_id in enumerate(token_ids):
                     if tok_id in targets_i2w:
                         context_ids, pos_in_context = get_context(token_ids, spos, context_size)
-                        input_ids = [tokenizer.bos_token] + context_ids + [tokenizer.sep_token]
+                        input_ids = [tokenizer.bos_token_id] + context_ids + [tokenizer.sep_token_id]
                         self.data.append((input_ids, targets_i2w[tok_id], pos_in_context))
 
     def __len__(self):
