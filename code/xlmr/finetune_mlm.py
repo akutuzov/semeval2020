@@ -388,7 +388,7 @@ def main():
     logger.warning(f"Target words: {len(targets)}.")
 
     n_added_tokens = 0
-    for w in targets:
+    for w in sorted(targets, reverse=True):
         if w not in tokenizer.get_vocab() and w not in tokenizer.get_added_vocab():
             n_added_tokens += tokenizer.add_tokens(w)
 
