@@ -170,7 +170,7 @@ def main():
         help='The dimensionality of a Transformer layer (hence the dimensionality of the output embeddings).'
     )
     parser.add_argument(
-        '--args.localRank', type=int, default=-1,
+        '--local_rank', type=int, default=-1,
         help='For distributed training (default: -1).'
     )
 
@@ -181,12 +181,12 @@ def main():
     start_time = time.time()
 
     # Setup CUDA, GPU & distributed training
-    if args.localRank == -1:
+    if args.local_rank == -1:
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         n_gpu = torch.cuda.device_count()
     else:  # Initializes the distributed backend which will take care of sychronizing nodes/GPUs
-        torch.cuda.set_device(args.localRank)
-        device = torch.device("cuda", args.localRank)
+        torch.cuda.set_device(args.local_rank)
+        device = torch.device("cuda", args.local_rank)
         torch.distributed.init_process_group(backend="nccl")
         n_gpu = 1
 
@@ -194,14 +194,14 @@ def main():
     logging.basicConfig(
         format="%(asctime)s - %(levelname)s - %(name)s -   %(message)s",
         datefmt="%m/%d/%Y %H:%M:%S",
-        level=logging.INFO if args.localRank in [-1, 0] else logging.WARN,
+        level=logging.INFO if args.local_rank in [-1, 0] else logging.WARN,
     )
     logger.warning(
         "Process rank: %s, device: %s, n_gpu: %s, distributed training: %s",
-        args.localRank,
+        args.local_rank,
         device,
         n_gpu,
-        bool(args.localRank != -1)
+        bool(args.local_rank != -1)
     )
 
     # Set seeds across modules
@@ -222,14 +222,14 @@ def main():
     logger.warning(f"Target words: {len(targets)}.")
 
     # Load pretrained model and tokenizer
-    if args.localRank not in [-1, 0]:
+    if args.local_rank not in [-1, 0]:
         torch.distributed.barrier()  # Make sure only the first process in distributed training will download model & vocab
 
     # Load model and tokenizer
     tokenizer = AutoTokenizer.from_pretrained(args.model_name_or_path, never_split=targets)
     model = AutoModelForMaskedLM.from_pretrained(args.model_name_or_path, output_hidden_states=True)
 
-    if args.localRank == 0:
+    if args.local_rank == 0:
         torch.distributed.barrier()  # Make sure only the first process in distributed training will download model & vocab
 
     model.to(device)
@@ -250,9 +250,9 @@ def main():
         model = torch.nn.DataParallel(model)
 
     # Distributed training (should be after apex fp16 initialization)
-    if args.localRank != -1:
+    if args.local_rank != -1:
         model = torch.nn.parallel.DistributedDataParallel(
-            model, device_ids=[args.localRank], output_device=args.localRank, find_unused_parameters=True
+            model, device_ids=[args.local_rank], output_device=args.local_rank, find_unused_parameters=True
         )
 
     # Get sentence iterator
@@ -284,7 +284,7 @@ def main():
     dataset = ContextsDataset(i2w, sentences, args.context_window, tokenizer, nSentences)
     sampler = SequentialSampler(dataset)
     dataloader = DataLoader(dataset, sampler=sampler, batch_size=args.batch_size)
-    iterator = tqdm(dataloader, desc="Iteration", disable=args.localRank not in [-1, 0])
+    iterator = tqdm(dataloader, desc="Iteration", disable=args.local_rank not in [-1, 0])
 
     for step, batch in enumerate(iterator):
         model.eval()
