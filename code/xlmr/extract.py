@@ -159,10 +159,10 @@ def main():
         '--batch_size', type=int, default=64,
         help='The number of sentences processed at once by the LM.'
     )
-    parser.add_argument(
-        '--n_layers', type=int, default=12,
-        help='The number of layers of the Transformer model.'
-    )
+    # parser.add_argument(
+    #     '--n_layers', type=int, default=12,
+    #     help='The number of layers of the Transformer model.'
+    # )
     parser.add_argument(
         '--n_dims', type=int, default=768,
         help='The dimensionality of a Transformer layer (hence the dimensionality of the output embeddings).'
@@ -271,7 +271,7 @@ def main():
 
     # Container for usages
     usages = {
-        i2w[target]: np.empty((target_count, args.n_layers * args.n_dims))  # usage matrix
+        i2w[target]: np.empty((target_count, args.n_dims))  # usage matrix
         for (target, target_count) in target_counter.items()
     }
 
@@ -303,16 +303,15 @@ def main():
             outputs = model(batch_input_ids)
 
             if torch.cuda.is_available():
-                hidden_states = [l.detach().cpu().clone().numpy() for l in outputs.hidden_states]
+                last_layer = outputs.hidden_states[-1].detach().cpu().clone().numpy()
             else:
-                hidden_states = [l.clone().numpy() for l in outputs.hidden_states]
+                last_layer = outputs.hidden_states[-1].clone().numpy()
 
             # store usage tuples in a dictionary: lemma -> (vector, position)
             for b_id in np.arange(len(batch_input_ids)):
                 lemma = batch_lemmas[b_id]
 
-                layers = [layer[b_id, batch_spos[b_id] + 1, :] for layer in hidden_states]
-                usage_vector = np.concatenate(layers)
+                usage_vector = last_layer[b_id, batch_spos[b_id] + 1, :]
                 usages[lemma][curr_idx[lemma], :] = usage_vector
 
                 curr_idx[lemma] += 1
