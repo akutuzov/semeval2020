@@ -19,7 +19,7 @@ if __name__ == '__main__':
         with open(os.path.join(args.dir_path, file), 'r') as f:
             for line in f:
                 line = line.strip()
-                entries = line.split(', ')
+                entries = line.split(',')
                 target, forms = entries[0], entries[1:]
 
                 for form in forms:
