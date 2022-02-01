@@ -255,16 +255,13 @@ def main():
     # Get sentence iterator
     sentences = PathLineSentences(args.corpus_path)
 
-    with warnings.catch_warnings():
-        warnings.resetwarnings()
-        warnings.simplefilter("always")
-        nSentences = 0
-        target_counter = {target: 0 for target in i2w}
-        for sentence in sentences:
-            nSentences += 1
-            for tok_id in tokenizer.encode(' '.join(sentence), add_special_tokens=False):
-                if tok_id in target_counter:
-                    target_counter[tok_id] += 1
+    nSentences = 0
+    target_counter = {target: 0 for target in i2w}
+    for sentence in sentences:
+        nSentences += 1
+        for tok_id in tokenizer.encode(' '.join(sentence), add_special_tokens=False):
+            if tok_id in target_counter:
+                target_counter[tok_id] += 1
 
     logger.warning('usages: %d' % (sum(list(target_counter.values()))))
 
@@ -302,15 +299,16 @@ def main():
             outputs = model(batch_input_ids)
 
             if torch.cuda.is_available():
-                last_layer = outputs.hidden_states[-1].detach().cpu().clone().numpy()
+                hidden_states = [l.detach().cpu().clone().numpy() for l in outputs.hidden_states]
             else:
-                last_layer = outputs.hidden_states[-1].clone().numpy()
+                hidden_states = [l.clone().numpy() for l in outputs.hidden_states]
 
             # store usage tuples in a dictionary: lemma -> (vector, position)
             for b_id in np.arange(len(batch_input_ids)):
                 lemma = batch_lemmas[b_id]
 
-                usage_vector = last_layer[b_id, batch_spos[b_id] + 1, :]
+                layers = [layer[b_id, batch_spos[b_id] + 1, :] for layer in hidden_states]
+                usage_vector = np.mean(layers, axis=0)
                 usages[lemma][curr_idx[lemma], :] = usage_vector
 
                 curr_idx[lemma] += 1
