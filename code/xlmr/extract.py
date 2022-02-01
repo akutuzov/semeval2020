@@ -238,7 +238,7 @@ def main():
     i2w = {}
     for t, t_id in zip(targets, targets_ids):
         if len(t_id) > 1 or (len(t_id) == 1 and t_id == tokenizer.unk_token_id):
-            logger.error('Word not properly added to tokenizer:', t, tokenizer.tokenize(t))
+            logger.info('Word not properly added to tokenizer: {} {}'.format(t, tokenizer.tokenize(t)))
         else:
             i2w[t_id[0]] = t
 
