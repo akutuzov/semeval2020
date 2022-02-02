@@ -64,4 +64,4 @@ if __name__ == "__main__":
                 f.write(f"{lemma},{','.join(sorted(forms[lemma]))}\n")
     else:
         for lemma in sorted(forms.keys()):
-            print(f"{lemma},{','.join(sorted(forms[lemma]))}\n")
+            print(f"{lemma},{','.join(sorted(forms[lemma]))}")
