@@ -28,7 +28,7 @@ import sys
 from dataclasses import dataclass, field
 from itertools import chain
 from typing import Optional
-
+from smart_open import open
 import datasets
 from datasets import load_dataset
 
@@ -198,15 +198,15 @@ class DataTrainingArguments:
         else:
             if self.train_file is not None:
                 extension = self.train_file.split(".")[-1]
-                if extension not in ["csv", "json", "txt"]:
+                if extension not in ["csv", "json", "txt", "gz"]:
                     raise ValueError("`train_file` should be a csv, a json or a txt file.")
             if self.validation_file is not None:
                 extension = self.validation_file.split(".")[-1]
-                if extension not in ["csv", "json", "txt"]:
+                if extension not in ["csv", "json", "txt", "gz"]:
                     raise ValueError("`validation_file` should be a csv, a json or a txt file.")
         if self.targets_file is not None:
             extension = self.targets_file.split(".")[-1]
-            if extension not in ["csv", "json", "txt"]:
+            if extension not in ["csv", "json", "txt", "gz"]:
                 raise ValueError("`targets_file` should be a csv, a json or a txt file.")
 
 
@@ -298,7 +298,7 @@ def main():
         if data_args.validation_file is not None:
             data_files["validation"] = data_args.validation_file
             extension = data_args.validation_file.split(".")[-1]
-        if extension == "txt":
+        if extension == "txt" or extension == "gz":
             extension = "text"
         raw_datasets = load_dataset(extension, data_files=data_files, cache_dir=model_args.cache_dir)
 
