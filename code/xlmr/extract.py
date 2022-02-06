@@ -1,6 +1,8 @@
 import argparse
 import os
 import warnings
+from collections import defaultdict
+
 import torch
 import time
 import logging
@@ -206,26 +208,32 @@ def main():
     set_seed(42, n_gpu)
 
     # Load targets
-    targets = []
+    targets = defaultdict(list)
     with open(args.targets_path, 'r', encoding='utf-8') as f_in:
         for line in f_in.readlines():
             line = line.strip()
             forms = line.split(',')
             if len(forms) > 1:
                 for form in forms:
-                    targets.append(form)
+                    if form not in targets[forms[0]]:
+                        targets[forms[0]].append(form)
             else:
                 line = line.split('\t')
-                targets.append(line[0])
-    logger.warning(f"Target words: {len(targets)}.")
+                targets[line[0]].append(line[0])
+                
+    n_target_forms = sum([len(vals) for vals in targets.values()])
+    logger.warning(f"Target lemmas: {len(targets)}.")
+    logger.warning(f"Target word forms: {n_target_forms}.")
 
     # Load pretrained model and tokenizer
     if args.local_rank not in [-1, 0]:
         torch.distributed.barrier()  # Make sure only the first process in distributed training will download model & vocab
 
     # Load model and tokenizer
-    tokenizer = AutoTokenizer.from_pretrained(args.model_name_or_path, never_split=targets)
+    tokenizer = AutoTokenizer.from_pretrained(args.model_name_or_path) #, never_split=targets)
     model = AutoModelForMaskedLM.from_pretrained(args.model_name_or_path, output_hidden_states=True)
+
+    logger.warning(tokenizer.get_added_vocab())
 
     if args.local_rank == 0:
         torch.distributed.barrier()  # Make sure only the first process in distributed training will download model & vocab
@@ -233,14 +241,26 @@ def main():
     model.to(device)
 
     # Store vocabulary indices of target words
-    targets_ids = [tokenizer.encode(t, add_special_tokens=False) for t in targets]
-    assert len(targets) == len(targets_ids)
-    i2w = {}
-    for t, t_id in zip(targets, targets_ids):
-        if len(t_id) > 1 or (len(t_id) == 1 and t_id == tokenizer.unk_token_id):
-            logger.info('Word not properly added to tokenizer: {} {}'.format(t, tokenizer.tokenize(t)))
-        else:
-            i2w[t_id[0]] = t
+    targets_ids = defaultdict(lambda: dict())
+    for lemma in targets:
+        for form in targets[lemma]:
+            targets_ids[lemma][form] = tokenizer.encode(form, add_special_tokens=False)
+            
+    assert n_target_forms == sum([len(vals) for vals in targets_ids.values()])
+    id2lemma = {}
+    lemma2ids = defaultdict(list)
+    oov2id = defaultdict(lambda: dict())
+    for lemma, forms2ids in targets_ids.items():
+        for form, form_id in forms2ids.items():
+            if len(form_id) == 2 and form_id[0] == 6:
+                id2lemma[form_id[1]] = lemma
+                lemma2ids[lemma].append(form_id[1])
+            elif len(form_id) > 1 or (len(form_id) == 1 and form_id[0] == tokenizer.unk_token_id):
+                logger.warning('Word form not properly added to tokenizer: {} {} {}'.format(lemma, form, tokenizer.tokenize(form)))
+                oov2id[lemma][form] = form_id
+            else:
+                id2lemma[form_id[0]] = lemma
+                lemma2ids[lemma].append(form_id[0])
 
     # multi-gpu training (should be after apex fp16 initialization)
     if n_gpu > 1:
@@ -256,26 +276,39 @@ def main():
     sentences = PathLineSentences(args.corpus_path)
 
     nSentences = 0
-    target_counter = {target: 0 for target in i2w}
+    target_counter = {target: 0 for target in lemma2ids}
+    oov_counter = defaultdict(int)
     for sentence in sentences:
         nSentences += 1
+        for lemma in oov2id:
+            for form, oov_ids in oov2id[lemma].items():
+                occurreces_in_sentence = sum(1 for i in range(len(sentence)) if sentence[i:i + len(oov_ids)] == oov_ids)
+                oov_counter[lemma] += occurreces_in_sentence
+                
         for tok_id in tokenizer.encode(' '.join(sentence), add_special_tokens=False):
-            if tok_id in target_counter:
-                target_counter[tok_id] += 1
+            if tok_id in id2lemma:
+                target_counter[id2lemma[tok_id]] += 1
 
     logger.warning('usages: %d' % (sum(list(target_counter.values()))))
+    logger.warning('Usages skipped for tokenisation issues.')
+    for lemma in oov_counter:
+        if oov_counter[lemma] == 0 or target_counter[lemma2ids[lemma]] == 0:
+            logger.warning(f'{lemma}\tno occurrences')
+        else:
+            logger.warning(f'{lemma}\t{oov_counter[lemma]} skipped, {target_counter[lemma2ids[lemma]]} retained, '
+                           f'{oov_counter[lemma] / (oov_counter[lemma] + target_counter[lemma2ids[lemma]]) * 100}.')
 
     # Container for usages
     usages = {
-        i2w[target]: np.empty((target_count, args.n_dims))  # usage matrix
+        target: np.empty((target_count, args.n_dims))  # usage matrix
         for (target, target_count) in target_counter.items()
     }
 
     # Iterate over sentences and collect representations
     nUsages = 0
-    curr_idx = {i2w[target]: 0 for target in target_counter}
+    curr_idx = {target: 0 for target in target_counter}
 
-    dataset = ContextsDataset(i2w, sentences, args.context_window, tokenizer, nSentences)
+    dataset = ContextsDataset(id2lemma, sentences, args.context_window, tokenizer, nSentences)
     sampler = SequentialSampler(dataset)
     dataloader = DataLoader(dataset, sampler=sampler, batch_size=args.batch_size)
     iterator = tqdm(dataloader, desc="Iteration", disable=args.local_rank not in [-1, 0])
@@ -305,7 +338,8 @@ def main():
 
             # store usage tuples in a dictionary: lemma -> (vector, position)
             for b_id in np.arange(len(batch_input_ids)):
-                lemma = batch_lemmas[b_id]
+                form_id = batch_lemmas[b_id]
+                lemma = id2lemma[form_id]
 
                 layers = [layer[b_id, batch_spos[b_id] + 1, :] for layer in hidden_states]
                 usage_vector = np.mean(layers, axis=0)
@@ -323,3 +357,4 @@ def main():
 
 if __name__ == '__main__':
     main()
+
