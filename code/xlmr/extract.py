@@ -281,9 +281,9 @@ def main():
     for sentence in sentences:
         nSentences += 1
         for lemma in oov2id:
-            for form, oov_ids in oov2id[lemma].items():
-                occurreces_in_sentence = sum(1 for i in range(len(sentence)) if sentence[i:i + len(oov_ids)] == oov_ids)
-                oov_counter[lemma] += occurreces_in_sentence
+            for form in oov2id[lemma]:
+                occurrences_in_sentence = sum(1 for w in sentence if w == form)
+                oov_counter[lemma] += occurrences_in_sentence
                 
         for tok_id in tokenizer.encode(' '.join(sentence), add_special_tokens=False):
             if tok_id in id2lemma:
@@ -292,11 +292,13 @@ def main():
     logger.warning('usages: %d' % (sum(list(target_counter.values()))))
     logger.warning('Usages skipped for tokenisation issues.')
     for lemma in oov_counter:
-        if oov_counter[lemma] == 0 or target_counter[lemma2ids[lemma]] == 0:
+        if oov_counter[lemma] == 0:  # or target_counter[lemma2ids[lemma]] == 0:
             logger.warning(f'{lemma}\tno occurrences')
         else:
-            logger.warning(f'{lemma}\t{oov_counter[lemma]} skipped, {target_counter[lemma2ids[lemma]]} retained, '
-                           f'{oov_counter[lemma] / (oov_counter[lemma] + target_counter[lemma2ids[lemma]]) * 100}.')
+            log_string = f'- {lemma}: {oov_counter[lemma]} skipped, {target_counter[lemma]} retained.'
+            if target_counter[lemma] > 0:
+                log_string += f' {oov_counter[lemma] / (oov_counter[lemma] + target_counter[lemma]) * 100}%.'
+                logger.warning(log_string)
 
     # Container for usages
     usages = {
@@ -356,4 +358,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-
