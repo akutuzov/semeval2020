@@ -338,8 +338,7 @@ def main():
 
             # store usage tuples in a dictionary: lemma -> (vector, position)
             for b_id in np.arange(len(batch_input_ids)):
-                form_id = batch_lemmas[b_id]
-                lemma = id2lemma[form_id]
+                lemma = batch_lemmas[b_id]
 
                 layers = [layer[b_id, batch_spos[b_id] + 1, :] for layer in hidden_states]
                 usage_vector = np.mean(layers, axis=0)
