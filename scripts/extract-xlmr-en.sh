@@ -11,7 +11,7 @@ source ~/.bash_profile
 export HF_DATASETS_CACHE="/project/dmg_data/lsc/.cache/"
 
 language=english
-context=64
+context=256
 bsz=4
 
 python3 -m torch.distributed.launch --nproc_per_node=1 --nnodes=1 --node_rank=0  \
