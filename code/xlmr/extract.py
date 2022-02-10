@@ -2,7 +2,7 @@ import argparse
 import os
 import warnings
 from collections import defaultdict
-
+from smart_open import open
 import torch
 import time
 import logging
