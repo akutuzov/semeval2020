@@ -256,7 +256,12 @@ def main():
                 id2lemma[form_id[1]] = lemma
                 lemma2ids[lemma].append(form_id[1])
             elif len(form_id) > 1 or (len(form_id) == 1 and form_id[0] == tokenizer.unk_token_id):
-                logger.warning('Word form not properly added to tokenizer: {} {} {}'.format(lemma, form, tokenizer.tokenize(form)))
+                logger.warning('Word form not properly added to tokenizer: '
+                               'Lemma: {}\tForm: {}\tTokenized: {}'.format(lemma, form, tokenizer.tokenize(form)))
+                oov2id[lemma][form] = form_id
+            elif len(form_id) == 0:
+                logger.warning(
+                    'Empty string? Lemma: {}\tForm:"{}"\tTokenized: "{}"'.format(lemma, form, tokenizer.tokenize(form)))
                 oov2id[lemma][form] = form_id
             else:
                 id2lemma[form_id[0]] = lemma
