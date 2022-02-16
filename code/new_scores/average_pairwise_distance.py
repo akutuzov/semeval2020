@@ -55,6 +55,9 @@ def main():
     #     help='The distance metric, which must be compatible with `scipy.spatial.distance.cdist`')
     arg('-f', action='store_true', help='Output frequencies?')
     arg('--min_freq', type=int, default=3)
+    arg('--max_samples', type=int, default=20000,
+        help='Maximum number of embeddings, for time period, to use for APD calculation. '
+             'If more embeddings are available, `max_samples` embeddings will be randomly sampled.')
 
     args = parser.parse_args()
     data_path0 = args.input0
@@ -83,6 +86,18 @@ def main():
             else:
                 print('\t'.join([target, '1']), file=f_out)
             continue
+
+        if array0[target].shape[0] > args.max_samples:
+            prev = array0[target].shape[0]
+            rand_indices = np.random.choice(prev, args.max_samples, replace=False)
+            array0[target] = array0[target][rand_indices]
+            logger.info('Choosing {} random usages from {} for {} in T0'.format(args.max_samples, prev, target))
+
+        if array1[target].shape[0] > args.max_samples:
+            prev = array1[target].shape[0]
+            rand_indices = np.random.choice(prev, args.max_samples, replace=False)
+            array1[target] = array1[target][rand_indices]
+            logger.info('Choosing {} random usages from {} for {} in T1'.format(args.max_samples, prev, target))
 
         distance = mean_pairwise_distance(array0[target], array1[target], 'cosine')
         if args.f:
