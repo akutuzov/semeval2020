@@ -44,11 +44,11 @@ if __name__ == '__main__':
     continuous_scores = load_scores(args.input)
     logger.info('Loaded an array of {0} entries from {1}'.format(len(continuous_scores), args.input))
 
-    logger.info(continuous_scores)
+    logger.debug(continuous_scores)
 
     with open(f"{args.output}", "w") as f:
         values = sorted(continuous_scores, key=continuous_scores.get, reverse=True)
-        logger.info(values)
+        logger.debug(values)
         if args.changepoint == "automatic":
             threshold = detect_change_point([continuous_scores[el] for el in values]) + 1
         elif args.changepoint == "half":

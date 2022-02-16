@@ -4,8 +4,9 @@
 #SBATCH --account=ec30
 #SBATCH --partition=accel    # To use the accelerator nodes
 #SBATCH --gpus=1         # To specify how many GPUs to use
-#SBATCH --time=20:00:00      # Max walltime is 150 hours.
-#SBATCH --mem-per-cpu=8G
+#SBATCH --time=30:00:00      # Max walltime is 150 hours.
+#SBATCH --mem-per-cpu=16G
+#SBATCH --cpus-per-task=6
 
 # Definining resource we want to allocate.
 #SBATCH --nodes=1
