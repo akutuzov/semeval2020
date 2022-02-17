@@ -73,12 +73,24 @@ class PathLineSentences(object):
 
 
 def get_context(tokenizer, token_ids, target_position, sequence_length):
-    target_len = target_position[1] - target_position[0]
-    window_size = int((sequence_length - 4) / 2)
+    """
+        Given a text containing a target word, return the sentence snippet which surrounds the target word
+        (and the target word's position in the snippet).
 
-    # if target_len == 1:
-    #     window_size_left = window_size
-    #     window_size_right = window_size
+        :param tokenizer: a Huggingface tokenizer
+        :param token_ids: list of token ids for the entire context sentence
+        :param target_position: tuple with the target word's start and end position in `token_ids`,
+                                such that token_ids[target_position[0]:target_position[1]] = target_word_ids
+        :param sequence_length: desired length for output sequence (e.g., 128, 256, 512)
+        :return: (context_ids, new_target_position)
+                    context_ids: list of token ids in the target word's context window
+                    new_target_position: tuple with the target word's start and end position in `context_ids`
+    """
+
+    # -2 as [CLS] and [SEP] tokens will be added later; /2 as it's a one-sided window
+    window_size = int((sequence_length - 4) / 2)
+    target_len = target_position[1] - target_position[0]
+
     if target_len % 2 == 0:
         window_size_left = int(window_size - target_len / 2) + 1
         window_size_right = int(window_size - target_len / 2)
