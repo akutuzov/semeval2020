@@ -195,7 +195,7 @@ def main():
     """
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        '--model_name_or_path', type=str, required=True, 
+        '--model_name_or_path', type=str, required=True,
         help='path to model directory or model name (e.g., xlm-roberta-base)'
     )
     parser.add_argument(
@@ -233,7 +233,7 @@ def main():
     )
 
     args = parser.parse_args()
-    
+
     logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s')
     logging.info(__file__.upper())
     start_time = time.time()
@@ -278,7 +278,7 @@ def main():
             else:
                 line = line.split('\t')
                 targets[line[0]].append(line[0])
-                
+
     n_target_forms = sum([len(vals) for vals in targets.values()])
     logger.warning(f"Target lemmas: {len(targets)}.")
     logger.warning(f"Target word forms: {n_target_forms}.")
@@ -303,7 +303,7 @@ def main():
     for lemma in targets:
         for form in targets[lemma]:
             targets_ids[lemma][form] = tokenizer.encode(form, add_special_tokens=False)
-            
+
     assert n_target_forms == sum([len(vals) for vals in targets_ids.values()])
 
     ids2lemma = {}  # maps all forms' token ids to their corresponding lemma
@@ -409,7 +409,8 @@ def main():
 
         with torch.no_grad():
             if torch.cuda.is_available():
-                batch_input_ids = batch_input_ids.to('cuda')
+                batch_input_ids['input_ids'] = batch_input_ids['input_ids'].to('cuda')
+                batch_input_ids['attention_mask'] = batch_input_ids['attention_mask'].to('cuda')
 
             outputs = model(**batch_input_ids)
 
