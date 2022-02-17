@@ -72,56 +72,102 @@ class PathLineSentences(object):
                         i += self.max_sentence_length
 
 
-def get_context(token_ids, target_position, sequence_length):
-    """
-    Given a text containing a target word, return the sentence snippet which surrounds the target word
-    (and the target word's position in the snippet).
+def get_context(tokenizer, token_ids, target_position, sequence_length):
+    target_len = target_position[1] - target_position[0]
+    window_size = int((sequence_length - 4) / 2)
 
-    :param token_ids: list of token ids (for an entire line of text)
-    :param target_position: index of the target word's position in `tokens`
-    :param sequence_length: desired length for output sequence (e.g. 128, 256, 512)
-    :return: (context_ids, new_target_position)
-                context_ids: list of token ids for the output sequence
-                new_target_position: index of the target word's position in `context_ids`
-    """
-    # -2 as [CLS] and [SEP] tokens will be added later; /2 as it's a one-sided window
-    window_size = int((sequence_length - 2) / 2)
-    context_start = max([0, target_position - window_size])
-    padding_offset = max([0, window_size - target_position])
-    padding_offset += max([0, target_position + window_size - len(token_ids)])
+    # if target_len == 1:
+    #     window_size_left = window_size
+    #     window_size_right = window_size
+    if target_len % 2 == 0:
+        window_size_left = int(window_size - target_len / 2) + 1
+        window_size_right = int(window_size - target_len / 2)
+    else:
+        window_size_left = int(window_size - target_len // 2)
+        window_size_right = int(window_size - target_len // 2)
 
-    context_ids = token_ids[context_start:target_position + window_size]
-    context_ids += padding_offset * [0]
+    # determine where context starts and if there are any unused context positions to the left
+    if target_position[0] - window_size_left >= 0:
+        start = target_position[0] - window_size_left
+        extra_left = 0
+    else:
+        start = 0
+        extra_left = window_size_left - target_position[0]
 
-    new_target_position = target_position - context_start
+    # determine where context ends and if there are any unused context positions to the right
+    if target_position[1] + window_size_right + 1 <= len(token_ids):
+        end = target_position[1] + window_size_right + 1
+        extra_right = 0
+    else:
+        end = len(token_ids)
+        extra_right = target_position[1] + window_size_right + 1 - len(token_ids)
 
-    return context_ids, new_target_position
+    # redistribute to the left the unused right context positions
+    if extra_right > 0 and extra_left == 0:
+        if start - extra_right >= 0:
+            padding = 0
+            start -= extra_right
+        else:
+            padding = extra_right - start
+            start = 0
+    # redistribute to the right the unused left context positions
+    elif extra_left > 0 and extra_right == 0:
+        if end + extra_left <= len(token_ids):
+            padding = 0
+            end += extra_left
+        else:
+            padding = end + extra_left - len(token_ids)
+            end = len(token_ids)
+    else:
+        padding = extra_left + extra_right
+
+    context_ids = token_ids[start:end]
+    context_ids = [tokenizer.cls_token_id] + context_ids + [tokenizer.sep_token_id]
+    item = {'input_ids': context_ids + padding * [tokenizer.pad_token_id],
+            'attention_mask': len(context_ids) * [1] + padding * [0]}
+
+    new_target_position = (target_position[0] - start + 1, target_position[1] - start + 1)
+
+    return item, new_target_position
 
 
 class ContextsDataset(torch.utils.data.Dataset):
 
-    def __init__(self, targets_i2w, sentences, context_size, tokenizer, n_sentences=None):
+    def __init__(self, targets_i2w, sentences, context_size, tokenizer, len_longest_tokenized=10, n_sentences=None):
         super(ContextsDataset).__init__()
         self.data = []
         self.tokenizer = tokenizer
         self.context_size = context_size
 
         with warnings.catch_warnings():
-            warnings.simplefilter("ignore")
             for sentence in tqdm(sentences, total=n_sentences):
-                token_ids = tokenizer.encode(' '.join(sentence), add_special_tokens=False)
-                for spos, tok_id in enumerate(token_ids):
-                    if tok_id in targets_i2w:
-                        context_ids, pos_in_context = get_context(token_ids, spos, context_size)
-                        input_ids = [tokenizer.bos_token_id] + context_ids + [tokenizer.sep_token_id]
-                        self.data.append((input_ids, targets_i2w[tok_id], pos_in_context))
+                sentence_token_ids_full = tokenizer.encode(' '.join(sentence), add_special_tokens=False)
+                sentence_token_ids = list(sentence_token_ids_full)
+                while sentence_token_ids:
+                    candidate_ids_found = False
+                    for length in list(range(1, len_longest_tokenized + 1))[::-1]:
+                        candidate_ids = tuple(sentence_token_ids[-length:])
+                        if candidate_ids in targets_i2w:
+                            sent_position = (len(sentence_token_ids) - length, len(sentence_token_ids))
+
+                            context_ids, pos_in_context = get_context(
+                                tokenizer, sentence_token_ids_full, sent_position, context_size)
+                            self.data.append((context_ids, targets_i2w[candidate_ids], pos_in_context))
+
+                            sentence_token_ids = sentence_token_ids[:-length]
+                            candidate_ids_found = True
+                            break
+                    if not candidate_ids_found:
+                        sentence_token_ids = sentence_token_ids[:-1]
 
     def __len__(self):
         return len(self.data)
 
     def __getitem__(self, index):
-        input_ids, lemma, pos_in_context = self.data[index]
-        return torch.tensor(input_ids), lemma, pos_in_context
+        model_input, lemma, pos_in_context = self.data[index]
+        model_input = {'input_ids': torch.tensor(model_input['input_ids'], dtype=torch.long).unsqueeze(0),
+                       'attention_mask': torch.tensor(model_input['attention_mask'], dtype=torch.long).unsqueeze(0)}
+        return model_input, lemma, pos_in_context
 
 
 def set_seed(seed, n_gpus):
@@ -233,7 +279,7 @@ def main():
     tokenizer = AutoTokenizer.from_pretrained(args.model_name_or_path) #, never_split=targets)
     model = AutoModelForMaskedLM.from_pretrained(args.model_name_or_path, output_hidden_states=True)
 
-    logger.warning(tokenizer.get_added_vocab())
+    logger.warning(f"Tokenizer's added tokens:\n{tokenizer.get_added_vocab()}")
 
     if args.local_rank == 0:
         torch.distributed.barrier()  # Make sure only the first process in distributed training will download model & vocab
@@ -247,25 +293,36 @@ def main():
             targets_ids[lemma][form] = tokenizer.encode(form, add_special_tokens=False)
             
     assert n_target_forms == sum([len(vals) for vals in targets_ids.values()])
-    id2lemma = {}
-    lemma2ids = defaultdict(list)
-    oov2id = defaultdict(lambda: dict())
+
+    ids2lemma = {}  # maps all forms' token ids to their corresponding lemma
+    lemma2ids = defaultdict(list)  # maps every lemma to a list of token ids corresponding to all word forms
+    len_longest_tokenized = 0
+
     for lemma, forms2ids in targets_ids.items():
         for form, form_id in forms2ids.items():
-            if len(form_id) == 2 and form_id[0] == 6:
-                id2lemma[form_id[1]] = lemma
-                lemma2ids[lemma].append(form_id[1])
-            elif len(form_id) > 1 or (len(form_id) == 1 and form_id[0] == tokenizer.unk_token_id):
-                logger.warning('Word form not properly added to tokenizer: '
+
+            # remove '▁' from the beginning of subtoken sequences
+            if len(form_id) > 1 and form_id[0] == 6:
+                form_id = form_id[1:]
+
+            if len(form_id) == 0:
+                logger.warning('Empty string? Lemma: {}\tForm:"{}"\tTokenized: "{}"'.format(
+                    lemma, form, tokenizer.tokenize(form)))
+                continue
+
+            if len(form_id) == 1 and form_id[0] == tokenizer.unk_token_id:
+                logger.warning('Tokenizer returns UNK for this word form. '
                                'Lemma: {}\tForm: {}\tTokenized: {}'.format(lemma, form, tokenizer.tokenize(form)))
-                oov2id[lemma][form] = form_id
-            elif len(form_id) == 0:
-                logger.warning(
-                    'Empty string? Lemma: {}\tForm:"{}"\tTokenized: "{}"'.format(lemma, form, tokenizer.tokenize(form)))
-                oov2id[lemma][form] = form_id
-            else:
-                id2lemma[form_id[0]] = lemma
-                lemma2ids[lemma].append(form_id[0])
+                continue
+
+            if len(form_id) > 1:
+                logger.warning('Word form split into subtokens. '
+                               'Lemma: {}\tForm: {}\tTokenized: {}'.format(lemma, form, tokenizer.tokenize(form)))
+
+            ids2lemma[tuple(form_id)] = lemma
+            lemma2ids[lemma].append(tuple(form_id))
+            if len(tuple(form_id)) > len_longest_tokenized:
+                len_longest_tokenized = len(tuple(form_id))
 
     # multi-gpu training (should be after apex fp16 initialization)
     if n_gpu > 1:
@@ -282,28 +339,26 @@ def main():
 
     nSentences = 0
     target_counter = {target: 0 for target in lemma2ids}
-    oov_counter = defaultdict(int)
     for sentence in sentences:
         nSentences += 1
-        for lemma in oov2id:
-            for form in oov2id[lemma]:
-                occurrences_in_sentence = sum(1 for w in sentence if w == form)
-                oov_counter[lemma] += occurrences_in_sentence
-                
-        for tok_id in tokenizer.encode(' '.join(sentence), add_special_tokens=False):
-            if tok_id in id2lemma:
-                target_counter[id2lemma[tok_id]] += 1
+        sentence_token_ids = tokenizer.encode(' '.join(sentence), add_special_tokens=False)
 
-    logger.warning('usages: %d' % (sum(list(target_counter.values()))))
-    logger.warning('Usages skipped for tokenisation issues.')
-    for lemma in oov_counter:
-        if oov_counter[lemma] == 0:  # or target_counter[lemma2ids[lemma]] == 0:
-            logger.warning(f'{lemma}\tno occurrences')
-        else:
-            log_string = f'- {lemma}: {oov_counter[lemma]} skipped, {target_counter[lemma]} retained.'
-            if target_counter[lemma] > 0:
-                log_string += f' {oov_counter[lemma] / (oov_counter[lemma] + target_counter[lemma]) * 100}%.'
-                logger.warning(log_string)
+        while sentence_token_ids:
+            candidate_ids_found = False
+            for length in list(range(1, len_longest_tokenized + 1))[::-1]:
+                candidate_ids = tuple(sentence_token_ids[-length:])
+                if candidate_ids in ids2lemma:
+                    target_counter[ids2lemma[candidate_ids]] += 1
+                    sentence_token_ids = sentence_token_ids[:-length]
+                    candidate_ids_found = True
+                    break
+            if not candidate_ids_found:
+                sentence_token_ids = sentence_token_ids[:-1]
+
+    logger.warning('Total usages: %d' % (sum(list(target_counter.values()))))
+
+    for lemma in target_counter:
+        logger.warning(f'{lemma}: {target_counter[lemma]}')
 
     # Container for usages
     usages = {
@@ -315,9 +370,17 @@ def main():
     nUsages = 0
     curr_idx = {target: 0 for target in target_counter}
 
-    dataset = ContextsDataset(id2lemma, sentences, args.context_window, tokenizer, nSentences)
+    def collate(batch):
+        return [
+            {'input_ids': torch.cat([item[0]['input_ids'] for item in batch], dim=0),
+             'attention_mask': torch.cat([item[0]['attention_mask'] for item in batch], dim=0)},
+            [item[1] for item in batch],
+            [item[2] for item in batch]
+        ]
+
+    dataset = ContextsDataset(ids2lemma, sentences, args.context_window, tokenizer, len_longest_tokenized, nSentences)
     sampler = SequentialSampler(dataset)
-    dataloader = DataLoader(dataset, sampler=sampler, batch_size=args.batch_size)
+    dataloader = DataLoader(dataset, sampler=sampler, batch_size=args.batch_size, collate_fn=collate)
     iterator = tqdm(dataloader, desc="Iteration", disable=args.local_rank not in [-1, 0])
 
     for step, batch in enumerate(iterator):
@@ -329,14 +392,14 @@ def main():
             except AttributeError:
                 batch_tuple += (t,)
 
-        batch_input_ids = batch_tuple[0].squeeze(1)
+        batch_input_ids = batch_tuple[0]
         batch_lemmas, batch_spos = batch_tuple[1], batch_tuple[2]
 
         with torch.no_grad():
             if torch.cuda.is_available():
                 batch_input_ids = batch_input_ids.to('cuda')
 
-            outputs = model(batch_input_ids)
+            outputs = model(**batch_input_ids)
 
             if torch.cuda.is_available():
                 hidden_states = [l.detach().cpu().clone().numpy() for l in outputs.hidden_states]
@@ -344,11 +407,12 @@ def main():
                 hidden_states = [l.clone().numpy() for l in outputs.hidden_states]
 
             # store usage tuples in a dictionary: lemma -> (vector, position)
-            for b_id in np.arange(len(batch_input_ids)):
+            for b_id in np.arange(len(batch_lemmas)):
                 lemma = batch_lemmas[b_id]
-
-                layers = [layer[b_id, batch_spos[b_id] + 1, :] for layer in hidden_states]
+                layers = [layer[b_id, batch_spos[b_id][0]:batch_spos[b_id][1], :] for layer in hidden_states]
                 usage_vector = np.mean(layers, axis=0)
+                if usage_vector.shape[0] > 1:
+                    usage_vector = np.mean(usage_vector, axis=0)
                 usages[lemma][curr_idx[lemma], :] = usage_vector
 
                 curr_idx[lemma] += 1
@@ -357,7 +421,7 @@ def main():
     iterator.close()
     np.savez_compressed(args.output_path, **usages)
 
-    logger.warning('usages: %d' % (nUsages))
+    logger.warning('Total embeddings: %d' % (nUsages))
     logger.warning("--- %s seconds ---" % (time.time() - start_time))
 
 
