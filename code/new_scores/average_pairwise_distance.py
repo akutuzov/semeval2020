@@ -66,10 +66,11 @@ def main():
 
     target_words = set([w.strip() for w in open(args.target, 'r', encoding='utf-8').readlines()])
 
-    array0 = np.load(data_path0)
+    # We need a dictionary to enable item assignment
+    array0 = dict(np.load(data_path0))
     logger.info('Loaded an array of {0} entries from {1}'.format(len(array0), data_path0))
 
-    array1 = np.load(data_path1)
+    array1 = dict(np.load(data_path1))
     logger.info('Loaded an array of {0} entries from {1}'.format(len(array1), data_path1))
 
     try:

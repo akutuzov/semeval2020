@@ -47,7 +47,7 @@ if __name__ == '__main__':
 
 
     continuous_scores = load_scores(args.input)
-    logger.info("Loaded an array of {len(continuous_scores)} entries from {args.input}")
+    logger.info(f"Loaded an array of {len(continuous_scores)} entries from {args.input}")
 
     logger.debug(continuous_scores)
 
