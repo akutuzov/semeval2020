@@ -1,10 +1,11 @@
+# python3
+# coding: utf-8
+
+
 import argparse
-import pickle
-import numpy as np
-from docopt import docopt
 import logging
+import numpy as np
 from scipy.spatial.distance import cdist
-from tqdm import tqdm
 
 
 # Average pairwise distance (APD) algorithm
@@ -91,13 +92,13 @@ def main():
             prev = array0[target].shape[0]
             rand_indices = np.random.choice(prev, args.max_samples, replace=False)
             array0[target] = array0[target][rand_indices]
-            logger.info('Choosing {} random usages from {} for {} in T0'.format(args.max_samples, prev, target))
+            logger.info(f"Choosing {args.max_samples} random usages from {prev} for {target} in T0")
 
         if array1[target].shape[0] > args.max_samples:
             prev = array1[target].shape[0]
             rand_indices = np.random.choice(prev, args.max_samples, replace=False)
             array1[target] = array1[target][rand_indices]
-            logger.info('Choosing {} random usages from {} for {} in T1'.format(args.max_samples, prev, target))
+            logger.info(f"Choosing {args.max_samples} random usages from {prev} for {target} in T1")
 
         distance = mean_pairwise_distance(array0[target], array1[target], 'cosine')
         if args.f:

@@ -1,3 +1,7 @@
+# python3
+# coding: utf-8
+
+
 import numpy as np
 import argparse
 import logging
@@ -21,8 +25,8 @@ if __name__ == '__main__':
         with open(path, 'r', encoding='utf-8') as f_in:
             for line in f_in.readlines():
                 line = line.strip().split('\t')
-                target, score = line[0], line[1]
-                scores[target] = float(score)
+                target_word, score = line[0], line[1]
+                scores[target_word] = float(score)
         return scores
 
     scores0 = load_scores(args.input0)

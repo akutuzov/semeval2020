@@ -1,3 +1,7 @@
+# python3
+# coding: utf-8
+
+
 import argparse
 import numpy as np
 import logging
@@ -17,7 +21,8 @@ if __name__ == '__main__':
     arg('--input', '-i', help='Path to csv/tsv file with continuous change scores', required=True)
     arg('--output', '-o', help='Output path (tsv)', required=False)
     arg('--changepoint', '-c', default='automatic', choices=['automatic', 'half', 'semeval'],
-        help='The strategy for change point detection: automatic, half list, or semeval threshold (43% of the list).')
+        help='The strategy for change point detection: automatic, half list, '
+             'or semeval threshold (43% of the list).')
 
     args = parser.parse_args()
 
@@ -42,7 +47,7 @@ if __name__ == '__main__':
 
 
     continuous_scores = load_scores(args.input)
-    logger.info('Loaded an array of {0} entries from {1}'.format(len(continuous_scores), args.input))
+    logger.info("Loaded an array of {len(continuous_scores)} entries from {args.input}")
 
     logger.debug(continuous_scores)
 
