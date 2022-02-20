@@ -166,7 +166,7 @@ def main():
         },
         'AP': {
             'damping': 0.5,
-            'max_iter': 150,
+            'max_iter': 200,
             'convergence_iter': 15,
             'preference': None,
             'affinity': 'euclidean'
