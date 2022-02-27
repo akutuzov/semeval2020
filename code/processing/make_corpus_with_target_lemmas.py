@@ -7,22 +7,7 @@ import time
 from smart_open import open
 
 
-def main(data_path=None, output_path=None, targets_path=None):
-
-    # parser = argparse.ArgumentParser(description='Get frequencies from corpus.')
-    # parser.add_argument(
-    #     '--data_path', type=str, required=True,
-    #     help='Path to corpus or corpus directory (iterates through files).'
-    # )
-    # parser.add_argument(
-    #     '--output_path', type=str, required=True,
-    #     help='Output path for result file.'
-    # )
-    # parser.add_argument(
-    #     '--targets_path', type=str, required=True,
-    #     help='Path to the csv file containing target word forms.'
-    # )
-    # args = parser.parse_args()
+def convert(data_path=None, output_path=None, targets_path=None):
 
     logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO)
     logging.info(__file__.upper())
@@ -67,27 +52,21 @@ if __name__ == '__main__':
     #              output_path='/Volumes/Disk1/SemEval/finetuning_corpora/{}/token/{}.lemma.txt.gz'.format(lang, corpus),
     #              targets_path='/Volumes/Disk1/SemEval/finetuning_corpora/{}/targets/target_forms.csv'.format(lang))
     #
+    parser = argparse.ArgumentParser(description='Get frequencies from corpus.')
+    parser.add_argument(
+         '--data_path', type=str, required=True,
+         help='Path to corpus or corpus directory (iterates through files).'
+    )
+    parser.add_argument(
+     '--output_path', type=str, required=True,
+     help='Output path for result file.'
+    )
+    parser.add_argument(
+     '--targets_path', type=str, required=True,
+     help='Path to the csv file containing target word forms.'
+    )
+    args = parser.parse_args()
 
-    main(data_path='finetuning_corpora/russian/token/all.txt.gz',
-         output_path='finetuning_corpora/russian/token/all.lemma.txt.gz',
-         targets_path='finetuning_corpora/russian/targets/target_forms.csv')
+    convert(data_path = args.data_path, output_path = args.output_path, targets_path =
+            args.targets_path )
 
-    # main(data_path='/Volumes/Disk1/SemEval/finetuning_corpora/swedish/token/all.txt.gz',
-    #      output_path='/Volumes/Disk1/SemEval/finetuning_corpora/swedish/token/all.lemma.txt.gz',
-    #      targets_path='/Volumes/Disk1/SemEval/finetuning_corpora/swedish/targets/target_forms.csv')
-
-    # main(data_path='/Volumes/Disk1/SemEval/finetuning_corpora/russian/token/corpus1.txt.gz',
-    #      output_path='/Volumes/Disk1/SemEval/finetuning_corpora/russian/token/corpus1.lemma.txt.gz',
-    #      targets_path='/Volumes/Disk1/SemEval/targets/russian/target_forms1.csv')
-
-    # main(data_path='/Volumes/Disk1/SemEval/finetuning_corpora/russian/token/corpus2.txt.gz',
-    #      output_path='/Volumes/Disk1/SemEval/finetuning_corpora/russian/token/corpus2.1.lemma.txt.gz',
-    #      targets_path='/Volumes/Disk1/SemEval/targets/russian/target_forms1.csv')
-
-    # main(data_path='/Volumes/Disk1/SemEval/finetuning_corpora/russian/token/corpus2.txt.gz',
-    #      output_path='/Volumes/Disk1/SemEval/finetuning_corpora/russian/token/corpus2.2.lemma.txt.gz',
-    #      targets_path='/Volumes/Disk1/SemEval/targets/russian/target_forms2.csv')
-
-    # main(data_path='/Volumes/Disk1/SemEval/finetuning_corpora/russian/token/corpus3.txt.gz',
-    #      output_path='/Volumes/Disk1/SemEval/finetuning_corpora/russian/token/corpus3.lemma.txt.gz',
-    #      targets_path='/Volumes/Disk1/SemEval/targets/russian/target_forms2.csv')

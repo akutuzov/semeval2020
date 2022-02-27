@@ -15,10 +15,10 @@ def smart_procrustes_align_gensim(base_embed: gensim.models.KeyedVectors,
     base_embed.init_sims()
     other_embed.init_sims()
 
-    shared_vocab = list(set(base_embed.vocab.keys()).intersection(other_embed.vocab.keys()))
+    shared_vocab = list(set(base_embed.wv.vocab.keys()).intersection(other_embed.wv.vocab.keys()))
 
-    base_idx2word = {num: word for num, word in enumerate(base_embed.index2word)}
-    other_idx2word = {num: word for num, word in enumerate(other_embed.index2word)}
+    base_idx2word = {num: word for num, word in enumerate(base_embed.wv.index2word)}
+    other_idx2word = {num: word for num, word in enumerate(other_embed.wv.index2word)}
 
     base_word2idx = {word: num for num, word in base_idx2word.items()}
     other_word2idx = {word: num for num, word in other_idx2word.items()}
@@ -26,8 +26,8 @@ def smart_procrustes_align_gensim(base_embed: gensim.models.KeyedVectors,
     base_shared_indices = [base_word2idx[word] for word in shared_vocab]
     other_shared_indices = [other_word2idx[word] for word in shared_vocab]
 
-    base_vecs = base_embed.syn0norm
-    other_vecs = other_embed.syn0norm
+    base_vecs = base_embed.wv.syn0norm
+    other_vecs = other_embed.wv.syn0norm
 
     base_shared_vecs = base_vecs[base_shared_indices]
     other_shared_vecs = other_vecs[other_shared_indices]
@@ -38,6 +38,6 @@ def smart_procrustes_align_gensim(base_embed: gensim.models.KeyedVectors,
 
     # Replace original array with modified one
     # i.e. multiplying the embedding matrix (syn0norm)by "ortho"
-    other_embed.syn0norm = other_embed.syn0 = other_embed.syn0norm.dot(ortho)
+    other_embed.wv.syn0norm = other_embed.wv.syn0 = other_embed.wv.syn0norm.dot(ortho)
 
     return other_embed
