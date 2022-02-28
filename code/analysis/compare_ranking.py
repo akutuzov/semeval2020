@@ -40,11 +40,11 @@ def rank_differences(model_answers, true_answers):
     assert len(Y_hat) == len(Y)
 
     Y_hat_ranks = {}
-    for rank, (target, y_hat) in enumerate(sorted(Y_hat.items(), key=lambda kv: kv[1])):
+    for rank, (target, y_hat) in enumerate(sorted(Y_hat.items(), key=lambda kv: kv[1], reverse=True)):
         Y_hat_ranks[target] = rank
 
     Y_ranks = {}
-    for rank, (target, y) in enumerate(sorted(Y.items(), key=lambda kv: kv[1])):
+    for rank, (target, y) in enumerate(sorted(Y.items(), key=lambda kv: kv[1], reverse=True)):
         Y_ranks[target] = rank
 
     diffs = {}
@@ -100,7 +100,7 @@ def main():
             i += 1
             i_inv -= 1
 
-        print('{:25}\t{:.2f}\t{:.2f}\t{}'.format(target, gold[target], pred[target], diff))
+        print('{:25}\t{:.2f}\t{:.3f}\t{}'.format(target, gold[target], pred[target], diff))
     print(sep_string)
 
 
