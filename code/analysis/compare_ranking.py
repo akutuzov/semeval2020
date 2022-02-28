@@ -84,14 +84,16 @@ def main():
     print(f'False positives\n{sep_string}')
 
     false_positives_all_printed = False
+    false_negatives_printed = False
 
     for target, diff in sorted(ranking_diffs.items(), key=lambda tpl: tpl[1]):
         if (i >= t_pc) and (diff not in unique_diffs) and (not false_positives_all_printed):
             print(f'{sep_string}\n')
             false_positives_all_printed = True
 
-        if i_inv == t_pc:
+        if i_inv <= t_pc and (diff not in unique_diffs) and (not false_negatives_printed):
             print(f'\nFalse negatives\n{sep_string}')
+            false_negatives_printed = True
 
         if diff not in unique_diffs:
             unique_diffs.add(diff)
