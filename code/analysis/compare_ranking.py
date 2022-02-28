@@ -75,7 +75,7 @@ def main():
 
     ranking_diffs = rank_differences(args.predictions, args.gold_ranking)
 
-    n_20pc = int(len(set(ranking_diffs.values())) * args.threshold)
+    t_pc = int(len(set(ranking_diffs.values())) * args.threshold)
     unique_diffs = set()
     i = 0
     i_inv = len(set(ranking_diffs.values()))
@@ -83,20 +83,22 @@ def main():
     sep_string = '-' * 50
     print(f'False positives\n{sep_string}')
 
-    for (target, diff) in sorted(ranking_diffs.items(), key=lambda tpl: tpl[1]):
+    false_positives_all_printed = False
+
+    for target, diff in sorted(ranking_diffs.items(), key=lambda tpl: tpl[1]):
+        if (i >= t_pc) and (diff not in unique_diffs) and (not false_positives_all_printed):
+            print(f'{sep_string}\n')
+            false_positives_all_printed = True
+
+        if i_inv == t_pc:
+            print(f'\nFalse negatives\n{sep_string}')
+
         if diff not in unique_diffs:
             unique_diffs.add(diff)
             i += 1
             i_inv -= 1
 
-        if i == n_20pc:
-            print(f'{sep_string}\n')
-
-        if i_inv == n_20pc:
-            print(f'\nFalse negatives\n{sep_string}')
-
         print('{:25}\t{:.2f}\t{:.2f}\t{}'.format(target, gold[target], pred[target], diff))
-
     print(sep_string)
 
 if __name__ == '__main__':
