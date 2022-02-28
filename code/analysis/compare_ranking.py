@@ -1,4 +1,4 @@
-from docopt import docopt
+import argparse
 
 
 def get_ys(model_answers, true_answers):
@@ -58,26 +58,46 @@ def main():
     """
     Compare rankings word by word.
     """
+    parser = argparse.ArgumentParser()
+    arg = parser.add_argument
+    arg("--predictions", "-p", required=True,
+        help='Path to tab-separated answer file for Task 2 (lemma + "\t" + corr. coeff.)')
+    arg("--gold_ranking", "-g", required=True,
+        help='Path to tab-separated gold answer file for Task 2 (lemma + "\t" + corr. coeff.)')
+    arg("--threshold", "-t", default=0.2, type=float, required=False,
+        help="Percentage of the ranking differences to consider incorrect. E.g., with default value 0.2, "
+             "the lowest 20% of the negative differences will be labelled as false positives; and the "
+             "highest 20% of the positive differences will be labelled as false negatives.")
 
-    # Get the arguments
-    args = docopt("""Compare rankings word by word.
+    args = parser.parse_args()
 
-    Usage:
-        eval.py  <modelAnsPath2> <trueAnsPath2>
+    pred, gold = get_ys(args.predictions, args.gold_ranking)
 
-    Arguments:
-        <modelAnsPath2> = path to tab-separated answer file for Task 2 (lemma + "\t" + corr. coeff.)
-        <trueAnsPath2> = path to tab-separated gold answer file for Task 2 (lemma + "\t" + corr. coeff.)
-    """)
+    ranking_diffs = rank_differences(args.predictions, args.gold_ranking)
 
-    modelAnsPath2 = args['<modelAnsPath2>']
-    trueAnsPath2 = args['<trueAnsPath2>']
+    n_20pc = int(len(set(ranking_diffs.values())) * args.threshold)
+    unique_diffs = set()
+    i = 0
+    i_inv = len(set(ranking_diffs.values()))
 
-    ranking_diffs = rank_differences(modelAnsPath2, trueAnsPath2)
+    sep_string = '-' * 50
+    print(f'False positives\n{sep_string}')
 
     for (target, diff) in sorted(ranking_diffs.items(), key=lambda tpl: tpl[1]):
-        print('{}\t{}'.format(target, diff))
+        if diff not in unique_diffs:
+            unique_diffs.add(diff)
+            i += 1
+            i_inv -= 1
 
+        if i == n_20pc:
+            print(f'{sep_string}\n')
+
+        if i_inv == n_20pc:
+            print(f'\nFalse negatives\n{sep_string}')
+
+        print('{:25}\t{:.2f}\t{:.2f}\t{}'.format(target, gold[target], pred[target], diff))
+
+    print(sep_string)
 
 if __name__ == '__main__':
     main()
