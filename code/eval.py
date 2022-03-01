@@ -80,16 +80,17 @@ def main():
     trueAnsPath1 = args['<trueAnsPath1>']
     trueAnsPath2 = args['<trueAnsPath2>']
 
+    print(f"Task\tScore\tp-value")
     if os.path.isfile(modelAnsPath1):
         acc = eval_task1(modelAnsPath1, trueAnsPath1)
-        print('Task 1 Accuracy: {:.3f}'.format(acc))
+        print(f"Task 1\t{acc:.3f}\t")
     else:
         print('Task 1 predictions not found: %s' %modelAnsPath1)
         pass
 
     if os.path.isfile(modelAnsPath2):
         r, p = eval_task2(modelAnsPath2, trueAnsPath2)
-        print('Task 2 r: {:.3f}  p: {:.3f}'.format(r, p))
+        print(f"Task 2\t{r:.3f}\t{p:.3f}")
     else:
         print('Task 2 predictions not found: %s' %modelAnsPath2)
 

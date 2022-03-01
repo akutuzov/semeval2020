@@ -1,10 +1,11 @@
+# python3
+# coding: utf-8
+
+
 import argparse
-import pickle
-import numpy as np
-from docopt import docopt
 import logging
+import numpy as np
 from scipy.spatial.distance import cdist
-from tqdm import tqdm
 
 
 # Average pairwise distance (APD) algorithm
@@ -55,6 +56,9 @@ def main():
     #     help='The distance metric, which must be compatible with `scipy.spatial.distance.cdist`')
     arg('-f', action='store_true', help='Output frequencies?')
     arg('--min_freq', type=int, default=3)
+    arg('--max_samples', type=int, default=20000,
+        help='Maximum number of embeddings, for time period, to use for APD calculation. '
+             'If more embeddings are available, `max_samples` embeddings will be randomly sampled.')
 
     args = parser.parse_args()
     data_path0 = args.input0
@@ -62,10 +66,11 @@ def main():
 
     target_words = set([w.strip() for w in open(args.target, 'r', encoding='utf-8').readlines()])
 
-    array0 = np.load(data_path0)
+    # We need a dictionary to enable item assignment
+    array0 = dict(np.load(data_path0))
     logger.info('Loaded an array of {0} entries from {1}'.format(len(array0), data_path0))
 
-    array1 = np.load(data_path1)
+    array1 = dict(np.load(data_path1))
     logger.info('Loaded an array of {0} entries from {1}'.format(len(array1), data_path1))
 
     try:
@@ -83,6 +88,18 @@ def main():
             else:
                 print('\t'.join([target, '1']), file=f_out)
             continue
+
+        if array0[target].shape[0] > args.max_samples:
+            prev = array0[target].shape[0]
+            rand_indices = np.random.choice(prev, args.max_samples, replace=False)
+            array0[target] = array0[target][rand_indices]
+            logger.info(f"Choosing {args.max_samples} random usages from {prev} for {target} in T0")
+
+        if array1[target].shape[0] > args.max_samples:
+            prev = array1[target].shape[0]
+            rand_indices = np.random.choice(prev, args.max_samples, replace=False)
+            array1[target] = array1[target][rand_indices]
+            logger.info(f"Choosing {args.max_samples} random usages from {prev} for {target} in T1")
 
         distance = mean_pairwise_distance(array0[target], array1[target], 'cosine')
         if args.f:

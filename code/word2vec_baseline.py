@@ -57,11 +57,11 @@ if __name__ == '__main__':
                 n_freq = models[0].vocab[word_n].count
                 if n_freq > a_freq:
                     word = word_n
-        if word not in models[0] or word not in models[1]:
+        if word not in models[0].wv or word not in models[1].wv:
             logger.info('%s not found!' % word)
             shift = 10.0
         else:
-            vector0 = models[0][word]
-            vector1 = models[1][word]
+            vector0 = models[0].wv[word]
+            vector1 = models[1].wv[word]
             shift = 1 / np.dot(vector0, vector1)
         print('\t'.join([word.split('_')[0], str(shift)]))

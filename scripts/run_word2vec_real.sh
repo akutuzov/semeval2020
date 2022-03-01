@@ -1,24 +1,11 @@
 #!/usr/bin/env bash
 
-shopt -s expand_aliases
-source ~/.bash_profile
-# Get data
-data=results_real
-
-gold=test_data_public
-
-declare -a methods=(${1})
-
-### TASK 2
-# Iterate over languages
-declare -a languages=(english german swedish latin)
+languages=(english german swedish latin norwegian1 norwegian2 italian russian1 russian2 russian3)
 for language in "${languages[@]}"
 do
     echo ${language}
     # Make folders
-    for method in "${methods[@]}"
-    do
-	python3 code/word2vec_baseline.py -m ${method} -e models/word2vec/$language/ -t $gold/$language/targets.txt > $data/results/$language/word2vec_${method}.txt
-    done
-
+	python3 ../code/word2vec_baseline.py -m align -e word2vec/$language/ -t targets/$language/targets.txt > results2022/$language/SGNS.tsv
+	python3 ../code/new_scores/binary_scores.py -i ../results2022/${language}/SGNS_raw.tsv -o ../results2022/${language}/SGNS_binary.tsv
+	python3 ../code/new_scores/binary_scores.py -i ../results2022/${language}/SGNS_lemma.tsv -o ../results2022/${language}/SGNS_lemma_binary.tsv
 done
