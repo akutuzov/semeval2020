@@ -7,7 +7,7 @@ import logging
 from sklearn.decomposition import PCA
 from sklearn import preprocessing
 
-# Cosine similarity (COS) algorithm
+# Cosine distance between prototype embeddings (PRT) algorithm
 
 if __name__ == '__main__':
     logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO)
